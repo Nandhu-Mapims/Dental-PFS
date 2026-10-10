@@ -1,3 +1,5 @@
+import { HOSPITAL } from "./hospital.js";
+
 /** Pre-recorded AI voice prompts (upload to uploads/feedback-voice/ai_voice/). */
 export const AI_VOICE_DIR = "feedback-voice/ai_voice";
 
@@ -16,7 +18,7 @@ export const AI_VOICE_FILES = {
 export const DEFAULT_BOT_CONVERSATION = {
   key: "default",
   introText:
-    "வணக்கம்! MAPIMS மருத்துவமனையில் உங்கள் அனுபவத்தைப் பற்றி சில கேள்விகள் கேட்கிறோம். ஒவ்வொரு கேள்விக்கும் பிறகு சிறிது நேரம் யோசித்து, உங்கள் பதிலைச் சொல்லுங்கள்.",
+    `வணக்கம்! ${HOSPITAL.nameTaLocative} உங்கள் அனுபவத்தைப் பற்றி சில கேள்விகள் கேட்கிறோம். ஒவ்வொரு கேள்விக்கும் பிறகு சிறிது நேரம் யோசித்து, உங்கள் பதிலைச் சொல்லுங்கள்.`,
   introAudioRelPath: AI_VOICE_FILES.intro,
   questions: [
     {

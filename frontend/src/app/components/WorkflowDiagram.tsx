@@ -14,18 +14,18 @@ export function WorkflowDiagram() {
       </div>
 
       {/* Main Workflow - Horizontal */}
-      <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl mb-10 border-2 border-[#2A6FDB]">
+      <div className="bg-white rounded-3xl p-8 md:p-12 shadow-xl mb-10 border-2 border-primary">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Step 1: Feedback Input */}
           <div className="flex flex-col items-center text-center flex-1">
-            <div className="w-20 h-20 md:w-24 md:h-24 bg-[#2A6FDB] rounded-2xl flex items-center justify-center mb-3 shadow-lg">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-primary rounded-2xl flex items-center justify-center mb-3 shadow-lg">
               <MessageSquare size={40} className="text-white" strokeWidth={2.5} />
             </div>
             <h3 className="font-bold text-gray-800 mb-1 text-lg">Feedback Input</h3>
             <p className="text-sm text-gray-600">Multi-channel</p>
           </div>
 
-          <ArrowRight size={36} className="text-[#2A6FDB] hidden md:block" strokeWidth={3} />
+          <ArrowRight size={36} className="text-primary hidden md:block" strokeWidth={3} />
 
           {/* Step 2: Data Storage */}
           <div className="flex flex-col items-center text-center flex-1">
@@ -36,7 +36,7 @@ export function WorkflowDiagram() {
             <p className="text-sm text-gray-600">Secure database</p>
           </div>
 
-          <ArrowRight size={36} className="text-[#2A6FDB] hidden md:block" strokeWidth={3} />
+          <ArrowRight size={36} className="text-primary hidden md:block" strokeWidth={3} />
 
           {/* Step 3: AI Analysis */}
           <div className="flex flex-col items-center text-center flex-1">
@@ -47,7 +47,7 @@ export function WorkflowDiagram() {
             <p className="text-sm text-gray-600">Sentiment detection</p>
           </div>
 
-          <ArrowRight size={36} className="text-[#2A6FDB] hidden md:block" strokeWidth={3} />
+          <ArrowRight size={36} className="text-primary hidden md:block" strokeWidth={3} />
 
           {/* Step 4: Decision Engine */}
           <div className="flex flex-col items-center text-center flex-1">
@@ -58,7 +58,7 @@ export function WorkflowDiagram() {
             <p className="text-sm text-gray-600">Smart routing</p>
           </div>
 
-          <ArrowRight size={36} className="text-[#2A6FDB] hidden md:block" strokeWidth={3} />
+          <ArrowRight size={36} className="text-primary hidden md:block" strokeWidth={3} />
 
           {/* Step 5: Outcome */}
           <div className="flex flex-col items-center text-center flex-1">
@@ -192,14 +192,14 @@ export function WorkflowDiagram() {
       </div>
 
       {/* AI Features Section */}
-      <div className="bg-gradient-to-r from-[#8B5CF6] to-[#2A6FDB] rounded-3xl p-1 shadow-xl">
+      <div className="bg-gradient-to-r from-[#8B5CF6] to-primary rounded-3xl p-1 shadow-xl">
         <div className="bg-white rounded-[22px] p-8">
           <h3 className="text-2xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-3">
             <Brain size={32} className="text-[#8B5CF6]" />
             AI-Powered Intelligence
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-[#F5F7FA] rounded-xl p-6 border-l-4 border-[#8B5CF6]">
+            <div className="bg-[#FAF7F2] rounded-xl p-6 border-l-4 border-[#8B5CF6]">
               <div className="flex items-start gap-3 mb-3">
                 <Brain size={28} className="text-[#8B5CF6] flex-shrink-0" />
                 <div>
@@ -210,9 +210,9 @@ export function WorkflowDiagram() {
                 </div>
               </div>
             </div>
-            <div className="bg-[#F5F7FA] rounded-xl p-6 border-l-4 border-[#2A6FDB]">
+            <div className="bg-[#FAF7F2] rounded-xl p-6 border-l-4 border-primary">
               <div className="flex items-start gap-3 mb-3">
-                <MessageSquare size={28} className="text-[#2A6FDB] flex-shrink-0" />
+                <MessageSquare size={28} className="text-primary flex-shrink-0" />
                 <div>
                   <h4 className="font-bold text-gray-800 mb-2 text-lg">Keyword Extraction</h4>
                   <p className="text-sm text-gray-600 leading-relaxed">
@@ -221,7 +221,7 @@ export function WorkflowDiagram() {
                 </div>
               </div>
             </div>
-            <div className="bg-[#F5F7FA] rounded-xl p-6 border-l-4 border-[#2FBF71]">
+            <div className="bg-[#FAF7F2] rounded-xl p-6 border-l-4 border-[#2FBF71]">
               <div className="flex items-start gap-3 mb-3">
                 <GitBranch size={28} className="text-[#2FBF71] flex-shrink-0" />
                 <div>

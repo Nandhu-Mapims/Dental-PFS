@@ -275,7 +275,7 @@ export function InsightsKpiDetailDialog({
                   onClick={() => setEncounter(opt)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition-colors ${
                     encounter === opt
-                      ? "bg-[#2A6FDB] text-white border-[#2A6FDB]"
+                      ? "bg-primary text-white border-primary"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                   }`}
                 >
@@ -294,7 +294,7 @@ export function InsightsKpiDetailDialog({
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search name, UHID, department…"
-              className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2A6FDB]/30"
+              className="w-full rounded-lg border border-gray-200 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
             />
           </div>
         </div>
@@ -397,7 +397,7 @@ function PatientTable({
                     e.stopPropagation();
                     onView(g.representative);
                   }}
-                  className="text-xs font-semibold text-[#2A6FDB] hover:underline whitespace-nowrap"
+                  className="text-xs font-semibold text-primary hover:underline whitespace-nowrap"
                 >
                   View
                 </button>
@@ -473,7 +473,7 @@ function SubmissionTable({
                     e.stopPropagation();
                     onView(item);
                   }}
-                  className="text-xs font-semibold text-[#2A6FDB] hover:underline whitespace-nowrap"
+                  className="text-xs font-semibold text-primary hover:underline whitespace-nowrap"
                 >
                   View
                 </button>

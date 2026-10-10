@@ -39,7 +39,7 @@ export function EncounterTypeFilterTabs({
             onClick={() => onChange(opt.id)}
             className={`flex-1 sm:flex-none px-3 sm:px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
               value === opt.id
-                ? "bg-[#2A6FDB] text-white shadow-sm"
+                ? "bg-primary text-white shadow-sm"
                 : "text-gray-600 hover:bg-white"
             }`}
           >

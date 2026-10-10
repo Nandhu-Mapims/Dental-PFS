@@ -382,7 +382,7 @@ export function TicketDetail() {
       {/* Back Button */}
       <button
         onClick={() => navigate(isAdmin ? "/admin/tickets" : "/dashboard")}
-        className="flex items-center gap-2 text-gray-600 hover:text-blue-600 mb-6 text-lg"
+        className="flex items-center gap-2 text-gray-600 hover:text-brand-600 mb-6 text-lg"
       >
         <ArrowLeft size={20} />
         {isAdmin ? "Back to Ticket Management" : "Back to Dashboard"}
@@ -428,7 +428,7 @@ export function TicketDetail() {
               >
                 {rowSentiment ? `AI sentiment: ${rowSentiment}` : "AI sentiment: pending"}
               </span>
-              <span className="px-4 py-2 rounded-full text-sm font-bold bg-[#94a3b8] text-white">
+              <span className="px-4 py-2 rounded-full text-sm font-bold bg-[#A39A91] text-white">
                 Rating: {ticket.rating}/5
               </span>
               {(ticket.rating ?? 0) <= 2 && (
@@ -495,7 +495,7 @@ export function TicketDetail() {
                 type="button"
                 onClick={() => void handleAssign(defaultHodUser._id)}
                 disabled={isSaving}
-                className="px-3.5 py-2 rounded-lg text-sm font-semibold bg-[#2A6FDB] text-white disabled:opacity-50"
+                className="px-3.5 py-2 rounded-lg text-sm font-semibold bg-primary text-white disabled:opacity-50"
               >
                 Assign to {defaultHodUser.username}
               </button>
@@ -529,7 +529,7 @@ export function TicketDetail() {
           {/* Patient Information */}
           <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
             <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <User size={24} className="text-blue-600" />
+              <User size={24} className="text-brand-600" />
               Patient Information
             </h3>
             <div className="grid grid-cols-2 gap-4">
@@ -599,15 +599,15 @@ export function TicketDetail() {
           </div>
 
           {/* AI Analysis (OpenRouter when configured on API) */}
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border-2 border-[#2A6FDB] shadow-sm">
+          <div className="bg-gradient-to-r from-purple-50 to-brand-50 rounded-xl p-6 border-2 border-primary shadow-sm">
             <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
-              <AlertCircle size={24} className="text-[#2A6FDB]" />
+              <AlertCircle size={24} className="text-primary" />
               AI Sentiment Analysis
             </h3>
             {(ticket.aiSentiment || ticket.aiUrgency) && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {rowSentiment && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-white border border-[#2A6FDB] text-[#2A6FDB] capitalize">
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-white border border-primary text-primary capitalize">
                     {rowSentiment}
                   </span>
                 )}
@@ -651,7 +651,7 @@ export function TicketDetail() {
               <div className="space-y-5">
                 {(displayMode === "voice" || speechToTextText) && (
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-xs font-semibold text-[#2A6FDB] uppercase tracking-wide mb-2">
+                    <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2">
                       Speech-to-text {displayMode === "voice" ? "(Sarvam — converted from voice)" : ""}
                     </p>
                     <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
@@ -754,7 +754,7 @@ export function TicketDetail() {
           {ticket.feedbackIssues && ticket.feedbackIssues.length > 0 && (
             <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
               <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <Building2 size={24} className="text-blue-600" />
+                <Building2 size={24} className="text-brand-600" />
                 Categorized issues
                 {ticket.feedbackIssues.length > 1 ? (
                   <span className="text-sm font-normal text-gray-500">
@@ -833,7 +833,7 @@ export function TicketDetail() {
                 <select
                   value={assigneeId}
                   onChange={(e) => setAssigneeId(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none mb-3"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none mb-3"
                 >
                   <option value="">Unassigned</option>
                   {hodAssignees.map((u) => (
@@ -852,7 +852,7 @@ export function TicketDetail() {
                   type="button"
                   onClick={() => void handleAssign(assigneeId || null)}
                   disabled={isSaving || assigneeId === (ticket.assignedToUserId || "")}
-                  className="w-full bg-[#2A6FDB] text-white py-2.5 rounded-lg font-semibold text-sm disabled:opacity-50"
+                  className="w-full bg-primary text-white py-2.5 rounded-lg font-semibold text-sm disabled:opacity-50"
                 >
                   {isSaving ? "Saving…" : assignButtonLabel}
                 </button>
@@ -914,7 +914,7 @@ export function TicketDetail() {
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as FeedbackItem["status"])}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none mb-4"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none mb-4"
             >
               <option value="New">New</option>
               <option value="In Progress">In Progress</option>
@@ -933,7 +933,7 @@ export function TicketDetail() {
                   rows={4}
                   required
                   placeholder="Describe what was done / how this was resolved…"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none resize-y"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none resize-y"
                 />
                 <p className="text-xs text-gray-500 mt-1">This comment is visible to admin.</p>
               </div>

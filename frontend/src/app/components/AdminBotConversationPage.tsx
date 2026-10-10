@@ -203,7 +203,7 @@ export function AdminBotConversationPage() {
           Upload saved <strong>audio</strong> (MP3) for intro and each question. Files are stored in{" "}
           <code className="text-xs bg-gray-100 px-1 rounded">uploads/feedback-voice/ai_voice/</code>
         </p>
-        <p className="text-sm text-[#2A6FDB] mt-2 font-medium">
+        <p className="text-sm text-primary mt-2 font-medium">
           Patient link: <span className="font-mono">{patientRoutes.bot}</span>
         </p>
       </div>
@@ -265,7 +265,7 @@ export function AdminBotConversationPage() {
             type="button"
             onClick={addQuestion}
             disabled={draftQuestions.length >= MAX_QUESTIONS}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#2A6FDB] text-[#2A6FDB] text-sm font-semibold hover:bg-[#2A6FDB]/5 disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-primary text-primary text-sm font-semibold hover:bg-primary/5 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             Add question
@@ -338,7 +338,7 @@ export function AdminBotConversationPage() {
         type="button"
         disabled={saving}
         onClick={() => void saveAll()}
-        className="px-5 py-2.5 rounded-lg bg-[#2A6FDB] text-white font-semibold disabled:opacity-50"
+        className="px-5 py-2.5 rounded-lg bg-primary text-white font-semibold disabled:opacity-50"
       >
         {saving ? "Saving…" : "Save questions"}
       </button>

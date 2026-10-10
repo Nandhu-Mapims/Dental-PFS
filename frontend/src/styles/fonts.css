@@ -1,0 +1,5 @@
+/* Self-hosted so kiosks keep the font offline. Noto Sans Tamil covers the bot's Tamil text. */
+@import '@fontsource-variable/plus-jakarta-sans';
+@import '@fontsource/noto-sans-tamil/400.css';
+@import '@fontsource/noto-sans-tamil/600.css';
+@import '@fontsource/noto-sans-tamil/700.css';

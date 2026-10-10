@@ -445,7 +445,7 @@ export function AdminTicketsPage() {
             type="button"
             onClick={() => void handleOpenNegativeTickets()}
             disabled={isLoading || isSyncing}
-            className="h-9 px-3 rounded-lg bg-[#2A6FDB] text-sm font-medium text-white hover:bg-[#1e5bbd] disabled:opacity-50"
+            className="h-9 px-3 rounded-lg bg-primary text-sm font-medium text-white hover:bg-primary-hover disabled:opacity-50"
             title="Assign ticket IDs where AI sentiment is negative"
           >
             {isSyncing ? "Syncing…" : "Open AI-negative"}
@@ -481,7 +481,7 @@ export function AdminTicketsPage() {
           }}
           className={`rounded-xl border px-3 py-2.5 text-left transition-colors ${
             !hasDimensionFilters
-              ? "border-[#2A6FDB] bg-blue-50/60 ring-1 ring-[#2A6FDB]/20"
+              ? "border-primary bg-brand-50/60 ring-1 ring-primary/20"
               : "border-gray-200 bg-white hover:bg-gray-50"
           }`}
         >
@@ -542,16 +542,16 @@ export function AdminTicketsPage() {
           <p className="text-xl font-bold tabular-nums text-rose-800">{ticketStats.unassignedCount}</p>
           <p className="text-[10px] text-rose-700/80">Needs HOD</p>
         </button>
-        <div className="rounded-xl border border-blue-200 bg-blue-50/50 px-3 py-2.5">
-          <p className="text-[10px] font-medium text-[#1e5bbd] uppercase tracking-wide">This week</p>
-          <p className="text-xl font-bold tabular-nums text-[#2A6FDB]">{ticketStats.pendingThisWeek}</p>
-          <p className="text-[10px] text-[#1e5bbd]/80">Open this week</p>
+        <div className="rounded-xl border border-brand-200 bg-brand-50/50 px-3 py-2.5">
+          <p className="text-[10px] font-medium text-primary-hover uppercase tracking-wide">This week</p>
+          <p className="text-xl font-bold tabular-nums text-primary">{ticketStats.pendingThisWeek}</p>
+          <p className="text-[10px] text-primary-hover/80">Open this week</p>
         </div>
         <div className="rounded-xl border border-gray-200 bg-white px-3 py-2.5">
           <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wide">Resolved</p>
           <p className="text-xl font-bold tabular-nums text-emerald-700">{resolvedCount}</p>
           {hasDimensionFilters ? (
-            <p className="text-[10px] text-[#1e5bbd] mt-0.5">
+            <p className="text-[10px] text-primary-hover mt-0.5">
               In view: <span className="font-semibold tabular-nums">{sortedItems.length}</span>
             </p>
           ) : (
@@ -574,13 +574,13 @@ export function AdminTicketsPage() {
             >
               <div
                 className={`w-full max-w-[32px] rounded-t transition-all ${
-                  week.isCurrentWeek ? "bg-[#2A6FDB]" : "bg-amber-400/80"
+                  week.isCurrentWeek ? "bg-primary" : "bg-amber-400/80"
                 }`}
                 style={{ height: `${Math.max(week.count > 0 ? 8 : 2, (week.count / maxWeekCount) * 48)}px` }}
               />
               <span
                 className={`text-[9px] truncate w-full text-center ${
-                  week.isCurrentWeek ? "text-[#2A6FDB] font-semibold" : "text-gray-500"
+                  week.isCurrentWeek ? "text-primary font-semibold" : "text-gray-500"
                 }`}
               >
                 {week.label.replace(/^Wk /, "")}

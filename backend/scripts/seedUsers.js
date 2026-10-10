@@ -1,5 +1,5 @@
 /**
- * Seeds hospital departments (100+) and initial admin/staff users.
+ * Seeds hospital departments (from src/hospital.js) and initial admin/staff users.
  * Run from backend folder: npm run seed
  *
  * Departments: skips names already in the database (idempotent).

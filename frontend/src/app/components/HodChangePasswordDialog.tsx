@@ -72,7 +72,7 @@ export function HodChangePasswordDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5 text-[#2A6FDB]" />
+            <KeyRound className="h-5 w-5 text-primary" />
             Change password
           </DialogTitle>
           <DialogDescription>
@@ -89,7 +89,7 @@ export function HodChangePasswordDialog({
               <button
                 type="button"
                 onClick={() => handleOpenChange(false)}
-                className="rounded-lg bg-[#2A6FDB] px-4 py-2 text-sm font-semibold text-white"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white"
               >
                 Done
               </button>
@@ -105,7 +105,7 @@ export function HodChangePasswordDialog({
                 onChange={(event) => setCurrentPassword(event.target.value)}
                 required
                 autoComplete="current-password"
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-[#2A6FDB] focus:ring-2 focus:ring-blue-100"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-brand-100"
               />
             </label>
             <label className="block text-sm font-medium text-gray-700">
@@ -117,7 +117,7 @@ export function HodChangePasswordDialog({
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-[#2A6FDB] focus:ring-2 focus:ring-blue-100"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-brand-100"
               />
             </label>
             <label className="block text-sm font-medium text-gray-700">
@@ -129,7 +129,7 @@ export function HodChangePasswordDialog({
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-[#2A6FDB] focus:ring-2 focus:ring-blue-100"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-brand-100"
               />
             </label>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -145,7 +145,7 @@ export function HodChangePasswordDialog({
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-lg bg-[#2A6FDB] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
               >
                 {saving ? "Changing…" : "Change password"}
               </button>

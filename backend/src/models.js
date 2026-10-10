@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { sanitizePatientName } from "./fieldSanitize.js";
+import { HOSPITAL } from "./hospital.js";
 
 const departmentServiceSchema = new mongoose.Schema(
   {
@@ -225,9 +226,9 @@ const botConversationConfigSchema = new mongoose.Schema(
 const brandingSchema = new mongoose.Schema(
   {
     key: { type: String, required: true, unique: true, default: "global" },
-    primaryColor: { type: String, required: true, default: "#2A6FDB" },
-    accentColor: { type: String, required: true, default: "#2FBF71" },
-    pageBackgroundColor: { type: String, required: true, default: "#F5F7FA" },
+    primaryColor: { type: String, required: true, default: HOSPITAL.theme.primaryColor },
+    accentColor: { type: String, required: true, default: HOSPITAL.theme.accentColor },
+    pageBackgroundColor: { type: String, required: true, default: HOSPITAL.theme.pageBackgroundColor },
     logoDataUrl: { type: String, default: null },
     /** Max seconds for patient voice feedback recording (admin-controlled). */
     voiceRecordingMaxSeconds: { type: Number, default: 120, min: 15, max: 600 },

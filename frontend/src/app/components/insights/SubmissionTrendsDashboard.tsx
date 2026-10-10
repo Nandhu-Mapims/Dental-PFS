@@ -48,7 +48,7 @@ import type { InsightsDataState } from "./useInsightsData";
 // Colour comes from the shared, validated chart palette (see chartPalette.ts) --
 // keyed to the department name so an entity keeps its colour across re-sorts
 // and date-range changes, rather than to its position in the current array.
-const CHART_CARD = "rounded-2xl shadow-sm border border-gray-100 transition-shadow hover:shadow-md hover:border-blue-200";
+const CHART_CARD = "rounded-2xl shadow-sm border border-gray-100 transition-shadow hover:shadow-md hover:border-brand-200";
 
 type VolumePoint = { key: string; label: string; count: number };
 type SentimentPoint = {
@@ -304,7 +304,7 @@ export function SubmissionTrendsDashboard({
           label="Submissions"
           value={filteredTotal}
           sub="All rows · click to view"
-          icon={<TrendingUp size={16} className="text-blue-600" />}
+          icon={<TrendingUp size={16} className="text-brand-600" />}
           onClick={() => openKpi("submissions")}
         />
         <InsightsKpiCard
@@ -408,7 +408,7 @@ export function SubmissionTrendsDashboard({
 
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-          <BarChart3 size={20} className="text-[#2A6FDB]" />
+          <BarChart3 size={20} className="text-primary" />
           Department & service sentiment
         </h2>
         <Card className={CHART_CARD}>
@@ -430,7 +430,7 @@ export function SubmissionTrendsDashboard({
                   layout="vertical"
                   margin={{ left: 4, right: 16, top: 8, bottom: 8 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                   <XAxis type="number" allowDecimals={false} />
                   <YAxis type="category" dataKey="label" width={200} tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -499,7 +499,7 @@ export function SubmissionTrendsDashboard({
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={sentimentChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
@@ -567,7 +567,7 @@ export function SubmissionTrendsDashboard({
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={submissionsByHour}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={2} />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
@@ -606,7 +606,7 @@ export function SubmissionTrendsDashboard({
                     layout="vertical"
                     margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value: number) => [`${value} submission(s)`, "Count"]} />
@@ -650,7 +650,7 @@ export function SubmissionTrendsDashboard({
                     layout="vertical"
                     margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value: number) => [`${value} complaint(s)`, "Count"]} />
@@ -685,7 +685,7 @@ export function SubmissionTrendsDashboard({
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={categoryData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis dataKey="category" type="category" width={130} tick={{ fontSize: 11 }} />
                 <Tooltip />
@@ -744,7 +744,7 @@ function TrendLineCard({
         ) : (
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis allowDecimals={false} />
               <Tooltip />

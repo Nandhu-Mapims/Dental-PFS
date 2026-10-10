@@ -20,7 +20,7 @@ export function PaperUpload() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-blue-100">
+      <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10 border border-brand-100">
         {/* Header */}
         <div className="text-center mb-8">
           <h2 className="text-3xl md:text-4xl text-gray-800 mb-3">
@@ -38,7 +38,7 @@ export function PaperUpload() {
             className={`border-4 border-dashed rounded-3xl p-12 md:p-16 flex flex-col items-center gap-6 cursor-pointer transition-all duration-200 ${
               uploadedFile
                 ? 'border-green-400 bg-green-50'
-                : 'border-blue-300 bg-blue-50 hover:bg-blue-100 hover:border-blue-400'
+                : 'border-brand-300 bg-brand-50 hover:bg-brand-100 hover:border-brand-400'
             }`}
           >
             {uploadedFile ? (
@@ -53,7 +53,7 @@ export function PaperUpload() {
               </>
             ) : (
               <>
-                <Upload size={80} className="text-blue-600" strokeWidth={2} />
+                <Upload size={80} className="text-brand-600" strokeWidth={2} />
                 <div className="text-center">
                   <p className="text-xl md:text-2xl font-semibold text-gray-800 mb-2">
                     Click to upload or drag and drop
@@ -112,7 +112,7 @@ export function PaperUpload() {
         <div className="text-center">
           <button
             onClick={() => navigate(patientRoutes.home)}
-            className="text-gray-500 hover:text-[#2A6FDB] text-lg transition-colors"
+            className="text-gray-500 hover:text-primary text-lg transition-colors"
           >
             ← Choose Different Method
           </button>

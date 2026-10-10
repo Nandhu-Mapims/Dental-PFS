@@ -5,16 +5,18 @@ interface FeedbackRemarkFieldProps {
 
 export function FeedbackRemarkField({ value, onChange }: FeedbackRemarkFieldProps) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
-      <label className="block text-sm font-medium text-gray-800 mb-1">Remark (optional)</label>
-      <p className="text-xs text-gray-600 mb-2">
+    <div>
+      <label className="block text-sm font-semibold text-gray-800 mb-0.5">
+        Remark <span className="font-normal text-gray-400">(optional)</span>
+      </label>
+      <p className="text-xs text-gray-500 mb-2">
         Any extra note to include with this feedback. Leave blank if not needed.
       </p>
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="e.g. Collected at the desk, patient needed assistance…"
-        className="w-full h-24 p-3 text-sm border border-gray-200 rounded-lg outline-none resize-none bg-white"
+        className="w-full h-24 px-4 py-3 text-sm text-gray-900 border border-gray-300 rounded-xl outline-none resize-none bg-white transition placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10"
       />
     </div>
   );

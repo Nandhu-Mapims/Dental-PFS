@@ -9,13 +9,14 @@ import {
   onBrandingSettingsChange,
 } from "../lib/branding";
 import { FeedbackModeCards } from "./FeedbackModeCards";
+import { HOSPITAL } from "../lib/hospital";
 
 /** Same patient feedback entry as Welcome — used when staff open Submit feedback after login. */
 export function FeedbackMode() {
   const navigate = useNavigate();
   const session = getSession();
-  const [primaryColor, setPrimaryColor] = useState("#2A6FDB");
-  const [accentColor, setAccentColor] = useState("#2FBF71");
+  const [primaryColor, setPrimaryColor] = useState("#8B1538");
+  const [accentColor, setAccentColor] = useState("#C9A227");
 
   useEffect(() => {
     void loadBrandingSettings().then((c) => {
@@ -49,8 +50,8 @@ export function FeedbackMode() {
         </div>
 
         <h1 className="text-3xl md:text-4xl font-bold mb-3 text-gray-800">Thank you for visiting</h1>
-        <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: primaryColor }}>
-          MAPIMS Hospital
+        <h2 className="text-3xl md:text-[2.6rem] font-bold leading-tight tracking-tight mb-4 text-balance" style={{ color: primaryColor }}>
+          {HOSPITAL.name}
         </h2>
 
         <p className="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">

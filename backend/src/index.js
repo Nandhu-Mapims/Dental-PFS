@@ -81,6 +81,7 @@ import { buildFeedbackInsightsFilter } from "./insightsFeedbackQuery.js";
 import { createSummaryReportWorker } from "./summaryReportScheduler.js";
 import { generateSummaryReports } from "./summaryReportBuilder.js";
 import { currentPeriodKey, periodRangeForKey } from "./reportPeriods.js";
+import { HOSPITAL } from "./hospital.js";
 
 let pendingAiWorker = null;
 let summaryReportWorker = null;
@@ -197,9 +198,9 @@ function normalizeBotThinkSeconds(value) {
 function serializeBrandingSettings(doc) {
   if (!doc) {
     return {
-      primaryColor: "#2A6FDB",
-      accentColor: "#2FBF71",
-      pageBackgroundColor: "#F5F7FA",
+      primaryColor: HOSPITAL.theme.primaryColor,
+      accentColor: HOSPITAL.theme.accentColor,
+      pageBackgroundColor: HOSPITAL.theme.pageBackgroundColor,
       logoDataUrl: null,
       voiceRecordingMaxSeconds: DEFAULT_VOICE_RECORDING_MAX_SECONDS,
       botThinkSeconds: DEFAULT_BOT_THINK_SECONDS,
@@ -209,7 +210,7 @@ function serializeBrandingSettings(doc) {
   }
   return {
     primaryColor: doc.primaryColor,
-    accentColor: doc.accentColor || "#2FBF71",
+    accentColor: doc.accentColor || HOSPITAL.theme.accentColor,
     pageBackgroundColor: doc.pageBackgroundColor,
     logoDataUrl: doc.logoDataUrl ?? null,
     voiceRecordingMaxSeconds: normalizeVoiceRecordingMaxSeconds(doc.voiceRecordingMaxSeconds),
@@ -484,9 +485,9 @@ async function ensureDefaults() {
   if (brandingCount === 0) {
     await Branding.create({
       key: "global",
-      primaryColor: "#2A6FDB",
-      accentColor: "#2FBF71",
-      pageBackgroundColor: "#F5F7FA",
+      primaryColor: HOSPITAL.theme.primaryColor,
+      accentColor: HOSPITAL.theme.accentColor,
+      pageBackgroundColor: HOSPITAL.theme.pageBackgroundColor,
       logoDataUrl: null,
       voiceRecordingMaxSeconds: DEFAULT_VOICE_RECORDING_MAX_SECONDS,
       botThinkSeconds: DEFAULT_BOT_THINK_SECONDS,
@@ -3166,9 +3167,9 @@ app.get("/api/branding", async (_req, res) => {
     if (!branding) {
       branding = await Branding.create({
         key: "global",
-        primaryColor: "#2A6FDB",
-        accentColor: "#2FBF71",
-        pageBackgroundColor: "#F5F7FA",
+        primaryColor: HOSPITAL.theme.primaryColor,
+        accentColor: HOSPITAL.theme.accentColor,
+        pageBackgroundColor: HOSPITAL.theme.pageBackgroundColor,
         logoDataUrl: null,
         voiceRecordingMaxSeconds: DEFAULT_VOICE_RECORDING_MAX_SECONDS,
         botThinkSeconds: DEFAULT_BOT_THINK_SECONDS,
@@ -3205,7 +3206,7 @@ app.put("/api/branding", requireCapability(CAPABILITIES.BRANDING_MANAGE), async 
       {
         key: "global",
         primaryColor: String(primaryColor).trim(),
-        accentColor: String(accentColor || "#2FBF71").trim(),
+        accentColor: String(accentColor || HOSPITAL.theme.accentColor).trim(),
         pageBackgroundColor: String(pageBackgroundColor).trim(),
         logoDataUrl: typeof logoDataUrl === "string" ? logoDataUrl : null,
         voiceRecordingMaxSeconds: normalizeVoiceRecordingMaxSeconds(voiceRecordingMaxSeconds),
@@ -3227,9 +3228,9 @@ app.delete("/api/branding", requireCapability(CAPABILITIES.BRANDING_MANAGE), asy
       { key: "global" },
       {
         key: "global",
-        primaryColor: "#2A6FDB",
-        accentColor: "#2FBF71",
-        pageBackgroundColor: "#F5F7FA",
+        primaryColor: HOSPITAL.theme.primaryColor,
+        accentColor: HOSPITAL.theme.accentColor,
+        pageBackgroundColor: HOSPITAL.theme.pageBackgroundColor,
         logoDataUrl: null,
         voiceRecordingMaxSeconds: DEFAULT_VOICE_RECORDING_MAX_SECONDS,
         botThinkSeconds: DEFAULT_BOT_THINK_SECONDS,
@@ -3275,6 +3276,10 @@ async function startServer() {
     const server = app.listen(PORT, () => {
       // eslint-disable-next-line no-console
       console.log(`API running on http://localhost:${PORT}`);
+      if (!isEmrPatientLookupEnabled()) {
+        // eslint-disable-next-line no-console
+        console.log("[emr] patient lookup disabled (EMR_QUERY_BUILDER_URL not set) — name-only feedback");
+      }
     });
     server.timeout = 0;
     server.requestTimeout = 0;

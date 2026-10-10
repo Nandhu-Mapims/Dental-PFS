@@ -8,6 +8,7 @@ import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { HOSPITAL } from "../src/hospital.js";
 import {
   SEED_DEPARTMENTS,
   SEED_ROUTING_SERVICES,
@@ -37,7 +38,7 @@ async function seedUsers() {
   const adminPassword = process.env.SEED_ADMIN_PASSWORD || "admin123";
   const staffPassword = process.env.SEED_STAFF_PASSWORD || "staff123";
   const salt = await bcrypt.genSalt(10);
-  const emergency = await Department.findOne({ name: "Emergency" }).lean();
+  const firstDepartment = await Department.findOne({ name: SEED_DEPARTMENTS[0].name }).lean();
 
   const users = [
     {
@@ -50,7 +51,7 @@ async function seedUsers() {
       username: staffUsername,
       passwordHash: await bcrypt.hash(staffPassword, salt),
       role: "staff",
-      departmentId: emergency?._id || null,
+      departmentId: firstDepartment?._id || null,
     },
   ];
 
@@ -95,9 +96,9 @@ async function main() {
 
   await Branding.create({
     key: "global",
-    primaryColor: "#2A6FDB",
-    accentColor: "#2FBF71",
-    pageBackgroundColor: "#F5F7FA",
+    primaryColor: HOSPITAL.theme.primaryColor,
+    accentColor: HOSPITAL.theme.accentColor,
+    pageBackgroundColor: HOSPITAL.theme.pageBackgroundColor,
     logoDataUrl: null,
     voiceRecordingMaxSeconds: 120,
     botThinkSeconds: 3,

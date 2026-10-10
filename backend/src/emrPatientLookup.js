@@ -1,9 +1,6 @@
 import { extractObjectRows } from "./csvExcel.js";
 import { sanitizeOptionalLabel, sanitizePatientName } from "./fieldSanitize.js";
 
-const DEFAULT_EMR_URL =
-  "http://emr.mapims.edu.in/BB15SE/QueryBuilder/wsQueryBuilder.asmx/Getdataset1";
-
 function sqlLiteral(value) {
   return `'${String(value ?? "").replace(/'/g, "''")}'`;
 }
@@ -64,8 +61,10 @@ function resolveDateRange(frmDate, toDate) {
   return { frmDate: formatSqlCalendarDate(start), toDate: todayStr };
 }
 
+/** Opt-in: lookup runs only when an EMR endpoint is configured. */
 export function isEmrPatientLookupEnabled() {
-  return process.env.EMR_PATIENT_LOOKUP_DISABLED !== "true";
+  if (process.env.EMR_PATIENT_LOOKUP_DISABLED === "true") return false;
+  return Boolean(process.env.EMR_QUERY_BUILDER_URL?.trim());
 }
 
 function buildOpQuery({ frmDate, toDate, regno, patname }) {
@@ -202,7 +201,7 @@ function summarizeEmrFailure(status, text, json) {
 }
 
 async function fetchEmrRows(strQuery) {
-  const url = process.env.EMR_QUERY_BUILDER_URL?.trim() || DEFAULT_EMR_URL;
+  const url = process.env.EMR_QUERY_BUILDER_URL?.trim();
   const strCon = process.env.EMR_STR_CON?.trim() || "BB_CONSTR";
   const headers = { "Content-Type": "application/json; charset=UTF-8" };
   const cookie = process.env.EMR_COOKIE?.trim();

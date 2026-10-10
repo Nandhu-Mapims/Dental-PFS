@@ -17,15 +17,22 @@ import {
 import { FeedbackRemarkField } from "./StaffRemarksField";
 import { FeedbackVoiceSection } from "./FeedbackVoiceSection";
 import { PatientIdentitySection } from "./PatientIdentitySection";
+import { PatientCard, PatientFooter, PrimaryAction, StatusNote, StepHeading } from "./PatientCard";
+import { CheckCircle2 } from "lucide-react";
+import rating5 from "./image/rating/rating-5.png";
+import rating4 from "./image/rating/rating-4.png";
+import rating3 from "./image/rating/rating-3.png";
+import rating2 from "./image/rating/rating-2.png";
+import rating1 from "./image/rating/rating-1.png";
 
 type InputKind = "voice" | "type";
 
 const emotions = [
-  { id: 5, emoji: "😍", label: "Excellent", prompt: "What did you love about your visit?" },
-  { id: 4, emoji: "😃", label: "Good", prompt: "What did you like?" },
-  { id: 3, emoji: "😐", label: "Okay", prompt: "How can we improve?" },
-  { id: 2, emoji: "😟", label: "Poor", prompt: "What went wrong?" },
-  { id: 1, emoji: "😡", label: "Very Poor", prompt: "What went wrong?" },
+  { id: 5, image: rating5, label: "Excellent", prompt: "What did you love about your visit?" },
+  { id: 4, image: rating4, label: "Good", prompt: "What did you like?" },
+  { id: 3, image: rating3, label: "Okay", prompt: "How can we improve?" },
+  { id: 2, image: rating2, label: "Poor", prompt: "What went wrong?" },
+  { id: 1, image: rating1, label: "Very Poor", prompt: "What went wrong?" },
 ];
 
 export function FeedbackForm() {
@@ -47,7 +54,7 @@ export function FeedbackForm() {
   const [submitPhase, setSubmitPhase] = useState<"idle" | "text" | "voice">("idle");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [transcriptionPending, setTranscriptionPending] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState("#2A6FDB");
+  const [primaryColor, setPrimaryColor] = useState("#8B1538");
   const prevModeBucketRef = useRef<string | null>(null);
   const outboxIdRef = useRef<string | null>(null);
   const draftCommentsRef = useRef("");
@@ -77,8 +84,6 @@ export function FeedbackForm() {
   const internalSubmit = isInternalUser(getSession());
 
   const selectedEmotionData = emotions.find((e) => e.id === selectedEmotion);
-  const primaryTint = `${primaryColor}1A`;
-  const primarySoftBorder = `${primaryColor}66`;
 
   useEffect(() => {
     void loadBrandingSettings().then((current) => {
@@ -260,120 +265,167 @@ export function FeedbackForm() {
   const showRemark =
     inputKind === "voice" ? voiceReady : Boolean(selectedEmotion);
 
+  const linkClass = "font-semibold underline decoration-1 underline-offset-2 hover:decoration-2";
+
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-3xl shadow-xl p-6 md:p-10">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-8">
-          How was your experience today?
-        </h2>
-
-        <PatientIdentitySection identity={identity} primaryColor={primaryColor} />
-
-        <p
-          className={`mb-8 border rounded-lg p-3 ${inputKind === "voice" ? "text-base font-medium text-gray-800 text-center" : "text-sm text-gray-600"}`}
-          style={{ backgroundColor: primaryTint, borderColor: primarySoftBorder }}
-        >
-          {inputKind === "voice" ? (
-            identity.identificationMode === "name" ? (
-              identity.nameReady ? (
-                <>Ready to listen, {identity.resolvedPatientName}. Tap below to share your experience.</>
+      <PatientCard
+        kicker={inputKind === "voice" ? "Voice feedback" : "Rate & share"}
+        title="How was your experience today?"
+        subtitle={
+          inputKind === "voice"
+            ? "Tell us about your visit in your own words — Tamil, Hindi or English."
+            : "Your feedback reaches the team responsible for your care."
+        }
+      >
+        <section className="mb-8">
+          <StepHeading step={1} title="Your details" primaryColor={primaryColor} />
+          <PatientIdentitySection identity={identity} primaryColor={primaryColor} />
+          <StatusNote
+            primaryColor={primaryColor}
+            ready={inputKind === "voice" && identity.identityReady}
+          >
+            {inputKind === "voice" ? (
+              identity.identificationMode === "name" ? (
+                identity.nameReady ? (
+                  <>Ready to listen, {identity.resolvedPatientName}. Tap below to share your experience.</>
+                ) : (
+                  "Please enter your name before speaking."
+                )
+              ) : identity.identityReady ? (
+                "Visit confirmed from EMR. Tap below to share your experience."
               ) : (
-                "Please enter your name before speaking."
+                "Look up your registration number and confirm your visit from EMR before speaking."
               )
-            ) : identity.identityReady ? (
-              "Visit confirmed from EMR. Tap below to share your experience."
             ) : (
-              "Look up your registration number and confirm your visit from EMR before speaking."
-            )
-          ) : (
-            <>
-              If the patient is elder or unable to read/write, staff can fill this form on their behalf. Prefer
-              to speak?{" "}
-              <button
-                type="button"
-                onClick={() => navigate("/feedback/give?mode=voice", { replace: true })}
-                className="font-semibold underline underline-offset-2"
-                style={{ color: primaryColor }}
-              >
-                Use voice instead
-              </button>{" "}
-              (Tamil, Hindi & English). Or{" "}
-              <button
-                type="button"
-                onClick={() => navigate("/feedback")}
-                className="font-semibold underline underline-offset-2"
-                style={{ color: primaryColor }}
-              >
-                pick again on the previous screen
-              </button>
-              .
-            </>
-          )}
-        </p>
+              <>
+                If the patient is elder or unable to read/write, staff can fill this form on their behalf. Prefer
+                to speak?{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/feedback/give?mode=voice", { replace: true })}
+                  className={linkClass}
+                  style={{ color: primaryColor }}
+                >
+                  Use voice instead
+                </button>{" "}
+                (Tamil, Hindi &amp; English). Or{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate("/feedback")}
+                  className={linkClass}
+                  style={{ color: primaryColor }}
+                >
+                  pick again on the previous screen
+                </button>
+                .
+              </>
+            )}
+          </StatusNote>
+        </section>
 
         {inputKind === "voice" && (
-          <FeedbackVoiceSection
-            nameReady={identity.nameReady}
-            primaryColor={primaryColor}
-            resetRevision={voiceRevision}
-            onVoiceSuccess={onVoiceSuccess}
-            onVoiceCleared={onVoiceCleared}
-            onVoiceError={onVoiceError}
-            onVoiceRecordingReady={onVoiceRecordingReady}
-            onTranscriptionPendingChange={setTranscriptionPending}
-          />
+          <section className="mb-6">
+            <StepHeading
+              step={2}
+              title="Share your experience"
+              hint="Choose a language if you like, then tap the microphone and speak naturally."
+              primaryColor={primaryColor}
+            />
+            <FeedbackVoiceSection
+              nameReady={identity.nameReady}
+              primaryColor={primaryColor}
+              resetRevision={voiceRevision}
+              onVoiceSuccess={onVoiceSuccess}
+              onVoiceCleared={onVoiceCleared}
+              onVoiceError={onVoiceError}
+              onVoiceRecordingReady={onVoiceRecordingReady}
+              onTranscriptionPendingChange={setTranscriptionPending}
+            />
+          </section>
         )}
 
         {inputKind === "type" && (
-          <>
-            <p className="text-sm text-gray-600 text-center mb-5 max-w-lg mx-auto leading-relaxed">
-              Choose how you felt, then{" "}
-              <span className="font-semibold text-gray-800">
-                describe your visit in comments so your rating matches your words.
-              </span>
-            </p>
-            <div className="grid grid-cols-5 gap-2 md:gap-4 mb-8">
-              {emotions.map((emotion) => (
-                <button
-                  key={emotion.id}
-                  type="button"
-                  onClick={() => setSelectedEmotion(emotion.id)}
-                  className={`flex min-h-[106px] md:min-h-[132px] flex-col items-center justify-center gap-2 px-2 py-3 md:p-5 rounded-2xl border-2 transition-all duration-200 ${
-                    selectedEmotion === emotion.id
-                      ? "scale-105 shadow-xl text-white"
-                      : "bg-white border-gray-300 hover:scale-105"
-                  }`}
-                  style={
-                    selectedEmotion === emotion.id
-                      ? { backgroundColor: primaryColor, borderColor: primaryColor }
-                      : { borderColor: "#D1D5DB" }
-                  }
-                >
-                  <span className="text-4xl md:text-5xl leading-none">{emotion.emoji}</span>
-                  <span
-                    className={`text-[11px] md:text-sm text-center leading-tight font-semibold ${
-                      selectedEmotion === emotion.id ? "text-white" : "text-gray-700"
-                    }`}
-                  >
-                    {emotion.label}
+          <section className="mb-8">
+            <StepHeading
+              step={2}
+              title="Rate your visit"
+              hint={
+                <>
+                  Choose how you felt, then{" "}
+                  <span className="font-medium text-gray-700">
+                    describe your visit in comments so your rating matches your words.
                   </span>
-                </button>
-              ))}
+                </>
+              }
+              primaryColor={primaryColor}
+            />
+            <div className="grid grid-cols-5 gap-2 md:gap-3" role="radiogroup" aria-label="Rating">
+              {emotions.map((emotion) => {
+                const selected = selectedEmotion === emotion.id;
+                const dimmed = selectedEmotion != null && !selected;
+                return (
+                  <button
+                    key={emotion.id}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    onClick={() => setSelectedEmotion(emotion.id)}
+                    className="group relative flex min-h-[104px] flex-col items-center justify-center gap-2 rounded-xl border bg-white px-1 py-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md md:min-h-[128px] md:py-5"
+                    style={
+                      selected
+                        ? {
+                            borderColor: primaryColor,
+                            backgroundColor: `${primaryColor}0A`,
+                            boxShadow: `0 0 0 3px ${primaryColor}1F`,
+                          }
+                        : { borderColor: "#E8E1D9" }
+                    }
+                  >
+                    {selected ? (
+                      <CheckCircle2
+                        className="absolute right-1.5 top-1.5 h-4 w-4 md:right-2 md:top-2"
+                        style={{ color: primaryColor }}
+                      />
+                    ) : null}
+                    <img
+                      src={emotion.image}
+                      alt=""
+                      draggable={false}
+                      className={`h-11 w-11 select-none transition-all duration-200 md:h-14 md:w-14 ${
+                        selected
+                          ? "scale-110 drop-shadow-[0_6px_10px_rgb(0_0_0/0.15)]"
+                          : dimmed
+                            ? "opacity-45 grayscale group-hover:opacity-80 group-hover:grayscale-0"
+                            : "group-hover:scale-105"
+                      }`}
+                    />
+                    <span
+                      className={`text-center text-[11px] leading-tight md:text-sm ${
+                        selected ? "font-semibold" : "font-medium text-gray-600"
+                      }`}
+                      style={selected ? { color: primaryColor } : undefined}
+                    >
+                      {emotion.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             {selectedEmotionData && (
-              <div className="mb-6 animate-in fade-in slide-in-from-top duration-300">
-                <label className="block text-xl md:text-2xl font-semibold text-gray-800 mb-4">
+              <div className="mt-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                <label className="mb-2 block text-sm font-semibold text-gray-800 md:text-base">
                   {selectedEmotionData.prompt}
                 </label>
                 <textarea
                   value={comments}
                   onChange={(e) => setComments(e.target.value)}
                   placeholder="Share your thoughts... (optional)"
-                  className="w-full h-32 md:h-40 p-4 md:p-5 text-lg border-2 border-gray-300 rounded-2xl outline-none resize-none transition-all"
+                  className="h-32 w-full resize-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-base text-gray-900 outline-none transition placeholder:text-gray-400 md:h-36"
                   onFocus={(e) => {
                     e.currentTarget.style.borderColor = primaryColor;
-                    e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}33`;
+                    e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderColor = "";
@@ -382,7 +434,7 @@ export function FeedbackForm() {
                 />
               </div>
             )}
-          </>
+          </section>
         )}
 
         {showRemark ? (
@@ -391,38 +443,28 @@ export function FeedbackForm() {
           </div>
         ) : null}
 
-        <button
-          type="button"
+        <PrimaryAction
+          primaryColor={primaryColor}
           onClick={() => void handleSubmit()}
           disabled={!submitEnabled}
-          className={`w-full text-2xl md:text-3xl py-6 md:py-8 rounded-2xl font-bold shadow-lg transition-all duration-200 ${
-            submitEnabled ? "text-white hover:shadow-xl hover:scale-[1.02]" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-          style={submitEnabled ? { backgroundColor: primaryColor } : undefined}
         >
           {isSubmitting ? (
-            <span className="flex items-center justify-center gap-3">
-              <span className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin inline-block" />
+            <>
+              <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" />
               {submitPhase === "voice" ? "Almost done..." : "Submitting..."}
-            </span>
+            </>
           ) : (
             "Submit feedback"
           )}
-        </button>
-        {submitError && <p className="mt-4 text-red-600 text-center font-medium">{submitError}</p>}
-      </div>
+        </PrimaryAction>
+        {submitError && (
+          <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-700">
+            {submitError}
+          </p>
+        )}
+      </PatientCard>
 
-      <div className="mt-6 text-center space-y-3">
-        <p className="text-sm text-gray-500">⚡ Takes less than 20 seconds</p>
-        <button
-          type="button"
-          onClick={() => navigate("/feedback")}
-          className="hover:underline font-medium text-base"
-          style={{ color: primaryColor }}
-        >
-          ← Choose a different feedback method
-        </button>
-      </div>
+      <PatientFooter showTiming onBack={() => navigate("/feedback")} />
     </div>
   );
 }

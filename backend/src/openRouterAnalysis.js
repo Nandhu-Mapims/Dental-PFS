@@ -1,6 +1,7 @@
 import { resolveDepartmentHeuristic } from "./departmentNormalize.js";
 import { sanitizeOptionalLabel } from "./fieldSanitize.js";
 import { filterAiTopicsForTranscript } from "./aiTopicsFilter.js";
+import { HOSPITAL } from "./hospital.js";
 import {
   SYSTEM_JSON_ONLY,
   buildFeedbackAnalysisUserPrompt,
@@ -25,7 +26,7 @@ function openRouterHeaders(apiKey) {
   };
   const referer = process.env.OPENROUTER_HTTP_REFERER?.trim();
   const title =
-    process.env.OPENROUTER_APP_TITLE?.trim() || "MAPIMS Feedback System";
+    process.env.OPENROUTER_APP_TITLE?.trim() || `${HOSPITAL.shortName} Feedback System`;
   if (referer) headers["HTTP-Referer"] = referer;
   headers["X-Title"] = title;
   return headers;

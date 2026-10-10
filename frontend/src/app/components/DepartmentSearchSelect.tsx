@@ -35,12 +35,12 @@ export function DepartmentSearchSelect({
           type="button"
           role="combobox"
           aria-expanded={open}
-          className="w-full p-4 text-lg border-2 border-gray-300 rounded-2xl outline-none transition-all bg-white text-left flex items-center justify-between gap-2 hover:border-gray-400 focus:border-[#2A6FDB] focus:shadow-[0_0_0_4px_#2A6FDB33]"
+          className="w-full h-12 px-4 text-base border border-gray-300 rounded-xl outline-none transition bg-white text-left flex items-center justify-between gap-2 hover:border-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10"
         >
           <span className={value ? "text-gray-900 truncate" : "text-gray-400"}>
             {value || placeholder}
           </span>
-          <ChevronsUpDown className="h-5 w-5 shrink-0 text-gray-400" />
+          <ChevronsUpDown className="h-4 w-4 shrink-0 text-gray-400" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
@@ -57,7 +57,7 @@ export function DepartmentSearchSelect({
                 }}
               >
                 <Check className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
-                <span className="text-gray-500">{placeholder}</span>
+                <span className="text-gray-500">Not sure / skip</span>
               </CommandItem>
               {departments.map((d) => (
                 <CommandItem

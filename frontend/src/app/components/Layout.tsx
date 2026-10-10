@@ -4,6 +4,7 @@ import { Home, BarChart3, Building2, ClipboardList, KeyRound, Settings, UserRoun
 import { getSession, logout } from "../lib/auth";
 import { isUserFeedPath, patientRoutes } from "../lib/patientRoutes";
 import feedbackLogo from "./image/feedback_logo.png";
+import { HOSPITAL } from "../lib/hospital";
 import {
   applyBrandingTheme,
   getBrandingSettings,
@@ -98,17 +99,31 @@ export function Layout() {
       <NetworkStatusIndicator variant="mobile-fixed" />
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
+        <div
+          aria-hidden="true"
+          className="h-1 w-full"
+          style={{
+            background: `linear-gradient(90deg, ${branding.primaryColor} 0%, ${branding.primaryColor} 55%, ${branding.accentColor} 100%)`,
+          }}
+        />
         <div className="w-full max-w-[min(100%,1600px)] mx-auto px-3 sm:px-5 py-3 lg:py-4">
           <div className="flex items-center justify-between gap-2">
             <div className="flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
               <img
                 src={appLogo}
-                alt="MAPIMS feedback system"
+                alt={`${HOSPITAL.shortName} feedback system`}
                 className="h-10 w-auto max-h-11 max-w-[min(140px,36vw)] shrink-0 object-contain sm:h-11 lg:h-12 lg:max-w-[180px]"
               />
               <div className="min-w-0">
-                <h1 className="truncate text-base font-semibold text-gray-800 sm:text-xl">MAPIMS Hospital</h1>
-                <p className="truncate text-xs text-gray-500 sm:text-sm">Patient Feedback System</p>
+                <h1 className="truncate text-base font-bold tracking-tight text-gray-900 sm:text-lg lg:text-xl">
+                  <span className={showHeaderActions ? "2xl:hidden" : "sm:hidden"}>{HOSPITAL.shortName}</span>
+                  <span className={showHeaderActions ? "hidden 2xl:inline" : "hidden sm:inline"}>
+                    {HOSPITAL.name}
+                  </span>
+                </h1>
+                <p className="truncate text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8A6A10] sm:text-[11px]">
+                  Patient Feedback System
+                </p>
               </div>
             </div>
             <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
@@ -117,7 +132,7 @@ export function Layout() {
                 <>
                 {isAdminShell ? (
                   <nav
-                    className="hidden md:inline-flex flex-wrap items-center gap-1 rounded-xl border border-gray-200 bg-gray-100/80 p-1 shadow-sm"
+                    className="hidden md:inline-flex flex-wrap items-center gap-1 rounded-full border border-gray-200 bg-gray-100 p-1"
                     role="tablist"
                     aria-label="Admin sections"
                   >
@@ -126,12 +141,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={onInsightsArea}
                       onClick={() => navigate("/admin/management-overview/submissions")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         onInsightsArea
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={onInsightsArea ? activePrimaryStyle : undefined}
+                      style={onInsightsArea ? activePrimaryBackgroundStyle : undefined}
                     >
                       Insights
                     </button>
@@ -140,12 +155,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path === "/admin" || path === "/admin/delete"}
                       onClick={() => navigate("/admin")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path === "/admin" || path === "/admin/delete"
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path === "/admin" || path === "/admin/delete" ? activePrimaryStyle : undefined}
+                      style={path === "/admin" || path === "/admin/delete" ? activePrimaryBackgroundStyle : undefined}
                     >
                       Overview
                     </button>
@@ -154,12 +169,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path === "/admin/departments"}
                       onClick={() => navigate("/admin/departments")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path === "/admin/departments"
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path === "/admin/departments" ? activePrimaryStyle : undefined}
+                      style={path === "/admin/departments" ? activePrimaryBackgroundStyle : undefined}
                     >
                       Departments
                     </button>
@@ -168,12 +183,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path === "/admin/services"}
                       onClick={() => navigate("/admin/services")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path === "/admin/services"
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path === "/admin/services" ? activePrimaryStyle : undefined}
+                      style={path === "/admin/services" ? activePrimaryBackgroundStyle : undefined}
                     >
                       Services
                     </button>
@@ -182,12 +197,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path === "/admin/users"}
                       onClick={() => navigate("/admin/users")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path === "/admin/users"
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path === "/admin/users" ? activePrimaryStyle : undefined}
+                      style={path === "/admin/users" ? activePrimaryBackgroundStyle : undefined}
                     >
                       Users
                     </button>
@@ -197,12 +212,12 @@ export function Layout() {
                         role="tab"
                         aria-selected={path === "/admin/roles"}
                         onClick={() => navigate("/admin/roles")}
-                        className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                        className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                           path === "/admin/roles"
-                            ? "bg-white shadow-sm"
-                            : "text-gray-600 hover:text-gray-900"
+                            ? "shadow-sm"
+                            : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                         }`}
-                        style={path === "/admin/roles" ? activePrimaryStyle : undefined}
+                        style={path === "/admin/roles" ? activePrimaryBackgroundStyle : undefined}
                       >
                         Roles
                       </button>
@@ -212,12 +227,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path.startsWith("/admin/tickets")}
                       onClick={() => navigate("/admin/tickets")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path.startsWith("/admin/tickets")
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path.startsWith("/admin/tickets") ? activePrimaryStyle : undefined}
+                      style={path.startsWith("/admin/tickets") ? activePrimaryBackgroundStyle : undefined}
                     >
                       Tickets
                     </button>
@@ -226,12 +241,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path === "/admin/bot-conversation"}
                       onClick={() => navigate("/admin/bot-conversation")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path === "/admin/bot-conversation"
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path === "/admin/bot-conversation" ? activePrimaryStyle : undefined}
+                      style={path === "/admin/bot-conversation" ? activePrimaryBackgroundStyle : undefined}
                     >
                       Bot Q&amp;A
                     </button>
@@ -240,12 +255,12 @@ export function Layout() {
                       role="tab"
                       aria-selected={path === "/admin/settings"}
                       onClick={() => navigate("/admin/settings")}
-                      className={`rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
+                      className={`rounded-full px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition-all ${
                         path === "/admin/settings"
-                          ? "bg-white shadow-sm"
-                          : "text-gray-600 hover:text-gray-900"
+                          ? "shadow-sm"
+                          : "text-gray-600 hover:bg-white/70 hover:text-gray-900"
                       }`}
-                      style={path === "/admin/settings" ? activePrimaryStyle : undefined}
+                      style={path === "/admin/settings" ? activePrimaryBackgroundStyle : undefined}
                     >
                       Settings
                     </button>
@@ -265,7 +280,7 @@ export function Layout() {
                       onClick={() => navigate("/management/submissions")}
                       className={`px-4 py-2 rounded-lg border transition-all duration-200 ${
                         onInsightsArea
-                          ? "border-[#2A6FDB] text-[#2A6FDB] bg-blue-50"
+                          ? "border-primary text-primary bg-brand-50"
                           : "border-gray-300 text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -280,7 +295,7 @@ export function Layout() {
                         onClick={() => navigate("/hod/overview")}
                         className={`px-4 py-2 rounded-lg border transition-all duration-200 ${
                           path === "/hod/overview"
-                            ? "border-[#2A6FDB] text-[#2A6FDB] bg-blue-50"
+                            ? "border-primary text-primary bg-brand-50"
                             : "border-gray-300 text-gray-700 hover:bg-gray-100"
                         }`}
                       >
@@ -291,7 +306,7 @@ export function Layout() {
                         onClick={() => navigate("/dashboard")}
                         className={`px-4 py-2 rounded-lg border transition-all duration-200 ${
                           path === "/dashboard"
-                            ? "border-[#2A6FDB] text-[#2A6FDB] bg-blue-50"
+                            ? "border-primary text-primary bg-brand-50"
                             : "border-gray-300 text-gray-700 hover:bg-gray-100"
                         }`}
                       >
@@ -314,7 +329,7 @@ export function Layout() {
                       onClick={() => navigate("/management/submissions")}
                       className={`px-4 py-2 rounded-lg border transition-all duration-200 ${
                         onInsightsArea
-                          ? "border-[#2A6FDB] text-[#2A6FDB] bg-blue-50"
+                          ? "border-primary text-primary bg-brand-50"
                           : "border-gray-300 text-gray-700 hover:bg-gray-100"
                       }`}
                     >
@@ -373,7 +388,7 @@ export function Layout() {
 
       {/* Bottom Navigation - Only for staff views */}
       {showBottomNav && (
-        <nav className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-gray-200 shadow-lg md:hidden">
+        <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 shadow-[0_-6px_16px_-8px_rgb(74_13_31/0.15)] md:hidden">
           <div className="flex justify-around items-center h-16">
             {isAdmin ? (
               <div className="flex w-full justify-around overflow-x-auto">

@@ -172,7 +172,7 @@ export function RecentFeedbackBySentiment({
   const presetChip = (active: boolean) =>
     `rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
       active
-        ? "bg-[#2A6FDB] text-white"
+        ? "bg-primary text-white"
         : "bg-gray-100 text-gray-700 hover:bg-gray-200"
     }`;
 
@@ -236,7 +236,7 @@ export function RecentFeedbackBySentiment({
               type="button"
               disabled={excelDownloadBusy}
               onClick={onDownloadAll}
-              className="h-9 px-3 rounded-lg bg-[#2A6FDB] text-white text-sm font-semibold hover:bg-[#1e5bbd] disabled:opacity-50"
+              className="h-9 px-3 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover disabled:opacity-50"
             >
               {excelDownloadBusy ? "Preparing…" : "Download all time (Excel)"}
             </button>

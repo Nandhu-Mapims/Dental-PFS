@@ -40,7 +40,7 @@ export function ListPagination({
       disabled
         ? "text-gray-300 cursor-not-allowed"
         : active
-          ? "bg-[#2A6FDB] text-white shadow-sm"
+          ? "bg-primary text-white shadow-sm"
           : "text-gray-700 hover:bg-gray-100"
     }`;
 

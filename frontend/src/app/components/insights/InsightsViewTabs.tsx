@@ -5,7 +5,7 @@ import { CAPABILITY, hasCapability } from "../RouteGuards";
 function tabClass({ isActive }: { isActive: boolean }) {
   return `inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-2 sm:px-3 py-2 text-[11px] sm:text-sm font-semibold transition-all ${
     isActive
-      ? "bg-[#2A6FDB] text-white shadow-sm"
+      ? "bg-primary text-white shadow-sm"
       : "text-gray-600 hover:bg-white hover:text-gray-900"
   }`;
 }

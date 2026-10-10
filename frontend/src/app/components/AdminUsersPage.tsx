@@ -39,7 +39,7 @@ import {
 import type { UserRole } from "../lib/auth";
 
 const FIELD_CLASS =
-  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#2A6FDB] focus:ring-4 focus:ring-blue-500/10";
+  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-brand-500/10";
 
 const LABEL_CLASS = "mb-1.5 block text-[13px] font-medium text-gray-700";
 
@@ -142,7 +142,7 @@ function MappingChecklist({
       <div className="mb-2 flex items-center justify-between gap-3">
         <span className="text-[13px] font-medium text-gray-700">{title}</span>
         {selectedIds.length > 0 ? (
-          <span className="rounded-md bg-[#2A6FDB] px-1.5 py-0.5 text-[11px] font-medium text-white">
+          <span className="rounded-md bg-primary px-1.5 py-0.5 text-[11px] font-medium text-white">
             {selectedIds.length}
           </span>
         ) : null}
@@ -184,7 +184,7 @@ function MappingChecklist({
                       type="checkbox"
                       checked={checked}
                       onChange={() => onChange(toggleId(selectedIds, item._id))}
-                      className="h-4 w-4 shrink-0 rounded border-gray-300 accent-[#2A6FDB]"
+                      className="h-4 w-4 shrink-0 rounded border-gray-300 accent-primary"
                     />
                     <span className={checked ? "font-medium text-gray-900" : "text-gray-600"}>
                       {item.name}
@@ -476,7 +476,7 @@ export function AdminUsersPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1e5bbd] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-brand-500/20"
         >
           <Plus size={16} />
           Add user
@@ -488,7 +488,7 @@ export function AdminUsersPage() {
           icon={<UsersIcon size={17} />}
           label="All accounts"
           value={counts.total}
-          gradient="from-[#2A6FDB] to-blue-800"
+          gradient="from-primary to-brand-800"
           active={roleFilter === "all"}
           onClick={() => setRoleFilter("all")}
         />
@@ -582,7 +582,7 @@ export function AdminUsersPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1e5bbd]"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover"
               >
                 <Plus size={15} />
                 Add user
@@ -658,7 +658,7 @@ export function AdminUsersPage() {
                             type="button"
                             onClick={() => startEdit(u)}
                             aria-label={`Edit ${u.username}`}
-                            className="grid h-8 w-8 place-items-center rounded-lg text-gray-500 transition hover:bg-blue-50 hover:text-[#2A6FDB]"
+                            className="grid h-8 w-8 place-items-center rounded-lg text-gray-500 transition hover:bg-brand-50 hover:text-primary"
                           >
                             <Pencil size={15} />
                           </button>
@@ -820,7 +820,7 @@ export function AdminUsersPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1e5bbd] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving ? (
                   <Loader2 className="animate-spin" size={15} />

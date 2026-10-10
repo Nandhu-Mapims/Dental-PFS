@@ -17,7 +17,7 @@ export function FeedbackModeCards({ primaryColor }: FeedbackModeCardsProps) {
             key={choice.id}
             type="button"
             onClick={() => navigate(choice.path)}
-            className="flex h-full min-h-[11.5rem] flex-col items-center justify-center rounded-2xl border-2 border-gray-200 bg-[#F5F7FA] px-4 py-6 md:py-8 transition-all hover:scale-[1.02] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2A6FDB]"
+            className="flex h-full min-h-[11.5rem] flex-col items-center justify-center rounded-2xl border-2 border-gray-200 bg-[#FAF7F2] px-4 py-6 md:py-8 transition-all hover:scale-[1.02] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
           >
             <div
               className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-white shadow-inner"

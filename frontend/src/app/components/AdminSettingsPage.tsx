@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bot, Heart, Keyboard, Mic, Palette } from "lucide-react";
 import feedbackLogo from "./image/feedback_logo.png";
+import { HOSPITAL } from "../lib/hospital";
 import {
   getBrandingSettings,
   loadBrandingSettings,
@@ -53,9 +54,9 @@ function ColorField({
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value.trim())}
-        placeholder="#2A6FDB"
+        placeholder="#8B1538"
         className={`w-full font-mono text-sm px-3 py-2 border rounded-lg outline-none uppercase tracking-wide ${
-          validHex ? "border-gray-300 focus:border-[#2A6FDB] focus:ring-2 focus:ring-[#2A6FDB]/20" : "border-amber-400 bg-amber-50"
+          validHex ? "border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20" : "border-amber-400 bg-amber-50"
         }`}
         spellCheck={false}
       />
@@ -64,9 +65,9 @@ function ColorField({
 }
 
 export function AdminSettingsPage() {
-  const [brandPrimary, setBrandPrimary] = useState("#2A6FDB");
-  const [brandAccent, setBrandAccent] = useState("#2FBF71");
-  const [brandPageBg, setBrandPageBg] = useState("#F5F7FA");
+  const [brandPrimary, setBrandPrimary] = useState("#8B1538");
+  const [brandAccent, setBrandAccent] = useState("#C9A227");
+  const [brandPageBg, setBrandPageBg] = useState("#FAF7F2");
   const [brandLogoDataUrl, setBrandLogoDataUrl] = useState<string | null>(null);
   const [voiceMaxSeconds, setVoiceMaxSeconds] = useState(120);
   const [botThinkSeconds, setBotThinkSeconds] = useState(3);
@@ -108,7 +109,7 @@ export function AdminSettingsPage() {
 
   async function saveBranding() {
     if (!/^#[0-9A-Fa-f]{6}$/.test(brandPrimary) || !/^#[0-9A-Fa-f]{6}$/.test(brandAccent) || !/^#[0-9A-Fa-f]{6}$/.test(brandPageBg)) {
-      setBannerMessage("Use valid hex colors like #2A6FDB for all theme fields.");
+      setBannerMessage("Use valid hex colors like #8B1538 for all theme fields.");
       return;
     }
     try {
@@ -299,7 +300,7 @@ export function AdminSettingsPage() {
           <div className="rounded-lg border border-gray-200 p-4 bg-gray-50 space-y-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                <Bot className="w-5 h-5 text-[#2A6FDB]" />
+                <Bot className="w-5 h-5 text-primary" />
                 AI Voice Guide (bot conversation)
               </h3>
             </div>
@@ -398,7 +399,7 @@ export function AdminSettingsPage() {
               <p className="text-xs text-gray-500 mb-2">Service Completed</p>
               <p className="text-lg font-bold text-gray-800 mb-1">Thank you for visiting</p>
               <p className="text-xl font-bold mb-3" style={{ color: brandPrimary }}>
-                MAPIMS Hospital
+                {HOSPITAL.name}
               </p>
               <p className="text-sm text-gray-600 mb-4">Your feedback helps us improve care</p>
               <div className="grid grid-cols-3 gap-2">

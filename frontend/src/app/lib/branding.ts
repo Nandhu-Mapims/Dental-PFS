@@ -8,9 +8,9 @@ import {
 const BRANDING_UPDATED_EVENT = "feedback:branding-updated";
 
 const DEFAULT_BRANDING: BrandingSettings = {
-  primaryColor: "#2A6FDB",
-  accentColor: "#2FBF71",
-  pageBackgroundColor: "#F5F7FA",
+  primaryColor: "#8B1538",
+  accentColor: "#C9A227",
+  pageBackgroundColor: "#FAF7F2",
   logoDataUrl: null,
   voiceRecordingMaxSeconds: 120,
   botThinkSeconds: 3,
@@ -77,7 +77,8 @@ export async function resetBrandingSettings(): Promise<BrandingSettings> {
 export function applyBrandingTheme(settings: BrandingSettings): void {
   const root = document.documentElement;
   root.style.setProperty("--primary", settings.primaryColor);
-  root.style.setProperty("--accent", settings.accentColor);
+  // Brand accent only — "--accent" is the shadcn hover surface for menus and must stay a light tint.
+  root.style.setProperty("--brand-gold", settings.accentColor);
   root.style.setProperty("--ring", settings.primaryColor);
   root.style.setProperty("--background", settings.pageBackgroundColor);
 }

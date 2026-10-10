@@ -1,16 +1,7 @@
+import { HOSPITAL } from "./hospital.js";
+
 /** Seed hospital departments (visit / EMR labels). */
-export const SEED_DEPARTMENTS = [
-  { name: "Emergency", description: "24/7 emergency and trauma" },
-  { name: "General Medicine", description: "OPD and general wards" },
-  { name: "Cardiology", description: "Heart and cardiac care" },
-  { name: "Neurology", description: "Brain and spine" },
-  { name: "Orthopedics", description: "Bones and joints" },
-  { name: "Pediatrics", description: "Children and neonates" },
-  { name: "Obstetrics & Gynecology", description: "Maternity and women's health" },
-  { name: "Radiology", description: "Imaging and diagnostics" },
-  { name: "Laboratory", description: "Pathology and lab services" },
-  { name: "ICU", description: "Critical care units" },
-];
+export const SEED_DEPARTMENTS = HOSPITAL.departments;
 
 /** AI routing services (under departments on tickets). */
 export const SEED_ROUTING_SERVICES = [
@@ -36,8 +27,8 @@ export function buildSeedFeedback(departmentIds) {
       patientName: "Durgaram",
       patientRegNo: "UHID-10021",
       patientEncounterType: "ip",
-      department: dept("Emergency"),
-      lookupDepartment: dept("Emergency"),
+      department: dept("Oral & Maxillofacial Surgery"),
+      lookupDepartment: dept("Oral & Maxillofacial Surgery"),
       service: "House Keeping",
       rating: 3,
       comments: "Room was not cleaned on time. Linen was delayed.",
@@ -45,11 +36,11 @@ export function buildSeedFeedback(departmentIds) {
       source: "patient",
       aiSentiment: "negative",
       aiUrgency: "medium",
-      aiSummary: "Housekeeping delay in emergency ward.",
+      aiSummary: "Housekeeping delay in the surgery clinic.",
       ticketId: "TKT-FBK-2026-0043",
       feedbackIssues: [
         {
-          department: "Emergency",
+          department: "Oral & Maxillofacial Surgery",
           recommendedService: "House Keeping",
           issueSummary: "Delayed room cleaning and linen",
           suggestedAction: "Escalate to housekeeping supervisor",
@@ -62,8 +53,8 @@ export function buildSeedFeedback(departmentIds) {
       patientName: "Mr. Ganapathy",
       patientRegNo: "UHID-8842",
       patientEncounterType: "op",
-      department: dept("General Medicine"),
-      lookupDepartment: dept("General Medicine"),
+      department: dept("Oral Medicine & Radiology"),
+      lookupDepartment: dept("Oral Medicine & Radiology"),
       service: "Engineering",
       rating: 4,
       comments: "AC was noisy in the waiting area but staff were helpful.",
@@ -77,8 +68,8 @@ export function buildSeedFeedback(departmentIds) {
     {
       patientName: "Priya S",
       patientRegNo: "UHID-7721",
-      department: dept("Cardiology"),
-      lookupDepartment: dept("Cardiology"),
+      department: dept("Conservative Dentistry & Endodontics"),
+      lookupDepartment: dept("Conservative Dentistry & Endodontics"),
       service: "Nursing",
       rating: 2,
       comments: "Long wait for nurse call bell response after procedure.",
@@ -89,10 +80,10 @@ export function buildSeedFeedback(departmentIds) {
       ticketId: "TKT-FBK-2026-0041",
       feedbackIssues: [
         {
-          department: "Cardiology",
+          department: "Conservative Dentistry & Endodontics",
           recommendedService: "Nursing",
           issueSummary: "Slow nursing response",
-          suggestedAction: "Review staffing on cardiology floor",
+          suggestedAction: "Review chair-side staffing in the endodontics clinic",
           ticketId: "TKT-FBK-2026-0041",
         },
       ],
@@ -100,8 +91,8 @@ export function buildSeedFeedback(departmentIds) {
     },
     {
       patientName: "Rajesh Kumar",
-      department: dept("Emergency"),
-      lookupDepartment: dept("Emergency"),
+      department: dept("Oral & Maxillofacial Surgery"),
+      lookupDepartment: dept("Oral & Maxillofacial Surgery"),
       service: "Billing",
       rating: 1,
       comments: "Wrong bill amount and rude billing desk.",
@@ -112,9 +103,9 @@ export function buildSeedFeedback(departmentIds) {
       ticketId: "TKT-FBK-2026-0040",
       feedbackIssues: [
         {
-          department: "Emergency",
+          department: "Oral & Maxillofacial Surgery",
           recommendedService: "Billing",
-          issueSummary: "Billing dispute at emergency discharge",
+          issueSummary: "Billing dispute after oral surgery",
           suggestedAction: "Billing supervisor callback within 2 hours",
           ticketId: "TKT-FBK-2026-0040",
         },
@@ -124,8 +115,8 @@ export function buildSeedFeedback(departmentIds) {
     {
       patientName: "Anitha M",
       patientRegNo: "UHID-5510",
-      department: dept("Pediatrics"),
-      lookupDepartment: dept("Pediatrics"),
+      department: dept("Pedodontics & Preventive Dentistry"),
+      lookupDepartment: dept("Pedodontics & Preventive Dentistry"),
       service: "Food Services",
       rating: 5,
       comments: "Excellent care and timely meals for my child.",
@@ -137,8 +128,8 @@ export function buildSeedFeedback(departmentIds) {
     },
     {
       patientName: "Vikram N",
-      department: dept("Orthopedics"),
-      lookupDepartment: dept("Orthopedics"),
+      department: dept("Orthodontics & Dentofacial Orthopaedics"),
+      lookupDepartment: dept("Orthodontics & Dentofacial Orthopaedics"),
       service: "Pharmacy",
       rating: 3,
       comments: "Medicine stock was out; had to come back next day.",
@@ -151,8 +142,8 @@ export function buildSeedFeedback(departmentIds) {
     {
       patientName: "Lakshmi Devi",
       patientRegNo: "UHID-3301",
-      department: dept("Obstetrics & Gynecology"),
-      lookupDepartment: dept("Obstetrics & Gynecology"),
+      department: dept("Prosthodontics and Crown & Bridge"),
+      lookupDepartment: dept("Prosthodontics and Crown & Bridge"),
       service: "Nursing",
       rating: 5,
       comments: "Very caring nurses during delivery. Thank you.",
@@ -163,8 +154,8 @@ export function buildSeedFeedback(departmentIds) {
     },
     {
       patientName: "Mohammed Ali",
-      department: dept("ICU"),
-      lookupDepartment: dept("ICU"),
+      department: dept("Periodontics & Implantology"),
+      lookupDepartment: dept("Periodontics & Implantology"),
       service: "Engineering",
       rating: 2,
       comments: "Monitor alarm kept beeping; engineer came late.",
@@ -176,8 +167,8 @@ export function buildSeedFeedback(departmentIds) {
     },
     {
       patientName: "Sangeetha R",
-      department: dept("Radiology"),
-      lookupDepartment: dept("Radiology"),
+      department: dept("Oral Medicine & Radiology"),
+      lookupDepartment: dept("Oral Medicine & Radiology"),
       service: "Front Office",
       rating: 4,
       comments: "Scan appointment was on time. Registration was smooth.",
@@ -188,7 +179,7 @@ export function buildSeedFeedback(departmentIds) {
     },
     {
       patientName: "Guest Patient",
-      department: dept("General Medicine"),
+      department: dept("Oral Medicine & Radiology"),
       service: "Security",
       rating: 2,
       comments: "Parking and visitor pass process was confusing.",
@@ -201,8 +192,8 @@ export function buildSeedFeedback(departmentIds) {
     {
       patientName: "Karthik P",
       patientRegNo: "UHID-9901",
-      department: dept("Laboratory"),
-      lookupDepartment: dept("Laboratory"),
+      department: dept("Oral & Maxillofacial Pathology"),
+      lookupDepartment: dept("Oral & Maxillofacial Pathology"),
       service: "IT Support",
       rating: 3,
       comments: "Report not visible on patient portal for two days.",
@@ -214,8 +205,8 @@ export function buildSeedFeedback(departmentIds) {
     },
     {
       patientName: "Meena V",
-      department: dept("Neurology"),
-      lookupDepartment: dept("Neurology"),
+      department: dept("Public Health Dentistry"),
+      lookupDepartment: dept("Public Health Dentistry"),
       service: "Ambulance",
       rating: 1,
       comments: "Ambulance arrived very late for transfer.",
@@ -226,7 +217,7 @@ export function buildSeedFeedback(departmentIds) {
       ticketId: "TKT-FBK-2026-0035",
       feedbackIssues: [
         {
-          department: "Neurology",
+          department: "Public Health Dentistry",
           recommendedService: "Ambulance",
           issueSummary: "Delayed ambulance for inter-hospital transfer",
           suggestedAction: "Review ambulance dispatch SLA",

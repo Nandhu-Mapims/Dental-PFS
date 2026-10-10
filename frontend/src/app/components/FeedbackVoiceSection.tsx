@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AudioLines, Check, Loader } from "lucide-react";
+import { AudioLines, Check, Loader, RotateCcw } from "lucide-react";
 import {
   coerceTranscriptText,
   inferVoiceRatingFromTranscript,
@@ -733,17 +733,17 @@ export function FeedbackVoiceSection({
     (recordingState === "recording" && Boolean(liveTranscript.trim()));
 
   return (
-    <div className={isStaffRemarks ? "mb-2" : "mb-8"}>
-      <div className={`flex flex-col items-center ${isStaffRemarks ? "gap-4 mb-4" : "gap-8 mb-8"}`}>
-        <div className="w-full max-w-sm">
-          <label className="mb-2 block text-sm font-semibold text-gray-700">
+    <div className={isStaffRemarks ? "mb-2" : "mb-6"}>
+      <div className={`flex flex-col items-center ${isStaffRemarks ? "gap-4 mb-4" : "gap-6 mb-6"}`}>
+        <div className="w-full max-w-xs">
+          <label className="mb-1.5 block text-center text-sm font-medium text-gray-700">
             Speech language
           </label>
           <select
             value={speechLanguageCode}
             onChange={(e) => setSpeechLanguageCode(e.target.value as SpeechLanguageCode)}
             disabled={recordingState === "recording" || recordingState === "processing"}
-            className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
+            className="h-11 w-full rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-800 outline-none transition hover:border-gray-400 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:opacity-60"
           >
             <option value="unknown">Auto detect</option>
             <option value="en-IN">English</option>
@@ -755,7 +755,7 @@ export function FeedbackVoiceSection({
         </div>
 
         <div className="text-center min-h-[56px]">
-          <p className={`font-bold text-gray-800 mb-1 ${isStaffRemarks ? "text-base" : "text-xl md:text-2xl"}`}>
+          <p className={`font-semibold tracking-tight text-gray-900 mb-1 ${isStaffRemarks ? "text-base" : "text-lg md:text-xl"}`}>
             {recordingState === "idle" && (isStaffRemarks ? "Tap to record staff note" : "We're ready to listen")}
             {recordingState === "recording" && (isStaffRemarks ? "Recording staff note…" : "We're listening…")}
             {recordingState === "processing" && "One moment…"}
@@ -830,9 +830,9 @@ export function FeedbackVoiceSection({
 
         <div className="w-full max-w-md">
           {recordingState === "processing" ? (
-            <div className="flex items-center justify-center gap-3 rounded-2xl border border-gray-200 bg-gray-50 px-6 py-5 text-gray-600">
-              <Loader size={28} className="animate-spin shrink-0" />
-              <span className="text-base font-medium">
+            <div className="flex items-center justify-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-6 py-4 text-gray-600">
+              <Loader size={20} className="animate-spin shrink-0" />
+              <span className="text-sm font-medium">
                 {isStaffRemarks ? "Transcribing staff note…" : "Understanding your feedback…"}
               </span>
             </div>
@@ -840,11 +840,27 @@ export function FeedbackVoiceSection({
             <button
               type="button"
               onClick={toggleRecording}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-lg font-bold text-white shadow-lg transition-all hover:opacity-95 active:scale-[0.99]"
+              className="flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold text-white shadow-[0_8px_20px_-8px_rgb(74_13_31/0.45)] transition-all hover:brightness-110 active:translate-y-px"
               style={{ backgroundColor: primaryColor }}
             >
-              <Check size={22} strokeWidth={2.5} />
+              <Check size={18} strokeWidth={2.5} />
               Done speaking
+            </button>
+          ) : isStaffRemarks ? (
+            <button
+              type="button"
+              onClick={toggleRecording}
+              disabled={micDisabled || recordingState === "completed"}
+              title={nameMissing ? "Please enter your name to speak" : undefined}
+              className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition-all ${
+                micDisabled || recordingState === "completed"
+                  ? "border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "text-white hover:brightness-110 active:translate-y-px"
+              }`}
+              style={micIsPrimary ? { backgroundColor: primaryColor } : undefined}
+            >
+              <AudioLines size={20} strokeWidth={2} />
+              {recordingState === "completed" ? "Note recorded" : "Record staff note"}
             </button>
           ) : (
             <button
@@ -852,21 +868,38 @@ export function FeedbackVoiceSection({
               onClick={toggleRecording}
               disabled={micDisabled || recordingState === "completed"}
               title={nameMissing ? "Please enter your name to speak" : undefined}
-              className={`w-full flex items-center justify-center gap-3 rounded-2xl px-6 py-5 text-lg md:text-xl font-bold shadow-lg transition-all ${
-                micDisabled || recordingState === "completed"
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "text-white hover:opacity-95 active:scale-[0.99]"
+              className={`group mx-auto flex flex-col items-center gap-3 outline-none ${
+                micDisabled || recordingState === "completed" ? "cursor-not-allowed" : ""
               }`}
-              style={micIsPrimary ? { backgroundColor: primaryColor } : undefined}
             >
-              <AudioLines size={isStaffRemarks ? 22 : 28} strokeWidth={2} />
-              {recordingState === "completed"
-                ? isStaffRemarks
-                  ? "Note recorded"
-                  : "Feedback received"
-                : isStaffRemarks
-                  ? "Record staff note"
-                  : "Share your experience"}
+              <span
+                className={`relative grid h-24 w-24 place-items-center rounded-full transition-all duration-200 group-focus-visible:ring-4 group-focus-visible:ring-primary/25 group-focus-visible:ring-offset-2 ${
+                  micIsPrimary
+                    ? "text-white shadow-[0_14px_30px_-10px_rgb(74_13_31/0.55)] group-hover:scale-105 group-active:scale-100"
+                    : recordingState === "completed"
+                      ? "border border-gray-200 bg-white text-gray-500"
+                      : "border border-gray-200 bg-gray-100 text-gray-400"
+                }`}
+                style={micIsPrimary ? { backgroundColor: primaryColor } : undefined}
+              >
+                {micIsPrimary ? (
+                  <span
+                    aria-hidden
+                    className="absolute -inset-2 rounded-full border opacity-60"
+                    style={{ borderColor: `${primaryColor}40` }}
+                  />
+                ) : null}
+                {recordingState === "completed" ? (
+                  <Check size={34} strokeWidth={2.25} />
+                ) : (
+                  <AudioLines size={34} strokeWidth={2} />
+                )}
+              </span>
+              <span
+                className={`text-base font-semibold ${micIsPrimary ? "text-gray-900" : "text-gray-500"}`}
+              >
+                {recordingState === "completed" ? "Feedback received" : "Share your experience"}
+              </span>
             </button>
           )}
         </div>
@@ -874,11 +907,11 @@ export function FeedbackVoiceSection({
 
       {(displayTranscript || recordingState === "completed" || recordingState === "processing") && (
         <div className="animate-in fade-in slide-in-from-bottom duration-300">
-          <p className="text-sm font-semibold text-gray-600 mb-2">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
             {isStaffRemarks ? "Staff remark transcript" : "What we heard"}
           </p>
-          <div className="bg-[#F5F7FA] rounded-2xl p-5 md:p-6 border-2 border-gray-200 min-h-[100px] mb-4">
-            <p className="text-base md:text-lg text-gray-700 leading-relaxed">{displayTranscript}</p>
+          <div className="mb-4 min-h-[96px] rounded-xl border border-gray-200 bg-gray-50 px-5 py-4">
+            <p className="text-base leading-relaxed text-gray-800">{displayTranscript}</p>
           </div>
           {transcriptionPending && (
             <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -892,9 +925,10 @@ export function FeedbackVoiceSection({
               <button
                 type="button"
                 onClick={recordAgain}
-                className="font-medium hover:underline text-base"
+                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition hover:bg-gray-50"
                 style={{ color: primaryColor }}
               >
+                <RotateCcw size={15} />
                 Speak again
               </button>
             </p>

@@ -404,7 +404,7 @@ export function ManagementOverviewDashboard({
               ? `${unmappedDepartments} without a mapped HOD`
               : "All have a mapped HOD"
           }
-          gradient="from-[#2A6FDB] to-blue-800"
+          gradient="from-primary to-brand-800"
           icon={<Building2 size={22} className="opacity-90" />}
         />
       </div>
@@ -424,7 +424,7 @@ export function ManagementOverviewDashboard({
                 layout="vertical"
                 margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(value: number) => [`${value} complaint(s)`, "Count"]} />
@@ -492,7 +492,7 @@ export function ManagementOverviewDashboard({
                 layout="vertical"
                 margin={{ left: 8, right: 24, top: 4, bottom: 4 }}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
                 <YAxis type="category" dataKey="label" width={90} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(value: number) => [`${value} ticket(s)`, "Open"]} />
@@ -528,7 +528,7 @@ export function ManagementOverviewDashboard({
                 onClick={() => setSort("volume")}
                 className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
                   sort === "volume"
-                    ? "bg-[#2A6FDB] text-white shadow-sm"
+                    ? "bg-primary text-white shadow-sm"
                     : "text-gray-600 hover:bg-white"
                 }`}
               >
@@ -541,7 +541,7 @@ export function ManagementOverviewDashboard({
                 onClick={() => setSort("closeRate")}
                 className={`rounded-lg px-3 py-1.5 font-semibold transition-all ${
                   sort === "closeRate"
-                    ? "bg-[#2A6FDB] text-white shadow-sm"
+                    ? "bg-primary text-white shadow-sm"
                     : "text-gray-600 hover:bg-white"
                 }`}
               >

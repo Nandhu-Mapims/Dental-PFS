@@ -27,7 +27,7 @@ function SessionVoiceAudio({ src, cardPad }: { src: string; cardPad: string }) {
   if (!visible) return null;
   return (
     <div className={`rounded-lg border border-gray-200 bg-gray-50 ${cardPad}`}>
-      <p className="text-xs font-semibold text-[#2A6FDB] uppercase tracking-wide mb-2 flex items-center gap-1">
+      <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-2 flex items-center gap-1">
         <Mic size={14} />
         Combined session audio
       </p>
@@ -71,7 +71,7 @@ export function BotConversationFeedbackSection({
   return (
     <div className="space-y-4">
       {groupNote ? (
-        <p className="text-sm text-[#2A6FDB] font-medium rounded-lg border border-[#2A6FDB]/20 bg-blue-50/60 px-3 py-2">
+        <p className="text-sm text-primary font-medium rounded-lg border border-primary/20 bg-brand-50/60 px-3 py-2">
           {groupNote}
         </p>
       ) : null}
@@ -96,7 +96,7 @@ export function BotConversationFeedbackSection({
               ) : null}
             </div>
             <div>
-              <p className="text-xs font-semibold text-[#2A6FDB] uppercase tracking-wide mb-1">
+              <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-1">
                 Speech-to-text
               </p>
               <p

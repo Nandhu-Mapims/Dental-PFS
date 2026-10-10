@@ -3,6 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { login } from "../lib/auth";
 import feedbackLogo from "./image/feedback_logo.png";
+import { HOSPITAL } from "../lib/hospital";
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -63,16 +64,22 @@ export function LoginPage() {
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        <div className="flex justify-center mb-8">
+      <div className="w-full max-w-md overflow-hidden bg-white rounded-3xl shadow-xl border border-gray-200/70">
+        <div aria-hidden="true" className="h-1.5 bg-gradient-to-r from-primary via-primary to-brand-gold" />
+        <div className="p-8 sm:p-10">
+        <div className="flex justify-center mb-6">
           <img
             src={feedbackLogo}
-            alt="MAPIMS feedback system"
-            className="h-36 sm:h-44 w-auto max-w-[min(100%,320px)] object-contain"
+            alt={`${HOSPITAL.shortName} feedback system`}
+            className="h-32 sm:h-40 w-auto max-w-[min(100%,300px)] object-contain"
           />
         </div>
-        <h2 className="text-3xl font-bold text-gray-800 mb-2 text-center">Mapims feedback system</h2>
-        <p className="text-gray-500 mb-6">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A6A10] mb-2">
+          Patient Feedback System
+        </p>
+        <h2 className="text-2xl sm:text-[1.7rem] font-bold leading-tight text-gray-900 mb-3 text-center">{HOSPITAL.name}</h2>
+        <div aria-hidden="true" className="mx-auto mb-4 h-0.5 w-12 rounded-full bg-brand-gold" />
+        <p className="text-sm text-gray-500 mb-7 text-center">
           Login as Admin, Staff, or HOD to manage feedback.
         </p>
 
@@ -86,7 +93,7 @@ export function LoginPage() {
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               placeholder="admin / staff / hod"
-              className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-[#2A6FDB] outline-none"
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-xl transition focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none"
             />
           </div>
           <div>
@@ -99,7 +106,7 @@ export function LoginPage() {
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 placeholder="Enter password"
-                className="w-full p-3 pr-12 border-2 border-gray-300 rounded-lg focus:border-[#2A6FDB] outline-none"
+                className="w-full px-4 py-3 pr-12 bg-gray-50 border border-gray-300 rounded-xl transition focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none"
               />
               <button
                 type="button"
@@ -112,15 +119,18 @@ export function LoginPage() {
             </div>
           </div>
 
-          {error && <p className="text-red-600 text-sm">{error}</p>}
+          {error && (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          )}
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#2A6FDB] text-white font-semibold rounded-lg hover:bg-[#1e5bbd] transition-colors"
+            className="w-full py-3 mt-2 bg-primary text-white font-semibold rounded-xl shadow-md shadow-primary/20 hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-primary/25 transition-colors"
           >
             Login
           </button>
         </form>
+        </div>
       </div>
     </div>
   );

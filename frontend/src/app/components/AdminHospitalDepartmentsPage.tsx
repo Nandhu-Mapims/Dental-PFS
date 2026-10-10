@@ -31,7 +31,7 @@ import {
 import { HodAssignSelect } from "./HodAssignSelect";
 
 const FIELD_CLASS =
-  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-[#2A6FDB] focus:ring-4 focus:ring-blue-500/10";
+  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-primary focus:ring-4 focus:ring-brand-500/10";
 
 const LABEL_CLASS = "mb-1.5 block text-[13px] font-medium text-gray-700";
 
@@ -208,7 +208,7 @@ export function AdminHospitalDepartmentsPage() {
         <button
           type="button"
           onClick={openCreate}
-          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1e5bbd] focus:outline-none focus:ring-4 focus:ring-blue-500/20"
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover focus:outline-none focus:ring-4 focus:ring-brand-500/20"
         >
           <Plus size={16} />
           Add department
@@ -220,7 +220,7 @@ export function AdminHospitalDepartmentsPage() {
           icon={<Building2 size={17} />}
           label="All departments"
           value={counts.total}
-          gradient="from-[#2A6FDB] to-blue-800"
+          gradient="from-primary to-brand-800"
           active={hodFilter === "all"}
           onClick={() => setHodFilter("all")}
         />
@@ -306,7 +306,7 @@ export function AdminHospitalDepartmentsPage() {
               <button
                 type="button"
                 onClick={openCreate}
-                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#1e5bbd]"
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition hover:bg-primary-hover"
               >
                 <Plus size={15} />
                 Add department
@@ -374,7 +374,7 @@ export function AdminHospitalDepartmentsPage() {
                           type="button"
                           onClick={() => startEdit(dept)}
                           aria-label={`Edit ${dept.name}`}
-                          className="grid h-8 w-8 place-items-center rounded-lg text-gray-500 transition hover:bg-blue-50 hover:text-[#2A6FDB]"
+                          className="grid h-8 w-8 place-items-center rounded-lg text-gray-500 transition hover:bg-brand-50 hover:text-primary"
                         >
                           <Pencil size={15} />
                         </button>
@@ -461,7 +461,7 @@ export function AdminHospitalDepartmentsPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#1e5bbd] disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {saving ? <Loader2 className="animate-spin" size={15} /> : <Check size={15} />}
                 {editingId ? "Save changes" : "Create department"}

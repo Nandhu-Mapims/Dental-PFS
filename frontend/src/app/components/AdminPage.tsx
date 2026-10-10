@@ -33,6 +33,7 @@ import {
   onBrandingSettingsChange,
 } from "../lib/branding";
 import feedbackLogo from "./image/feedback_logo.png";
+import { HOSPITAL } from "../lib/hospital";
 import {
   Bar,
   BarChart,
@@ -62,7 +63,7 @@ const ratingLabel: Record<number, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  New: "#2A6FDB",
+  New: "#8B1538",
   "In Progress": "#F4A261",
   Resolved: "#2FBF71",
 };
@@ -443,7 +444,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
 
       ctx.font = "12px system-ui, sans-serif";
       ctx.fillStyle = "#8B1538";
-      ctx.fillText("MAPIMS Hospital · Feedback System", W / 2, H - pad);
+      ctx.fillText(`${HOSPITAL.shortName} · Feedback System`, W / 2, H - pad);
 
       await new Promise<void>((resolve, reject) => {
         canvas.toBlob(
@@ -455,7 +456,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
             const url = URL.createObjectURL(blob);
             const anchor = document.createElement("a");
             anchor.href = url;
-            anchor.download = "mapims-feedback-qr-poster.png";
+            anchor.download = `${HOSPITAL.shortName.toLowerCase()}-feedback-qr-poster.png`;
             anchor.click();
             URL.revokeObjectURL(url);
             resolve();
@@ -476,7 +477,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
     () =>
       statusChartData.map((d) => ({
         ...d,
-        fill: STATUS_COLORS[d.status] ?? "#94a3b8",
+        fill: STATUS_COLORS[d.status] ?? "#A39A91",
       })),
     [statusChartData]
   );
@@ -550,7 +551,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
           <button
             type="button"
             onClick={() => navigate("/admin/tickets")}
-            className="px-3 sm:px-4 py-2 rounded-lg bg-[#2A6FDB] text-white text-sm font-semibold hover:bg-[#1e5bbd]"
+            className="px-3 sm:px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover"
           >
             Ticket management
           </button>
@@ -559,7 +560,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3 sm:gap-4 mb-6">
-        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 border-l-4 border-l-[#2A6FDB]">
+        <div className="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 border-l-4 border-l-primary">
           <p className="text-gray-600 text-sm mb-1 font-medium">Submissions (all time)</p>
           <p className="text-3xl font-bold text-gray-800">{totalSubmissions}</p>
           <p className="text-xs text-gray-500 mt-1">All rows incl. split tickets</p>
@@ -652,7 +653,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
                 <XAxis dataKey="day" />
                 <YAxis allowDecimals={false} />
                 <Tooltip />
-                <Line type="monotone" dataKey="count" stroke="#2A6FDB" strokeWidth={3} />
+                <Line type="monotone" dataKey="count" stroke="#8B1538" strokeWidth={3} />
               </LineChart>
             </ResponsiveContainer>
           ) : (
@@ -664,26 +665,26 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
       </div>
 
       {!readOnly && (
-      <div className="rounded-2xl border-2 border-[#C9A227] bg-gradient-to-br from-[#FFFBF7] via-[#FFF8F0] to-[#FFF0F0] p-6 sm:p-8 shadow-md mb-6">
-        <h3 className="text-xl font-bold text-[#8B1538] mb-1">Feedback QR Code</h3>
+      <div className="rounded-2xl border-2 border-brand-gold bg-gradient-to-br from-[#FFFBF7] via-[#FFF8F0] to-[#FFF0F0] p-6 sm:p-8 shadow-md mb-6">
+        <h3 className="text-xl font-bold text-primary mb-1">Feedback QR Code</h3>
         <p className="text-sm text-[#6b1229] mb-6">
           Logo and QR use the same brand colours. Download saves a tall poster: logo on top, QR
           below (rectangle PNG for print or WhatsApp).
         </p>
         <div className="flex flex-col lg:flex-row lg:items-center gap-8">
-          <div className="flex flex-col items-center justify-center gap-3 shrink-0 lg:border-r lg:border-[#C9A227]/40 lg:pr-8">
+          <div className="flex flex-col items-center justify-center gap-3 shrink-0 lg:border-r lg:border-brand-gold/40 lg:pr-8">
             <img
               src={brandLogoDataUrl || feedbackLogo}
-              alt="MAPIMS feedback system"
+              alt={`${HOSPITAL.shortName} feedback system`}
               className="h-28 w-auto max-w-[220px] object-contain drop-shadow-sm"
             />
-            <p className="text-xs font-bold uppercase tracking-wider text-[#8B1538]">
-              Official MAPIMS feedback
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">
+              Official {HOSPITAL.shortName} feedback
             </p>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1 min-w-0">
             <div
-              className="mx-auto sm:mx-0 rounded-xl bg-white p-3 shadow-md ring-2 ring-[#8B1538]/20"
+              className="mx-auto sm:mx-0 rounded-xl bg-white p-3 shadow-md ring-2 ring-primary/20"
               style={{ backgroundColor: BRAND_QR.background }}
             >
               {qrDataUrl ? (
@@ -703,17 +704,17 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
               )}
             </div>
             <div className="space-y-3 text-center sm:text-left flex-1 min-w-0">
-              <p className="text-xs font-semibold text-[#8B1538] uppercase tracking-wide">
+              <p className="text-xs font-semibold text-primary uppercase tracking-wide">
                 Scan target
               </p>
-              <p className="text-sm text-[#4a0d18] break-all font-mono bg-white/70 rounded-lg px-3 py-2 border border-[#C9A227]/30">
+              <p className="text-sm text-[#4a0d18] break-all font-mono bg-white/70 rounded-lg px-3 py-2 border border-brand-gold/30">
                 {feedbackLink}
               </p>
               <button
                 type="button"
                 disabled={downloadBusy}
                 onClick={() => void downloadQrPoster()}
-                className="inline-flex px-4 py-2 rounded-lg font-semibold text-white bg-[#8B1538] hover:bg-[#6f1029] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ring-1 ring-[#C9A227]/40"
+                className="inline-flex px-4 py-2 rounded-lg font-semibold text-white bg-primary hover:bg-[#6f1029] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ring-1 ring-brand-gold/40"
               >
                 {downloadBusy ? "Preparing download…" : "Download poster (logo + QR)"}
               </button>

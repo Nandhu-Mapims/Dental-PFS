@@ -27,7 +27,7 @@ export function FeedbackReviewPage() {
   const [remark, setRemark] = useState(() => getFeedbackReviewDraft()?.remark || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [primaryColor, setPrimaryColor] = useState("#2A6FDB");
+  const [primaryColor, setPrimaryColor] = useState("#8B1538");
 
   const session = getSession();
   const internalSubmit = isInternalUser(session);

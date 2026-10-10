@@ -275,7 +275,7 @@ function GroupRows({
         : summaryLines[0] || rep.aiSummary?.trim() || rep.comments?.trim() || "—";
 
   const parentRow = (
-    <tr className={`${multi ? "bg-blue-50/40" : ""} hover:bg-gray-50/80`}>
+    <tr className={`${multi ? "bg-brand-50/40" : ""} hover:bg-gray-50/80`}>
       <td className="px-2 py-3 align-top">
         {multi ? (
           <button
@@ -302,7 +302,7 @@ function GroupRows({
               <div className="text-xs text-amber-700 font-medium mt-0.5">Split issue</div>
             ) : null}
             {multi ? (
-              <div className="text-xs text-[#2A6FDB] font-semibold mt-1">
+              <div className="text-xs text-primary font-semibold mt-1">
                 {group.ticketCount} ticket{group.ticketCount !== 1 ? "s" : ""} · {group.items.length} entr
                 {group.items.length !== 1 ? "ies" : "y"}
               </div>
@@ -355,7 +355,7 @@ function GroupRows({
               </div>
             ) : null}
             {multi && splitIssueCount <= 1 ? (
-              <div className="text-xs text-[#2A6FDB] font-semibold mt-0.5">
+              <div className="text-xs text-primary font-semibold mt-0.5">
                 {botAnswerCount > 0
                   ? `${botAnswerCount} bot answer${botAnswerCount !== 1 ? "s" : ""}`
                   : `${group.items.length} submission${group.items.length !== 1 ? "s" : ""}`}
@@ -402,7 +402,7 @@ function GroupRows({
           <button
             type="button"
             onClick={() => onViewItem(rep)}
-            className="text-sm font-semibold text-[#2A6FDB] hover:underline"
+            className="text-sm font-semibold text-primary hover:underline"
           >
             {variant === "tickets" ? "View" : (rep.botConversationAnswers?.length ?? 0) > 0 ? "View & listen" : "View"}
           </button>
@@ -552,7 +552,7 @@ function MobileGroupCard({
         <button
           type="button"
           onClick={() => onViewItem(rep)}
-          className="text-sm font-semibold text-[#2A6FDB] hover:underline"
+          className="text-sm font-semibold text-primary hover:underline"
         >
           {variant === "tickets" ? "View" : (rep.botConversationAnswers?.length ?? 0) > 0 ? "View & listen" : "View"}
         </button>
@@ -608,7 +608,7 @@ function MobileGroupCard({
                 <button
                   type="button"
                   onClick={() => onViewItem(item)}
-                  className="text-xs font-semibold text-[#2A6FDB] hover:underline"
+                  className="text-xs font-semibold text-primary hover:underline"
                 >
                   {variant === "tickets" ? "View" : (item.botConversationAnswers?.length ?? 0) > 0 ? "View & listen" : "View"}
                 </button>
@@ -686,7 +686,7 @@ function BotAnswerRow({
         </>
       )}
       <td className="px-4 py-2 text-right">
-        <button type="button" onClick={onView} className="text-xs font-semibold text-[#2A6FDB] hover:underline">
+        <button type="button" onClick={onView} className="text-xs font-semibold text-primary hover:underline">
           Listen
         </button>
       </td>
@@ -782,7 +782,7 @@ function ChildRow({
           <button
             type="button"
             onClick={() => onViewItem(item)}
-            className="text-xs font-semibold text-[#2A6FDB] hover:underline"
+            className="text-xs font-semibold text-primary hover:underline"
           >
             {variant === "tickets" ? "View" : (item.botConversationAnswers?.length ?? 0) > 0 ? "View & listen" : "View"}
           </button>

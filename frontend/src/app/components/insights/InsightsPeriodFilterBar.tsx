@@ -65,8 +65,8 @@ export function InsightsPeriodFilterBar(props: Props) {
   const presetChipClass = (active: boolean) =>
     `rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
       active
-        ? "bg-[#2A6FDB] text-white shadow-sm"
-        : "border border-gray-200 bg-white text-gray-700 hover:border-[#2A6FDB]/40"
+        ? "bg-primary text-white shadow-sm"
+        : "border border-gray-200 bg-white text-gray-700 hover:border-primary/40"
     }`;
 
   const onGranularityChange = (id: PeriodGranularity) => {
@@ -103,7 +103,7 @@ export function InsightsPeriodFilterBar(props: Props) {
                   onClick={() => onGranularityChange(opt.id)}
                   className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
                     periodFilter === opt.id
-                      ? "bg-[#2A6FDB] text-white shadow-sm"
+                      ? "bg-primary text-white shadow-sm"
                       : "text-gray-600 hover:bg-white"
                   }`}
                 >
@@ -210,7 +210,7 @@ export function InsightsPeriodFilterBar(props: Props) {
                 value={customFrom}
                 max={customTo || undefined}
                 onChange={(e) => setCustomFrom(e.target.value)}
-                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#2A6FDB]"
+                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
             <div className="flex flex-col gap-1 min-w-[140px]">
@@ -223,7 +223,7 @@ export function InsightsPeriodFilterBar(props: Props) {
                 value={customTo}
                 min={customFrom || undefined}
                 onChange={(e) => setCustomTo(e.target.value)}
-                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm outline-none focus:border-[#2A6FDB]"
+                className="w-full rounded-xl border-2 border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </div>
             {usingCustomRange ? (

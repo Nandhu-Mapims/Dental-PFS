@@ -34,7 +34,7 @@ export function ThankYou() {
   const session = getSession();
   const isStaffSession = fromStaffSession || session?.role === "staff";
 
-  const [primaryColor, setPrimaryColor] = useState("#2A6FDB");
+  const [primaryColor, setPrimaryColor] = useState("#8B1538");
 
   useEffect(() => {
     void loadBrandingSettings().then((c) => setPrimaryColor(c.primaryColor));

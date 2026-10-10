@@ -145,8 +145,8 @@ export function FeedbackDetailDialog({ item, open, onOpenChange }: FeedbackDetai
             </div>
           </div>
 
-          <section className="rounded-xl border-2 border-[#2A6FDB]/30 bg-gradient-to-r from-purple-50 to-blue-50 p-4">
-            <h3 className="text-sm font-bold text-[#2A6FDB] uppercase tracking-wide mb-2">
+          <section className="rounded-xl border-2 border-primary/30 bg-gradient-to-r from-purple-50 to-brand-50 p-4">
+            <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-2">
               AI summary
             </h3>
             <p className="text-gray-800 leading-relaxed">{aiSummary}</p>
@@ -189,7 +189,7 @@ export function FeedbackDetailDialog({ item, open, onOpenChange }: FeedbackDetai
           ) : (
             <>
               <section>
-                <h3 className="text-sm font-bold text-[#2A6FDB] uppercase tracking-wide mb-2">
+                <h3 className="text-sm font-bold text-primary uppercase tracking-wide mb-2">
                   Speech-to-text
                   {displayMode === "voice" ? " (Sarvam)" : ""}
                 </h3>

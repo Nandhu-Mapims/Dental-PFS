@@ -223,7 +223,7 @@ export function SummaryReportDashboard({
               type="button"
               onClick={() => onPeriodTypeChange("weekly")}
               className={`rounded-md px-3 py-1.5 font-semibold transition-colors ${
-                periodType === "weekly" ? "bg-[#2A6FDB] text-white" : "text-gray-600"
+                periodType === "weekly" ? "bg-primary text-white" : "text-gray-600"
               }`}
             >
               Weekly
@@ -232,7 +232,7 @@ export function SummaryReportDashboard({
               type="button"
               onClick={() => onPeriodTypeChange("monthly")}
               className={`rounded-md px-3 py-1.5 font-semibold transition-colors ${
-                periodType === "monthly" ? "bg-[#2A6FDB] text-white" : "text-gray-600"
+                periodType === "monthly" ? "bg-primary text-white" : "text-gray-600"
               }`}
             >
               Monthly
@@ -258,7 +258,7 @@ export function SummaryReportDashboard({
           type="button"
           onClick={onGenerate}
           disabled={isGenerating || !periodKey}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-opacity disabled:opacity-60"
         >
           <RefreshCw size={16} className={isGenerating ? "animate-spin" : ""} />
           {isGenerating ? "Generating…" : "Regenerate"}
@@ -290,7 +290,7 @@ export function SummaryReportDashboard({
             type="button"
             onClick={onGenerate}
             disabled={isGenerating}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#2A6FDB] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
           >
             <RefreshCw size={16} className={isGenerating ? "animate-spin" : ""} />
             {isGenerating ? "Generating…" : "Generate now"}
@@ -302,7 +302,7 @@ export function SummaryReportDashboard({
         <div className="space-y-10">
           <GroupSection
             title="Departments"
-            icon={<Building2 size={22} className="text-[#2A6FDB]" />}
+            icon={<Building2 size={22} className="text-primary" />}
             rows={report.departments}
             sortMode={deptSort}
             onSortModeChange={setDeptSort}

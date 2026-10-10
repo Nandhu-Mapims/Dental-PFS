@@ -64,7 +64,7 @@ type TicketFiltersPanelProps = {
 function chipClass(active: boolean) {
   return `rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
     active
-      ? "bg-[#2A6FDB] text-white"
+      ? "bg-primary text-white"
       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
   }`;
 }
@@ -132,7 +132,7 @@ export function TicketFiltersPanel({
         className="w-full flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50/80 text-left"
       >
         <div className="flex items-center gap-2 min-w-0">
-          <SlidersHorizontal className="h-4 w-4 text-[#2A6FDB] shrink-0" />
+          <SlidersHorizontal className="h-4 w-4 text-primary shrink-0" />
           <span className="text-sm font-semibold text-gray-800">Filters</span>
           <span className="text-xs text-muted-foreground tabular-nums">
             {resultCount}
@@ -145,7 +145,7 @@ export function TicketFiltersPanel({
               {activeChips.slice(0, 3).map((c) => (
                 <span
                   key={c.key}
-                  className="rounded-md bg-blue-50 text-[#1e5bbd] px-2 py-0.5 text-[10px] font-medium truncate max-w-[120px]"
+                  className="rounded-md bg-brand-50 text-primary-hover px-2 py-0.5 text-[10px] font-medium truncate max-w-[120px]"
                 >
                   {c.label}
                 </span>
@@ -305,7 +305,7 @@ export function TicketFiltersPanel({
                       !dateFilterActive && periodFilter === opt.id
                         ? "bg-white text-gray-400 shadow-sm"
                         : dateFilterActive && periodFilter === opt.id
-                          ? "bg-[#2A6FDB] text-white"
+                          ? "bg-primary text-white"
                           : "text-gray-600"
                     }`}
                   >

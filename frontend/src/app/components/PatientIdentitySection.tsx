@@ -2,6 +2,7 @@ import type { FocusEvent } from "react";
 import { DepartmentSearchSelect } from "./DepartmentSearchSelect";
 import { displayOptionalLabel } from "../lib/fieldSanitize";
 import type { PatientIdentityState } from "../lib/usePatientIdentity";
+import { HOSPITAL } from "../lib/hospital";
 
 type PatientIdentitySectionProps = {
   identity: PatientIdentityState;
@@ -14,20 +15,21 @@ type PatientIdentitySectionProps = {
 export function PatientIdentitySection({
   identity,
   primaryColor,
-  showModeToggle = true,
+  showModeToggle = HOSPITAL.emrLookupEnabled,
   compact = false,
 }: PatientIdentitySectionProps) {
   const primaryTint = `${primaryColor}1A`;
   const readonlyBox =
-    "w-full min-h-[56px] p-4 text-lg border-2 border-gray-200 rounded-2xl bg-gray-50 text-gray-800";
-  const inputClass = compact
-    ? "w-full p-4 text-lg border-2 border-gray-300 rounded-xl outline-none transition-all"
-    : "w-full p-4 text-lg border-2 border-gray-300 rounded-2xl outline-none transition-all";
+    "w-full min-h-12 px-4 py-3 text-base border border-gray-200 rounded-xl bg-gray-50 text-gray-800";
+  const inputClass =
+    "w-full h-12 px-4 text-base text-gray-900 bg-white border border-gray-300 rounded-xl outline-none transition placeholder:text-gray-400 hover:border-gray-400";
+  const fieldLabel = "mb-1.5 block text-sm font-medium text-gray-700";
+  const optional = <span className="font-normal text-gray-400"> (optional)</span>;
 
   const focusHandlers = {
     onFocus: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       e.currentTarget.style.borderColor = primaryColor;
-      e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}33`;
+      e.currentTarget.style.boxShadow = `0 0 0 4px ${primaryColor}1A`;
     },
     onBlur: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       e.currentTarget.style.borderColor = "";
@@ -36,7 +38,7 @@ export function PatientIdentitySection({
   };
 
   return (
-    <div className={compact ? "space-y-4" : "mb-8"}>
+    <div className={compact ? "space-y-4" : "mb-4"}>
       {showModeToggle ? (
         <div className={compact ? "" : "mb-8"}>
           <p
@@ -225,50 +227,55 @@ export function PatientIdentitySection({
 
       <div
         className={
-          compact ? "space-y-4" : "grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"
+          compact ? "space-y-4" : "grid grid-cols-1 md:grid-cols-3 gap-4"
         }
       >
         {identity.identificationMode === "name" ? (
           <>
-            <div className={compact ? "" : undefined}>
-              {compact ? (
-                <label className="block text-sm font-semibold text-gray-700 mb-1">Your name</label>
-              ) : null}
+            <div>
+              <label className={fieldLabel}>{compact ? "Your name" : "Patient name"}</label>
               <input
                 type="text"
                 value={identity.manualPatientName}
                 onChange={(e) => identity.setManualPatientName(e.target.value)}
-                placeholder={compact ? "உங்கள் பெயர்" : "Your name"}
+                placeholder={compact ? "உங்கள் பெயர்" : "Full name"}
                 className={inputClass}
                 {...focusHandlers}
               />
             </div>
             {!compact ? (
               <>
-                {identity.hospitalDepartments.length > 0 ? (
-                  <DepartmentSearchSelect
-                    departments={identity.hospitalDepartments}
-                    value={identity.manualDepartment}
-                    onChange={identity.setManualDepartment}
-                  />
-                ) : (
+                <div>
+                  <label className={fieldLabel}>Department{optional}</label>
+                  {identity.hospitalDepartments.length > 0 ? (
+                    <DepartmentSearchSelect
+                      departments={identity.hospitalDepartments}
+                      value={identity.manualDepartment}
+                      onChange={identity.setManualDepartment}
+                      placeholder="Select department"
+                    />
+                  ) : (
+                    <input
+                      type="text"
+                      value={identity.manualDepartment}
+                      onChange={(e) => identity.setManualDepartment(e.target.value)}
+                      placeholder="Department"
+                      className={inputClass}
+                      {...focusHandlers}
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className={fieldLabel}>Ward{optional}</label>
                   <input
                     type="text"
-                    value={identity.manualDepartment}
-                    onChange={(e) => identity.setManualDepartment(e.target.value)}
-                    placeholder="Department (optional)"
+                    value={identity.manualWard}
+                    onChange={(e) => identity.setManualWard(e.target.value)}
+                    placeholder="e.g. Ward 3"
                     className={inputClass}
                     {...focusHandlers}
                   />
-                )}
-                <input
-                  type="text"
-                  value={identity.manualWard}
-                  onChange={(e) => identity.setManualWard(e.target.value)}
-                  placeholder="Ward (optional)"
-                  className={inputClass}
-                  {...focusHandlers}
-                />
+                </div>
               </>
             ) : null}
           </>

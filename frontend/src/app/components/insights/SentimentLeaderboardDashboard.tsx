@@ -238,7 +238,7 @@ function LeaderboardColumn({
             >
               <ResponsiveContainer width="100%" height={chartHeight}>
                 <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                   <XAxis type="number" allowDecimals={false} />
                   <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                   <Tooltip />
@@ -336,7 +336,7 @@ export function SentimentLeaderboardDashboard({
           label="Total slices"
           value={totals.total}
           sub={`${deptRows.length} depts · ${svcRows.length} services`}
-          gradient="from-[#2A6FDB] to-blue-800"
+          gradient="from-primary to-brand-800"
           icon={<Award size={22} className="opacity-90" />}
         />
       </div>
@@ -345,7 +345,7 @@ export function SentimentLeaderboardDashboard({
         <LeaderboardColumn
           title="Departments"
           subtitle="AI routing department per issue / split ticket"
-          icon={<Building2 size={22} className="text-[#2A6FDB]" />}
+          icon={<Building2 size={22} className="text-primary" />}
           topPositive={deptTopPos}
           topNegative={deptTopNeg}
           chartData={deptChart}

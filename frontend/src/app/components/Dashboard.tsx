@@ -147,7 +147,7 @@ function FeedbackTable({
               value={resolveNote}
               onChange={(e) => setResolveNote(e.target.value)}
               rows={4}
-              className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-[#2A6FDB] focus:ring-2 focus:ring-blue-100"
+              className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-brand-100"
               placeholder="Describe what was done / how this was resolved…"
             />
             {resolveError ? <p className="mt-2 text-sm text-red-600">{resolveError}</p> : null}
@@ -277,7 +277,7 @@ function FeedbackTable({
                     <button
                       type="button"
                       onClick={() => onOpenTicket(item._id)}
-                      className="text-sm font-semibold text-[#2A6FDB] hover:underline"
+                      className="text-sm font-semibold text-primary hover:underline"
                     >
                       View ticket
                     </button>
@@ -316,7 +316,7 @@ function SummaryStrip({
         onClick={() => onSelect("All")}
         className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors ${
           activeKey === "All"
-            ? "border-[#2A6FDB] bg-blue-50 text-[#2A6FDB]"
+            ? "border-primary bg-brand-50 text-primary"
             : "border-gray-200 bg-white hover:bg-gray-50"
         }`}
       >
@@ -329,7 +329,7 @@ function SummaryStrip({
           onClick={() => onSelect(row.key)}
           className={`rounded-xl border px-3 py-2 text-left text-sm transition-colors min-w-[120px] ${
             activeKey === row.key
-              ? "border-[#2A6FDB] bg-blue-50 text-[#2A6FDB]"
+              ? "border-primary bg-brand-50 text-primary"
               : "border-gray-200 bg-white hover:bg-gray-50"
           }`}
         >
@@ -896,26 +896,26 @@ export function Dashboard() {
       </Card>
 
       {canAcknowledge && bulkAckEligible.length > 0 ? (
-        <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-blue-900">
+        <div className="rounded-2xl border border-brand-200 bg-brand-50/60 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="text-sm text-brand-900">
             <span className="font-semibold tabular-nums">{bulkAckEligible.length}</span> ticket
             {bulkAckEligible.length === 1 ? "" : "s"} in this view{" "}
             {bulkAckEligible.length === 1 ? "is" : "are"} still New.
             {bulkAckResult ? (
-              <span className="block text-xs text-blue-700 mt-0.5">{bulkAckResult}</span>
+              <span className="block text-xs text-brand-700 mt-0.5">{bulkAckResult}</span>
             ) : null}
           </div>
           <div className="flex items-center gap-2">
             {bulkAckConfirming ? (
               <>
-                <span className="text-sm text-blue-900">
+                <span className="text-sm text-brand-900">
                   Mark all {bulkAckEligible.length} as In Progress?
                 </span>
                 <button
                   type="button"
                   onClick={() => void handleBulkAcknowledge()}
                   disabled={bulkAckRunning}
-                  className="rounded-lg bg-[#2A6FDB] px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
                 >
                   {bulkAckRunning ? "Acknowledging…" : "Confirm"}
                 </button>
@@ -935,7 +935,7 @@ export function Dashboard() {
                   setBulkAckConfirming(true);
                   setBulkAckResult(null);
                 }}
-                className="rounded-lg bg-[#2A6FDB] px-3 py-2 text-sm font-semibold text-white"
+                className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white"
               >
                 Acknowledge all {bulkAckEligible.length}
               </button>
@@ -990,7 +990,7 @@ export function Dashboard() {
                 <CardHeader className="border-b bg-muted/20 py-4">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Building2 size={18} className="text-[#2A6FDB]" />
+                      <Building2 size={18} className="text-primary" />
                       {groupName}
                     </CardTitle>
                     <Badge variant="outline">{groupRows.length}</Badge>
@@ -1068,10 +1068,10 @@ export function Dashboard() {
             </Card>
             {groupedCombined.map(({ dept, services, total }) => (
               <Card key={dept} className="rounded-2xl shadow-sm overflow-hidden">
-                <CardHeader className="border-b bg-[#2A6FDB]/5 py-4">
+                <CardHeader className="border-b bg-primary/5 py-4">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Building2 size={18} className="text-[#2A6FDB]" />
+                      <Building2 size={18} className="text-primary" />
                       {dept}
                     </CardTitle>
                     <Badge variant="outline">{total} in dept</Badge>

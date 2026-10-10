@@ -2,43 +2,46 @@
 
 :root {
   --font-size: 16px;
-  --background: #ffffff;
-  --foreground: oklch(0.145 0 0);
+  /* APDCH maroon & gold. Admin Settings override --primary, --brand-gold and --background at
+     runtime (lib/branding.ts); components use the primary / brand-* / brand-gold tokens so they follow. */
+  --brand-gold: #c9a227;
+  --background: #faf7f2;
+  --foreground: #211d1a;
   --card: #ffffff;
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #030213;
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.95 0.0058 264.53);
-  --secondary-foreground: #030213;
-  --muted: #ececf0;
-  --muted-foreground: #717182;
-  --accent: #e9ebef;
-  --accent-foreground: #030213;
-  --destructive: #d4183d;
+  --card-foreground: #211d1a;
+  --popover: #ffffff;
+  --popover-foreground: #211d1a;
+  --primary: #8b1538;
+  --primary-foreground: #ffffff;
+  --secondary: #f3efea;
+  --secondary-foreground: #453e39;
+  --muted: #f3efea;
+  --muted-foreground: #736a62;
+  --accent: #f8f1e0;
+  --accent-foreground: #5e0f28;
+  --destructive: #c62828;
   --destructive-foreground: #ffffff;
-  --border: rgba(0, 0, 0, 0.1);
+  --border: #e8e1d9;
   --input: transparent;
-  --input-background: #f3f3f5;
-  --switch-background: #cbced4;
+  --input-background: #faf7f2;
+  --switch-background: #d6cec5;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: oklch(0.708 0 0);
+  --ring: #a8325a;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: #030213;
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
+  --sidebar: #fdfbf8;
+  --sidebar-foreground: #211d1a;
+  --sidebar-primary: #8b1538;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8f1e0;
+  --sidebar-accent-foreground: #5e0f28;
+  --sidebar-border: #e8e1d9;
+  --sidebar-ring: #a8325a;
 }
 
 .dark {
@@ -78,7 +81,47 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+@theme {
+  --font-sans: "Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Noto Sans Tamil", ui-sans-serif, system-ui, sans-serif;
+
+  /* Warm neutrals instead of Tailwind's cool grays. */
+  --color-gray-50: #faf8f5;
+  --color-gray-100: #f3efea;
+  --color-gray-200: #e8e1d9;
+  --color-gray-300: #d6cec5;
+  --color-gray-400: #a39a91;
+  --color-gray-500: #736a62;
+  --color-gray-600: #5a524c;
+  --color-gray-700: #453e39;
+  --color-gray-800: #2f2a26;
+  --color-gray-900: #211d1a;
+  --color-gray-950: #15120f;
+
+
+  /* Gold: the two AI-insight panels pair purple-50 with blue-50; make that a gold→rose wash. */
+  --color-purple-50: #fbf6e8;
+
+  --shadow-sm: 0 1px 2px 0 rgb(74 13 31 / 0.05), 0 1px 3px 0 rgb(74 13 31 / 0.06);
+  --shadow-md: 0 4px 10px -2px rgb(74 13 31 / 0.08), 0 2px 4px -2px rgb(74 13 31 / 0.06);
+  --shadow-lg: 0 12px 24px -6px rgb(74 13 31 / 0.10), 0 4px 8px -4px rgb(74 13 31 / 0.06);
+  --shadow-xl: 0 20px 36px -10px rgb(74 13 31 / 0.14), 0 8px 14px -8px rgb(74 13 31 / 0.08);
+}
+
 @theme inline {
+  --color-brand-gold: var(--brand-gold);
+  /* Tints/shades of the admin-configurable primary (selected rows, focus rings, info panels). */
+  --color-primary-hover: color-mix(in oklab, var(--primary) 85%, black);
+  --color-brand-50: color-mix(in oklab, var(--primary) 6%, white);
+  --color-brand-100: color-mix(in oklab, var(--primary) 12%, white);
+  --color-brand-200: color-mix(in oklab, var(--primary) 25%, white);
+  --color-brand-300: color-mix(in oklab, var(--primary) 42%, white);
+  --color-brand-400: color-mix(in oklab, var(--primary) 65%, white);
+  --color-brand-500: color-mix(in oklab, var(--primary) 82%, white);
+  --color-brand-600: var(--primary);
+  --color-brand-700: color-mix(in oklab, var(--primary) 85%, black);
+  --color-brand-800: color-mix(in oklab, var(--primary) 70%, black);
+  --color-brand-900: color-mix(in oklab, var(--primary) 55%, black);
+  --color-brand-950: color-mix(in oklab, var(--primary) 35%, black);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -126,6 +169,14 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: #f6e2e8;
+    color: #5e0f28;
   }
 
   /**
@@ -139,20 +190,23 @@
 
   h1 {
     font-size: var(--text-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
   }
 
   h2 {
     font-size: var(--text-xl);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
   }
 
   h3 {
     font-size: var(--text-lg);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.5;
+    font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.015em;
   }
 
   h4 {

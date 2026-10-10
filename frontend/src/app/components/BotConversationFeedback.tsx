@@ -14,12 +14,14 @@ import { transcribeVoiceRecordingChunked } from "../lib/audioTranscription";
 import { getSession, isInternalUser } from "../lib/auth";
 import { usePatientIdentity } from "../lib/usePatientIdentity";
 import { PatientIdentitySection } from "./PatientIdentitySection";
+import { PatientFooter, PrimaryAction, StatusNote, StepHeading } from "./PatientCard";
 import { FeedbackRemarkField } from "./StaffRemarksField";
 import {
   getBrandingSettings,
   loadBrandingSettings,
   onBrandingSettingsChange,
 } from "../lib/branding";
+import { HOSPITAL } from "../lib/hospital";
 
 const DEFAULT_BOT_THINK_SECONDS = 3;
 const MAX_RECORD_MS = 45000;
@@ -50,7 +52,7 @@ function pickRecorderMime(): string | undefined {
 
 export function BotConversationFeedback() {
   const navigate = useNavigate();
-  const [primaryColor, setPrimaryColor] = useState("#2A6FDB");
+  const [primaryColor, setPrimaryColor] = useState("#8B1538");
   const [config, setConfig] = useState<BotConversationConfig | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("loading");
@@ -85,8 +87,6 @@ export function BotConversationFeedback() {
     : [];
   const currentQuestion = sortedQuestions[questionIndex] ?? null;
   const introAudioSrc = resolveUploadUrl(config?.introAudioUrl || config?.introVideoUrl);
-  const primaryTint = `${primaryColor}1A`;
-  const primarySoftBorder = `${primaryColor}66`;
 
   useEffect(() => {
     void loadBrandingSettings().then((c) => {
@@ -493,14 +493,17 @@ export function BotConversationFeedback() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8">
+    <div className="max-w-3xl mx-auto">
       <audio ref={introAudioRef} className="hidden" onEnded={goToFirstQuestion} />
       <audio ref={questionAudioRef} className="hidden" onEnded={onPromptEnded} />
 
-      <div className="bg-white rounded-3xl shadow-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-800">Voice conversation feedback</h2>
-          <p className="text-sm text-gray-500">தமிழில் கேள்விகள் · பதில் குரலில்</p>
+      <div className="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_1px_2px_rgb(74_13_31/0.04),0_12px_32px_-12px_rgb(74_13_31/0.12)]">
+        <div className="border-b border-gray-100 px-6 pb-5 pt-6 md:px-10 md:pt-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8A6A10]">AI voice guide</p>
+          <h2 className="mt-1.5 text-2xl font-semibold tracking-tight text-gray-900 md:text-[1.75rem]">
+            Voice conversation feedback
+          </h2>
+          <p className="mt-1.5 text-sm text-gray-500 md:text-[15px]">தமிழில் கேள்விகள் · பதில் குரலில்</p>
         </div>
 
         {loadError ? (
@@ -510,18 +513,20 @@ export function BotConversationFeedback() {
         ) : null}
 
         {phase === "identity" && (
-          <div className="p-6 md:p-10 space-y-2">
-            <p className="text-lg md:text-xl text-gray-700 text-center leading-relaxed mb-4">
+          <div className="px-6 py-6 md:px-10 md:py-8">
+            <p
+              className="mb-8 rounded-xl border border-gray-200 border-l-[3px] bg-gray-50 px-5 py-4 text-[15px] leading-relaxed text-gray-700 md:text-base"
+              style={{ borderLeftColor: "var(--brand-gold)" }}
+            >
               {config?.introText ||
-                "வணக்கம்! MAPIMS மருத்துவமனையில் உங்கள் அனுபவத்தைப் பற்றி சில கேள்விகள் கேட்கிறோம்."}
+                `வணக்கம்! ${HOSPITAL.nameTaLocative} உங்கள் அனுபவத்தைப் பற்றி சில கேள்விகள் கேட்கிறோம்.`}
             </p>
 
+            <StepHeading step={1} title="Your details" primaryColor={primaryColor} />
             <PatientIdentitySection identity={identity} primaryColor={primaryColor} />
 
-            <p
-              className="mb-6 border rounded-lg p-3 text-base font-medium text-gray-800 text-center"
-              style={{ backgroundColor: primaryTint, borderColor: primarySoftBorder }}
-            >
+            <div className="mb-6">
+            <StatusNote primaryColor={primaryColor} ready={identity.identityReady}>
               {identity.identificationMode === "name" ? (
                 identity.nameReady ? (
                   <>Ready to start, {identity.resolvedPatientName}.</>
@@ -533,23 +538,23 @@ export function BotConversationFeedback() {
               ) : (
                 "Look up your registration number and confirm your visit from EMR before starting."
               )}
-            </p>
+            </StatusNote>
+            </div>
 
             {submitError && phase === "identity" ? (
-              <p className="mb-4 text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3 text-center">
+              <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-center text-sm font-medium text-red-700">
                 {submitError}
               </p>
             ) : null}
 
-            <button
-              type="button"
+            <PrimaryAction
+              primaryColor={primaryColor}
               disabled={!identity.identityReady || !sortedQuestions.length}
               onClick={handleStartConversation}
-              className="w-full py-4 md:py-5 rounded-2xl text-lg md:text-xl font-bold text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-xl hover:scale-[1.01]"
-              style={{ backgroundColor: primaryColor }}
             >
+              <Mic size={18} />
               Start conversation
-            </button>
+            </PrimaryAction>
           </div>
         )}
 
@@ -586,11 +591,22 @@ export function BotConversationFeedback() {
 
         {phase === "question" && currentQuestion && (
           <div className="p-6 space-y-4">
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>
-                Question {questionIndex + 1} of {sortedQuestions.length}
-              </span>
-              <span className="font-medium text-gray-700">AI assistant</span>
+            <div>
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.12em] text-gray-500">
+                <span>
+                  Question {questionIndex + 1} of {sortedQuestions.length}
+                </span>
+                <span>AI assistant</span>
+              </div>
+              <div className="mt-2 h-1 overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full rounded-full transition-[width] duration-500"
+                  style={{
+                    width: `${((questionIndex + 1) / Math.max(1, sortedQuestions.length)) * 100}%`,
+                    backgroundColor: primaryColor,
+                  }}
+                />
+              </div>
             </div>
 
             {questionPhase === "prompt" && (
@@ -648,27 +664,22 @@ export function BotConversationFeedback() {
         )}
 
         {phase === "complete" && (
-          <div className="p-6 md:p-10 space-y-6">
+          <div className="px-6 py-6 md:px-10 md:py-8 space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Conversation complete</h3>
-              <p className="text-sm text-gray-600">
+              <h3 className="text-xl font-semibold tracking-tight text-gray-900 mb-1">Conversation complete</h3>
+              <p className="text-sm text-gray-500">
                 Add an optional remark below, then submit your feedback.
               </p>
             </div>
             <FeedbackRemarkField value={remark} onChange={setRemark} />
             {submitError ? (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg p-3">
+              <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700">
                 {submitError}
               </p>
             ) : null}
-            <button
-              type="button"
-              onClick={() => void submitAll()}
-              className="w-full py-4 md:py-5 rounded-2xl text-lg md:text-xl font-bold text-white shadow-lg transition-all hover:shadow-xl hover:scale-[1.01]"
-              style={{ backgroundColor: primaryColor }}
-            >
+            <PrimaryAction primaryColor={primaryColor} onClick={() => void submitAll()}>
               Submit feedback
-            </button>
+            </PrimaryAction>
           </div>
         )}
 
@@ -680,16 +691,7 @@ export function BotConversationFeedback() {
         )}
       </div>
 
-      <div className="mt-6 text-center">
-        <button
-          type="button"
-          onClick={() => navigate("/feedback")}
-          className="hover:underline font-medium text-base"
-          style={{ color: primaryColor }}
-        >
-          ← Choose a different feedback method
-        </button>
-      </div>
+      <PatientFooter onBack={() => navigate("/feedback")} />
     </div>
   );
 }

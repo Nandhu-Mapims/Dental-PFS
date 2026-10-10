@@ -149,7 +149,7 @@ export function TicketsTrendsDashboard({
           label="Tickets"
           value={totalTickets}
           sub="With ticket ID · click to view"
-          icon={<ClipboardList size={16} className="text-blue-600" />}
+          icon={<ClipboardList size={16} className="text-brand-600" />}
           onClick={() => openKpi("tickets")}
         />
         <InsightsKpiCard
@@ -221,7 +221,7 @@ export function TicketsTrendsDashboard({
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={volumeChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
@@ -274,7 +274,7 @@ export function TicketsTrendsDashboard({
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={statusChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
@@ -345,7 +345,7 @@ export function TicketsTrendsDashboard({
                     layout="vertical"
                     margin={{ left: 8, right: 24, top: 4, bottom: 4 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value: number) => [`${value} ticket(s)`, "Count"]} />
@@ -383,7 +383,7 @@ export function TicketsTrendsDashboard({
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={ticketsByHour}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis dataKey="label" tick={{ fontSize: 10 }} interval={2} />
                     <YAxis allowDecimals={false} />
                     <Tooltip />
@@ -423,7 +423,7 @@ export function TicketsTrendsDashboard({
                     layout="vertical"
                     margin={{ left: 8, right: 24, top: 8, bottom: 8 }}
                   >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
                     <Tooltip formatter={(value: number) => [`${value} ticket(s)`, "Count"]} />
@@ -457,7 +457,7 @@ export function TicketsTrendsDashboard({
               ) : (
                 <ResponsiveContainer width="100%" height={280}>
                   <BarChart data={serviceVolume} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis type="number" allowDecimals={false} />
                     <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
                     <Tooltip />

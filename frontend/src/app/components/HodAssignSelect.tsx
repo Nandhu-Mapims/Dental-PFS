@@ -14,7 +14,7 @@ export function HodAssignSelect({ value, onChange, hodUsers, className }: HodAss
       onChange={(e) => onChange(e.target.value)}
       className={
         className ||
-        "w-full p-3 border-2 border-gray-200 rounded-xl focus:border-[#2A6FDB] outline-none bg-white"
+        "w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary outline-none bg-white"
       }
     >
       <option value="">No HOD assigned</option>
