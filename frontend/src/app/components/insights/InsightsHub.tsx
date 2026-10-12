@@ -1,6 +1,7 @@
 import { RefreshCw } from "lucide-react";
 import { Navigate, Outlet, useLocation } from "react-router";
 import { getSession } from "../../lib/auth";
+import { useTicketingEnabled } from "../../lib/branding";
 import { CAPABILITY, hasCapability, insightsLandingPath } from "../RouteGuards";
 import { InsightsPeriodFilterBar } from "./InsightsPeriodFilterBar";
 import { InsightsViewTabs } from "./InsightsViewTabs";
@@ -19,6 +20,7 @@ export function InsightsHub() {
   }
   const basePath = insightsBasePath(location.pathname);
   const data = useInsightsData();
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
   if (
     location.pathname === basePath ||
@@ -68,7 +70,9 @@ export function InsightsHub() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Insights</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Management overview, submissions, tickets, and department/service sentiment rankings (includes split issues).
+            {ticketingEnabled
+              ? "Management overview, submissions, tickets, and department/service sentiment rankings (includes split issues)."
+              : "Management overview, submissions, and department/service sentiment rankings (includes split issues)."}
           </p>
         </div>
         <InsightsViewTabs basePath={basePath} />

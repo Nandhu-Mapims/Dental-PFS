@@ -206,6 +206,7 @@ function serializeBrandingSettings(doc) {
       botThinkSeconds: DEFAULT_BOT_THINK_SECONDS,
       botSkipIntro: DEFAULT_BOT_SKIP_INTRO,
       botSkipThinkCountdown: DEFAULT_BOT_SKIP_THINK_COUNTDOWN,
+      ticketingEnabled: false,
     };
   }
   return {
@@ -217,6 +218,7 @@ function serializeBrandingSettings(doc) {
     botThinkSeconds: normalizeBotThinkSeconds(doc.botThinkSeconds),
     botSkipIntro: Boolean(doc.botSkipIntro ?? doc.botSkipIntroAndCountdown),
     botSkipThinkCountdown: Boolean(doc.botSkipThinkCountdown ?? doc.botSkipIntroAndCountdown),
+    ticketingEnabled: Boolean(doc.ticketingEnabled),
   };
 }
 
@@ -3244,6 +3246,28 @@ app.delete("/api/branding", requireCapability(CAPABILITIES.BRANDING_MANAGE), asy
     return res.status(500).json({ message: "Failed to reset branding" });
   }
 });
+
+/** Module switches. Lives on the global settings doc so GET /api/branding carries it to every screen. */
+app.put(
+  "/api/settings/features",
+  requireCapability(CAPABILITIES.FEATURES_MANAGE),
+  async (req, res) => {
+    try {
+      const { ticketingEnabled } = req.body ?? {};
+      if (typeof ticketingEnabled !== "boolean") {
+        return res.status(400).json({ message: "ticketingEnabled must be true or false" });
+      }
+      const updated = await Branding.findOneAndUpdate(
+        { key: "global" },
+        { $set: { ticketingEnabled } },
+        { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
+      ).lean();
+      return res.json(serializeBrandingSettings(updated));
+    } catch (error) {
+      return res.status(500).json({ message: "Failed to save module settings" });
+    }
+  }
+);
 
 async function startServer() {
   try {

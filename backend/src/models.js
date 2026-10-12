@@ -238,6 +238,11 @@ const brandingSchema = new mongoose.Schema(
     botSkipIntro: { type: Boolean, default: false },
     /** When true, skip think countdown before each answer recording. */
     botSkipThinkCountdown: { type: Boolean, default: false },
+    /**
+     * Ticketing module (ticket queue, ticket detail, ticket insights). Off until a
+     * Super Admin enables it; tickets are still recorded in the meantime.
+     */
+    ticketingEnabled: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

@@ -25,6 +25,7 @@ import {
 import { getSession } from "../lib/auth";
 import { displayOptionalLabel, sanitizeOptionalLabel } from "../lib/fieldSanitize";
 import { ticketAiSummaryForItem } from "../lib/feedbackDisplay";
+import { useTicketingEnabled } from "../lib/branding";
 import { visibleToHod } from "../lib/hodRouting";
 import { matchesEncounterType, type EncounterTypeFilter } from "../lib/insightsFilters";
 import { EncounterTypeFilterTabs } from "./EncounterTypeFilterTabs";
@@ -350,6 +351,10 @@ export function Dashboard() {
   const session = getSession();
   const isHod = session?.role === "hod";
   const hodUserId = session?._id || "";
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
+  // Ticket detail is a HOD screen and only exists while the ticketing module is on.
+  const openTicket =
+    isHod && ticketingEnabled ? (id: string) => navigate(`/ticket/${id}`) : undefined;
   const [items, setItems] = useState<FeedbackItem[]>([]);
   const [analytics, setAnalytics] = useState<FeedbackAnalytics | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -1001,7 +1006,7 @@ export function Dashboard() {
                     rows={groupRows}
                     onStatusChange={handleStatusChange}
                     hodUserId={isHod ? hodUserId : undefined}
-                    onOpenTicket={isHod ? (id) => navigate(`/ticket/${id}`) : undefined}
+                    onOpenTicket={openTicket}
                   />
                 </CardContent>
               </Card>
@@ -1041,7 +1046,7 @@ export function Dashboard() {
                     rows={groupRows}
                     onStatusChange={handleStatusChange}
                     hodUserId={isHod ? hodUserId : undefined}
-                    onOpenTicket={isHod ? (id) => navigate(`/ticket/${id}`) : undefined}
+                    onOpenTicket={openTicket}
                   />
                 </CardContent>
               </Card>
@@ -1093,7 +1098,7 @@ export function Dashboard() {
                     rows={groupRows}
                     onStatusChange={handleStatusChange}
                     hodUserId={isHod ? hodUserId : undefined}
-                    onOpenTicket={isHod ? (id) => navigate(`/ticket/${id}`) : undefined}
+                    onOpenTicket={openTicket}
                   />
                     </div>
                   ))}

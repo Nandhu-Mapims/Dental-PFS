@@ -26,6 +26,7 @@ export const CAPABILITIES = {
   SETTINGS_MANAGE: "settings.manage",
   BRANDING_MANAGE: "branding.manage",
   MAINTENANCE_RUN: "maintenance.run",
+  FEATURES_MANAGE: "features.manage",
 };
 
 /** Every capability key, for validation and for the RBAC screen's matrix. */
@@ -62,6 +63,7 @@ export const CAPABILITY_CATALOG = [
       { key: CAPABILITIES.SETTINGS_MANAGE, label: "Manage settings", description: "Edit system settings and the AI voice guide." },
       { key: CAPABILITIES.BRANDING_MANAGE, label: "Manage branding", description: "Change colours and logo." },
       { key: CAPABILITIES.MAINTENANCE_RUN, label: "Run maintenance", description: "Execute repair and bulk ticket jobs." },
+      { key: CAPABILITIES.FEATURES_MANAGE, label: "Manage modules", description: "Turn whole modules, such as ticketing, on or off for everyone." },
     ],
   },
 ];

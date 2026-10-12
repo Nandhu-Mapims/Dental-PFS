@@ -1,5 +1,6 @@
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet, useLocation, useOutletContext } from "react-router";
 import { getSession } from "../lib/auth";
+import { useTicketingEnabled } from "../lib/branding";
 import { patientRoutes } from "../lib/patientRoutes";
 
 /**
@@ -28,6 +29,7 @@ export const CAPABILITY = {
   SETTINGS_MANAGE: "settings.manage",
   BRANDING_MANAGE: "branding.manage",
   MAINTENANCE_RUN: "maintenance.run",
+  FEATURES_MANAGE: "features.manage",
 } as const;
 
 function sessionCapabilities(): string[] {
@@ -72,6 +74,19 @@ export function RequireCapability({ anyOf }: { anyOf: string[] }) {
   }
 
   return <Outlet />;
+}
+
+/**
+ * Ticket screens only exist while a Super Admin has the ticketing module on.
+ * Waits for settings to load so a deep link isn't bounced before the flag arrives.
+ */
+export function RequireTicketing() {
+  const { enabled, loaded } = useTicketingEnabled();
+  // Pass the parent's outlet context through — the insights tabs read InsightsHub's data from it.
+  const parentContext = useOutletContext();
+  if (!loaded) return null;
+  if (!enabled) return <Navigate to={landingRouteForSession()} replace />;
+  return <Outlet context={parentContext} />;
 }
 
 /** First insights tab the session may open: the overview when allowed, else submissions. */

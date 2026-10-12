@@ -10,6 +10,7 @@ import {
   getBrandingSettings,
   loadBrandingSettings,
   onBrandingSettingsChange,
+  useTicketingEnabled,
 } from "../lib/branding";
 import { FeedbackOutboxStatus } from "./FeedbackOutboxStatus";
 import { HodChangePasswordDialog } from "./HodChangePasswordDialog";
@@ -20,6 +21,7 @@ export function Layout() {
   const navigate = useNavigate();
   const [branding, setBranding] = useState(() => getBrandingSettings());
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
   const session = getSession();
   const capabilities = session?.capabilities ?? [];
@@ -222,6 +224,7 @@ export function Layout() {
                         Roles
                       </button>
                     ) : null}
+                    {ticketingEnabled ? (
                     <button
                       type="button"
                       role="tab"
@@ -236,6 +239,7 @@ export function Layout() {
                     >
                       Tickets
                     </button>
+                    ) : null}
                     <button
                       type="button"
                       role="tab"
@@ -301,6 +305,7 @@ export function Layout() {
                       >
                         Overview
                       </button>
+                      {ticketingEnabled ? (
                       <button
                         type="button"
                         onClick={() => navigate("/dashboard")}
@@ -312,6 +317,7 @@ export function Layout() {
                       >
                         My queue
                       </button>
+                      ) : null}
                     </>
                   ) : null
                 ) : (
@@ -447,6 +453,7 @@ export function Layout() {
                   <Users size={22} />
                   <span className="text-[10px] sm:text-xs">Users</span>
                 </button>
+                {ticketingEnabled ? (
                 <button
                   type="button"
                   onClick={() => navigate("/admin/tickets")}
@@ -458,6 +465,7 @@ export function Layout() {
                   <ClipboardList size={22} />
                   <span className="text-[10px] sm:text-xs">Tickets</span>
                 </button>
+                ) : null}
                 <button
                   type="button"
                   onClick={() => navigate("/admin/settings")}

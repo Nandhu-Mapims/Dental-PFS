@@ -31,6 +31,7 @@ import {
   getBrandingSettings,
   loadBrandingSettings,
   onBrandingSettingsChange,
+  useTicketingEnabled,
 } from "../lib/branding";
 import feedbackLogo from "./image/feedback_logo.png";
 import { HOSPITAL } from "../lib/hospital";
@@ -86,6 +87,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [chartsReady, setChartsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
   const [downloadBusy, setDownloadBusy] = useState(false);
   const [brandLogoDataUrl, setBrandLogoDataUrl] = useState<string | null>(null);
   const [listScope, setListScope] = useState<FeedbackListScope>(defaultFeedbackListScope);
@@ -548,13 +550,15 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
           >
             Settings
           </button>
-          <button
-            type="button"
-            onClick={() => navigate("/admin/tickets")}
-            className="px-3 sm:px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover"
-          >
-            Ticket management
-          </button>
+          {ticketingEnabled && (
+            <button
+              type="button"
+              onClick={() => navigate("/admin/tickets")}
+              className="px-3 sm:px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary-hover"
+            >
+              Ticket management
+            </button>
+          )}
         </div>
         )}
       </div>

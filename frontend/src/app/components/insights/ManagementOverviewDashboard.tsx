@@ -36,6 +36,7 @@ import {
   type ScorecardSort,
 } from "../../lib/managementScorecard";
 import { periodDescription, timeSlotLabel } from "../../lib/insightsFilters";
+import { useTicketingEnabled } from "../../lib/branding";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import type { InsightsDataState } from "./useInsightsData";
 
@@ -299,6 +300,9 @@ export function ManagementOverviewDashboard({
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [sort, setSort] = useState<ScorecardSort>("volume");
+  // Close rate, CAPA, response time and the HOD scorecard all measure the ticket
+  // workflow, so they only show while the ticketing module is on.
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
   useEffect(() => {
     let cancelled = false;
@@ -370,7 +374,7 @@ export function ManagementOverviewDashboard({
         {timeSlotLabel(timeFilter)}
       </p>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className={`grid gap-4 sm:grid-cols-2 ${ticketingEnabled ? "lg:grid-cols-4" : ""}`}>
         <SummaryTile
           label="Complaints"
           value={complaintSlices.length}
@@ -378,6 +382,8 @@ export function ManagementOverviewDashboard({
           gradient="from-red-500 to-red-700"
           icon={<ListOrdered size={22} className="opacity-90" />}
         />
+        {ticketingEnabled && (
+          <>
         <SummaryTile
           label="Complaints closed"
           value={totals.closed}
@@ -396,6 +402,8 @@ export function ManagementOverviewDashboard({
           gradient="from-violet-500 to-violet-800"
           icon={<ClipboardCheck size={22} className="opacity-90" />}
         />
+          </>
+        )}
         <SummaryTile
           label="Departments"
           value={totals.departments}
@@ -440,6 +448,8 @@ export function ManagementOverviewDashboard({
         </CardContent>
       </Card>
 
+      {ticketingEnabled && (
+        <>
       <Card className={CHART_CARD}>
         <CardHeader>
           <CardTitle className="text-base">Response time &amp; backlog age</CardTitle>
@@ -554,6 +564,8 @@ export function ManagementOverviewDashboard({
           <ScorecardTable rows={sortedScorecard} />
         </CardContent>
       </Card>
+        </>
+      )}
     </div>
   );
 }

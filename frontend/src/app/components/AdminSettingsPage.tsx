@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bot, Heart, Keyboard, Mic, Palette } from "lucide-react";
+import { Bot, Heart, Keyboard, Mic, Palette, ToggleRight } from "lucide-react";
 import feedbackLogo from "./image/feedback_logo.png";
 import { HOSPITAL } from "../lib/hospital";
 import {
@@ -8,7 +8,11 @@ import {
   onBrandingSettingsChange,
   resetBrandingSettings,
   saveBrandingSettings,
+  saveTicketingEnabled,
+  useTicketingEnabled,
 } from "../lib/branding";
+import { CAPABILITY, hasCapability } from "./RouteGuards";
+import { Switch } from "./ui/switch";
 
 function ColorField({
   label,
@@ -64,7 +68,66 @@ function ColorField({
   );
 }
 
+/** Super Admin only: switches whole modules on or off for every user. Saves on toggle. */
+function ModuleSettingsCard() {
+  const { enabled: ticketingEnabled, loaded } = useTicketingEnabled();
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function toggleTicketing(next: boolean) {
+    try {
+      setSaving(true);
+      setMessage(null);
+      await saveTicketingEnabled(next);
+      setMessage(
+        next
+          ? "Ticketing is on. Ticket screens are visible to users with ticket permissions."
+          : "Ticketing is off. Ticket screens are hidden for everyone."
+      );
+    } catch (err) {
+      setMessage(err instanceof Error ? err.message : "Could not save module settings.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-gray-200 p-4 space-y-3">
+      <div>
+        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <ToggleRight className="w-5 h-5 text-primary" />
+          Modules
+        </h3>
+        <p className="text-sm text-gray-600 mt-1">
+          Visible to Super Admins only. Changes apply immediately, without Save settings.
+        </p>
+      </div>
+      <div className="flex items-start justify-between gap-4 rounded-lg bg-gray-50 p-3">
+        <div className="min-w-0">
+          <label htmlFor="module-ticketing" className="text-sm font-semibold text-gray-800">
+            Ticketing
+          </label>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Ticket management, ticket detail, the Tickets insights tab, the HOD queue and the
+            ticket metrics on the Management overview. Feedback is still recorded while this is
+            off, so existing tickets reappear when it is turned back on.
+          </p>
+        </div>
+        <Switch
+          id="module-ticketing"
+          checked={ticketingEnabled}
+          disabled={!loaded || saving}
+          onCheckedChange={(next) => void toggleTicketing(next)}
+          className="mt-1"
+        />
+      </div>
+      {message ? <p className="text-xs text-gray-600">{message}</p> : null}
+    </div>
+  );
+}
+
 export function AdminSettingsPage() {
+  const canManageModules = hasCapability(CAPABILITY.FEATURES_MANAGE);
   const [brandPrimary, setBrandPrimary] = useState("#8B1538");
   const [brandAccent, setBrandAccent] = useState("#C9A227");
   const [brandPageBg, setBrandPageBg] = useState("#FAF7F2");
@@ -239,6 +302,8 @@ export function AdminSettingsPage() {
               {bannerMessage}
             </p>
           ) : null}
+
+          {canManageModules ? <ModuleSettingsCard /> : null}
 
           <div className="rounded-lg border border-gray-200 p-4 space-y-4">
             <div>

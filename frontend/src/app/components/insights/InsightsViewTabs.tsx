@@ -1,6 +1,7 @@
 import { BarChart2, ClipboardList, FileText, LayoutDashboard, TrendingUp } from "lucide-react";
 import { NavLink } from "react-router";
 import { CAPABILITY, hasCapability } from "../RouteGuards";
+import { useTicketingEnabled } from "../../lib/branding";
 
 function tabClass({ isActive }: { isActive: boolean }) {
   return `inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-2 sm:px-3 py-2 text-[11px] sm:text-sm font-semibold transition-all ${
@@ -17,10 +18,13 @@ export function InsightsViewTabs({ basePath }: { basePath: string }) {
   const sentimentPath = `${basePath}/sentiment`;
   const summaryReportPath = `${basePath}/summary-report`;
   const showOverview = hasCapability(CAPABILITY.INSIGHTS_OVERVIEW);
+  const { enabled: showTickets } = useTicketingEnabled();
+  const tabCount = 3 + Number(showOverview) + Number(showTickets);
+  const gridCols = ["", "", "", "grid-cols-3", "grid-cols-4", "grid-cols-5"][tabCount];
 
   return (
     <div
-      className={`grid w-full ${showOverview ? "grid-cols-5" : "grid-cols-4"} rounded-xl border border-gray-200 bg-gray-50 p-1`}
+      className={`grid w-full ${gridCols} rounded-xl border border-gray-200 bg-gray-50 p-1`}
       role="tablist"
       aria-label="Insights views"
     >
@@ -34,10 +38,12 @@ export function InsightsViewTabs({ basePath }: { basePath: string }) {
         <TrendingUp size={16} className="shrink-0" />
         Submissions
       </NavLink>
-      <NavLink to={ticketsPath} className={tabClass}>
-        <ClipboardList size={16} className="shrink-0" />
-        Tickets
-      </NavLink>
+      {showTickets && (
+        <NavLink to={ticketsPath} className={tabClass}>
+          <ClipboardList size={16} className="shrink-0" />
+          Tickets
+        </NavLink>
+      )}
       <NavLink to={sentimentPath} className={tabClass}>
         <BarChart2 size={16} className="shrink-0" />
         Dept / service scores

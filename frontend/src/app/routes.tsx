@@ -1,7 +1,12 @@
 import { createBrowserRouter, Navigate } from "react-router";
 import { Layout } from "./components/Layout";
 import { LoginPage } from "./components/LoginPage";
-import { AdminGuard, RequireCapability, StaffGuard } from "./components/RouteGuards";
+import {
+  AdminGuard,
+  RequireCapability,
+  RequireTicketing,
+  StaffGuard,
+} from "./components/RouteGuards";
 
 /**
  * Only the shell, the guards and the landing route are bundled eagerly. Every
@@ -80,16 +85,21 @@ export const router = createBrowserRouter([
             }),
           },
           {
-            path: "ticket/:id",
-            lazy: async () => ({
-              Component: (await import("./components/TicketDetail")).TicketDetail,
-            }),
-          },
-          {
-            path: "ticket/:id/delete",
-            lazy: async () => ({
-              Component: (await import("./components/TicketDetail")).TicketDetail,
-            }),
+            Component: RequireTicketing,
+            children: [
+              {
+                path: "ticket/:id",
+                lazy: async () => ({
+                  Component: (await import("./components/TicketDetail")).TicketDetail,
+                }),
+              },
+              {
+                path: "ticket/:id/delete",
+                lazy: async () => ({
+                  Component: (await import("./components/TicketDetail")).TicketDetail,
+                }),
+              },
+            ],
           },
           {
             // HODs get the Admin Panel overview (charts and stats), read-only.
@@ -130,11 +140,16 @@ export const router = createBrowserRouter([
                 }),
               },
               {
-                path: "tickets",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/TicketsTrendsRoute"))
-                    .TicketsTrendsRoute,
-                }),
+                Component: RequireTicketing,
+                children: [
+                  {
+                    path: "tickets",
+                    lazy: async () => ({
+                      Component: (await import("./components/insights/TicketsTrendsRoute"))
+                        .TicketsTrendsRoute,
+                    }),
+                  },
+                ],
               },
               {
                 path: "sentiment",
@@ -188,11 +203,16 @@ export const router = createBrowserRouter([
                 }),
               },
               {
-                path: "tickets",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/TicketsTrendsRoute"))
-                    .TicketsTrendsRoute,
-                }),
+                Component: RequireTicketing,
+                children: [
+                  {
+                    path: "tickets",
+                    lazy: async () => ({
+                      Component: (await import("./components/insights/TicketsTrendsRoute"))
+                        .TicketsTrendsRoute,
+                    }),
+                  },
+                ],
               },
               {
                 path: "sentiment",
@@ -247,16 +267,21 @@ export const router = createBrowserRouter([
           { path: "usercreation", element: <Navigate to="/admin/users" replace /> },
           { path: "manage/access", element: <Navigate to="/admin/users" replace /> },
           {
-            path: "admin/tickets",
-            lazy: async () => ({
-              Component: (await import("./components/AdminTicketsPage")).AdminTicketsPage,
-            }),
-          },
-          {
-            path: "admin/tickets/delete",
-            lazy: async () => ({
-              Component: (await import("./components/AdminTicketsPage")).AdminTicketsPage,
-            }),
+            Component: RequireTicketing,
+            children: [
+              {
+                path: "admin/tickets",
+                lazy: async () => ({
+                  Component: (await import("./components/AdminTicketsPage")).AdminTicketsPage,
+                }),
+              },
+              {
+                path: "admin/tickets/delete",
+                lazy: async () => ({
+                  Component: (await import("./components/AdminTicketsPage")).AdminTicketsPage,
+                }),
+              },
+            ],
           },
           {
             path: "admin/settings",
