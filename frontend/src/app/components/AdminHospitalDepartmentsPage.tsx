@@ -326,7 +326,7 @@ export function AdminHospitalDepartmentsPage() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <table className="w-full min-w-[560px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">

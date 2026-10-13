@@ -227,7 +227,11 @@ export function PatientIdentitySection({
 
       <div
         className={
-          compact ? "space-y-4" : "grid grid-cols-1 md:grid-cols-3 gap-4"
+          compact
+            ? "space-y-4"
+            : `grid grid-cols-1 ${
+                identity.identificationMode === "name" ? "md:grid-cols-2" : "md:grid-cols-3"
+              } gap-4`
         }
       >
         {identity.identificationMode === "name" ? (
@@ -264,17 +268,6 @@ export function PatientIdentitySection({
                       {...focusHandlers}
                     />
                   )}
-                </div>
-                <div>
-                  <label className={fieldLabel}>Ward{optional}</label>
-                  <input
-                    type="text"
-                    value={identity.manualWard}
-                    onChange={(e) => identity.setManualWard(e.target.value)}
-                    placeholder="e.g. Ward 3"
-                    className={inputClass}
-                    {...focusHandlers}
-                  />
                 </div>
               </>
             ) : null}

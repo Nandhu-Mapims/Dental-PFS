@@ -6,6 +6,7 @@ import {
   saveFeatureSettingsApi,
   type BrandingSettings,
   type BrandingSettingsInput,
+  type ModuleFlag,
 } from "./api";
 
 const BRANDING_UPDATED_EVENT = "feedback:branding-updated";
@@ -20,6 +21,8 @@ const DEFAULT_BRANDING: BrandingSettings = {
   botSkipIntro: false,
   botSkipThinkCountdown: false,
   ticketingEnabled: false,
+  departmentsEnabled: false,
+  servicesEnabled: false,
 };
 
 function clampVoiceMaxSeconds(value: unknown): number {
@@ -43,7 +46,12 @@ export function getBrandingSettings(): BrandingSettings {
 }
 
 function setBrandingCache(next: BrandingSettings): BrandingSettings {
-  brandingCache = { ...next, ticketingEnabled: Boolean(next.ticketingEnabled) };
+  brandingCache = {
+    ...next,
+    ticketingEnabled: Boolean(next.ticketingEnabled),
+    departmentsEnabled: Boolean(next.departmentsEnabled),
+    servicesEnabled: Boolean(next.servicesEnabled),
+  };
   brandingLoaded = true;
   window.dispatchEvent(new CustomEvent(BRANDING_UPDATED_EVENT));
   return brandingCache;
@@ -64,6 +72,8 @@ export async function loadBrandingSettings(): Promise<BrandingSettings> {
         fetched.botSkipThinkCountdown ?? fetched.botSkipIntroAndCountdown
       ),
       ticketingEnabled: Boolean(fetched.ticketingEnabled),
+      departmentsEnabled: Boolean(fetched.departmentsEnabled),
+      servicesEnabled: Boolean(fetched.servicesEnabled),
     });
   } catch {
     return brandingCache;
@@ -82,25 +92,32 @@ export async function resetBrandingSettings(): Promise<BrandingSettings> {
   return setBrandingCache(reset);
 }
 
-export async function saveTicketingEnabled(enabled: boolean): Promise<BrandingSettings> {
-  const saved = await saveFeatureSettingsApi({ ticketingEnabled: enabled });
+export async function saveModuleEnabled(
+  module: ModuleFlag,
+  enabled: boolean
+): Promise<BrandingSettings> {
+  const saved = await saveFeatureSettingsApi({ [module]: enabled });
   return setBrandingCache(saved);
 }
 
 /**
- * Whether the ticketing module is switched on. `loaded` stays false until the
- * settings arrive, so route guards wait instead of bouncing a deep link.
+ * Whether a module is switched on. `loaded` stays false until the settings
+ * arrive, so route guards wait instead of bouncing a deep link.
  */
-export function useTicketingEnabled(): { enabled: boolean; loaded: boolean } {
-  const read = () => ({ enabled: brandingCache.ticketingEnabled, loaded: brandingLoaded });
+export function useModuleEnabled(module: ModuleFlag): { enabled: boolean; loaded: boolean } {
+  const read = () => ({ enabled: brandingCache[module], loaded: brandingLoaded });
   const [state, setState] = useState(read);
   useEffect(() => {
     const unsubscribe = onBrandingSettingsChange(() => setState(read()));
     if (brandingLoaded) setState(read());
     else void loadBrandingSettings();
     return unsubscribe;
-  }, []);
+  }, [module]);
   return state;
+}
+
+export function useTicketingEnabled(): { enabled: boolean; loaded: boolean } {
+  return useModuleEnabled("ticketingEnabled");
 }
 
 export function applyBrandingTheme(settings: BrandingSettings): void {

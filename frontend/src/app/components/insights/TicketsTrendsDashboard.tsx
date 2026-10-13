@@ -28,6 +28,7 @@ import { InsightsKpiCard } from "./InsightsKpiCard";
 import { TicketsKpiDetailDialog } from "./TicketsKpiDetailDialog";
 import type { TicketChartFilter, TicketKpiKind, TicketSelection } from "./ticketsKpiDetail";
 import type { InsightsDataState } from "./useInsightsData";
+import { useCategoryAxis } from "../../lib/useCategoryAxis";
 
 // Colour comes from the shared, validated chart palette (see chartPalette.ts) --
 // keyed to the department name, not to array position.
@@ -62,6 +63,7 @@ export function TicketsTrendsDashboard({
   customRange,
   filterWindow,
 }: Props) {
+  const axis = useCategoryAxis();
   const [selection, setSelection] = useState<TicketSelection | null>(null);
 
   const periodLabel = periodDescription(periodFilter, timeFilter, customRange, encounterFilter);
@@ -144,7 +146,7 @@ export function TicketsTrendsDashboard({
         finds multiple problems in one visit). Click any metric or chart to view ticket details.
       </p>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <InsightsKpiCard
           label="Tickets"
           value={totalTickets}
@@ -203,7 +205,7 @@ export function TicketsTrendsDashboard({
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className={CHART_CARD}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Tickets opened</CardTitle>
@@ -329,7 +331,7 @@ export function TicketsTrendsDashboard({
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className={CHART_CARD}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Current status mix</CardTitle>
@@ -347,7 +349,7 @@ export function TicketsTrendsDashboard({
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" width={axis.width(90)} tick={axis.tick} />
                     <Tooltip formatter={(value: number) => [`${value} ticket(s)`, "Count"]} />
                     <Bar
                       dataKey="value"
@@ -405,7 +407,7 @@ export function TicketsTrendsDashboard({
           </Card>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className={CHART_CARD}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Tickets by department</CardTitle>
@@ -425,7 +427,7 @@ export function TicketsTrendsDashboard({
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" width={axis.width(140)} tick={axis.tick} />
                     <Tooltip formatter={(value: number) => [`${value} ticket(s)`, "Count"]} />
                     <Bar
                       dataKey="value"
@@ -459,7 +461,7 @@ export function TicketsTrendsDashboard({
                   <BarChart data={serviceVolume} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                     <XAxis type="number" allowDecimals={false} />
-                    <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={axis.width(120)} tick={axis.tick} />
                     <Tooltip />
                     <Bar
                       dataKey="value"

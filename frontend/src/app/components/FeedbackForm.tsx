@@ -265,7 +265,7 @@ export function FeedbackForm() {
   const showRemark =
     inputKind === "voice" ? voiceReady : Boolean(selectedEmotion);
 
-  const linkClass = "font-semibold underline decoration-1 underline-offset-2 hover:decoration-2";
+  const linkClass = "inline text-left font-semibold underline decoration-1 underline-offset-2 hover:decoration-2";
 
   return (
     <div className="max-w-3xl mx-auto">

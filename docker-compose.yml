@@ -1,36 +1,44 @@
-# PFS — Docker stack for Hostinger (avoid port clashes with other stacks)
-# Host ports: 8091 → SPA (+ /api proxied to backend), 5014 → API direct (optional)
-# MongoDB is NOT published on the host (no conflict with mrd-mongodb :27017)
+# APDCH Patient Feedback System — Docker stack for the shared VPS.
+#
+# The MAPIMS feedback app already runs on the same server as project "pfs"
+# (pfs_frontend :8091, pfs_backend :5014, pfs_mongo). Every name, port and volume
+# here is distinct so `docker compose up` never touches that stack or its data.
+#
+# Host ports follow the server's 100N / 200N / 300N scheme, slot 7:
+#   1007 → frontend (SPA + /api proxied to the backend); host nginx serves the domain from here
+#   2007 → backend API, localhost only (debugging from the VPS)
+#   3007 → MongoDB, localhost only (mongosh / backups from the VPS)
+# Volumes are prefixed with the project name: apdch_pfs_mongo_data, apdch_pfs_uploads_data.
 
-name: pfs
+name: apdch_pfs
 
 services:
   mongodb:
     image: mongo:7
-    container_name: pfs_mongo
+    container_name: apdch_pfs_mongo
     restart: unless-stopped
-    # ports:
-    #   - "27017:27017"
+    ports:
+      - "127.0.0.1:3007:27017"
     environment:
       TZ: Asia/Kolkata
-      MONGO_INITDB_DATABASE: feedbacksystem
+      MONGO_INITDB_DATABASE: apdch_feedback
     volumes:
-      - pfs_mongo_data:/data/db
+      - mongo_data:/data/db
     networks:
-      - pfs_net
+      - net
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: pfs_backend
+    container_name: apdch_pfs_backend
     restart: unless-stopped
     ports:
-      - "5014:5000"
+      - "127.0.0.1:2007:5000"
     environment:
       PORT: "5000"
-      MONGODB_URI: mongodb://mongodb:27017/feedbacksystem
-      # TMS integration — leave unset locally if you don't want forwarding to TMS.
+      MONGODB_URI: mongodb://mongodb:27017/apdch_feedback
+      # TMS integration — leave unset if you don't want forwarding to TMS.
       # If both stacks share a Docker network, use http://tms_backend:5000.
       TMS_API_URL: ${TMS_API_URL:-}
       TMS_EMP_ID: ${TMS_EMP_ID:-}
@@ -45,29 +53,29 @@ services:
       - ./backend/.env
     volumes:
       # Persistent voice/bot recordings — survives container rebuilds.
-      - pfs_uploads_data:/app/uploads
+      - uploads_data:/app/uploads
     depends_on:
       - mongodb
     networks:
-      - pfs_net
+      - net
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: pfs_frontend
+    container_name: apdch_pfs_frontend
     restart: unless-stopped
     ports:
-      - "8091:80"
+      - "1007:80"
     depends_on:
       - backend
     networks:
-      - pfs_net
+      - net
 
 volumes:
-  pfs_mongo_data:
-  pfs_uploads_data:
+  mongo_data:
+  uploads_data:
 
 networks:
-  pfs_net:
+  net:
     driver: bridge

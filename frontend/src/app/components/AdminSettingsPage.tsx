@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Bot, Heart, Keyboard, Mic, Palette, ToggleRight } from "lucide-react";
-import feedbackLogo from "./image/feedback_logo.png";
+import feedbackLogo from "./image/hospital_logo.png";
 import { HOSPITAL } from "../lib/hospital";
 import {
   getBrandingSettings,
@@ -8,9 +8,10 @@ import {
   onBrandingSettingsChange,
   resetBrandingSettings,
   saveBrandingSettings,
-  saveTicketingEnabled,
-  useTicketingEnabled,
+  saveModuleEnabled,
+  useModuleEnabled,
 } from "../lib/branding";
+import type { ModuleFlag } from "../lib/api";
 import { CAPABILITY, hasCapability } from "./RouteGuards";
 import { Switch } from "./ui/switch";
 
@@ -68,29 +69,69 @@ function ColorField({
   );
 }
 
-/** Super Admin only: switches whole modules on or off for every user. Saves on toggle. */
-function ModuleSettingsCard() {
-  const { enabled: ticketingEnabled, loaded } = useTicketingEnabled();
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+const MODULES: Array<{ flag: ModuleFlag; label: string; description: string }> = [
+  {
+    flag: "ticketingEnabled",
+    label: "Ticketing",
+    description:
+      "Ticket management, ticket detail, the Tickets insights tab, the HOD queue and the ticket metrics on the Management overview. Feedback is still recorded while this is off, so existing tickets reappear when it is turned back on.",
+  },
+  {
+    flag: "departmentsEnabled",
+    label: "Departments",
+    description:
+      "The Departments admin screen. Patients can still pick a department on the feedback forms, and HODs keep their department assignments.",
+  },
+  {
+    flag: "servicesEnabled",
+    label: "Services",
+    description:
+      "The Services admin screen for AI routing services. Existing services and their HOD mappings are kept while this is off.",
+  },
+];
 
-  async function toggleTicketing(next: boolean) {
+function ModuleSwitchRow({ flag, label, description }: (typeof MODULES)[number]) {
+  const { enabled, loaded } = useModuleEnabled(flag);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const id = `module-${flag.replace(/Enabled$/, "")}`;
+
+  async function toggle(next: boolean) {
     try {
       setSaving(true);
-      setMessage(null);
-      await saveTicketingEnabled(next);
-      setMessage(
-        next
-          ? "Ticketing is on. Ticket screens are visible to users with ticket permissions."
-          : "Ticketing is off. Ticket screens are hidden for everyone."
-      );
+      setError(null);
+      await saveModuleEnabled(flag, next);
     } catch (err) {
-      setMessage(err instanceof Error ? err.message : "Could not save module settings.");
+      setError(err instanceof Error ? err.message : "Could not save module settings.");
     } finally {
       setSaving(false);
     }
   }
 
+  return (
+    <div className="rounded-lg bg-gray-50 p-3">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <label htmlFor={id} className="text-sm font-semibold text-gray-800">
+            {label}
+          </label>
+          <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+        </div>
+        <Switch
+          id={id}
+          checked={enabled}
+          disabled={!loaded || saving}
+          onCheckedChange={(next) => void toggle(next)}
+          className="mt-1"
+        />
+      </div>
+      {error ? <p className="mt-2 text-xs text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+
+/** Super Admin only: switches whole modules on or off for every user. Saves on toggle. */
+function ModuleSettingsCard() {
   return (
     <div className="rounded-lg border border-gray-200 p-4 space-y-3">
       <div>
@@ -99,29 +140,13 @@ function ModuleSettingsCard() {
           Modules
         </h3>
         <p className="text-sm text-gray-600 mt-1">
-          Visible to Super Admins only. Changes apply immediately, without Save settings.
+          Visible to Super Admins only. Changes apply immediately for everyone, without Save
+          settings. Hidden screens keep their data.
         </p>
       </div>
-      <div className="flex items-start justify-between gap-4 rounded-lg bg-gray-50 p-3">
-        <div className="min-w-0">
-          <label htmlFor="module-ticketing" className="text-sm font-semibold text-gray-800">
-            Ticketing
-          </label>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Ticket management, ticket detail, the Tickets insights tab, the HOD queue and the
-            ticket metrics on the Management overview. Feedback is still recorded while this is
-            off, so existing tickets reappear when it is turned back on.
-          </p>
-        </div>
-        <Switch
-          id="module-ticketing"
-          checked={ticketingEnabled}
-          disabled={!loaded || saving}
-          onCheckedChange={(next) => void toggleTicketing(next)}
-          className="mt-1"
-        />
-      </div>
-      {message ? <p className="text-xs text-gray-600">{message}</p> : null}
+      {MODULES.map((module) => (
+        <ModuleSwitchRow key={module.flag} {...module} />
+      ))}
     </div>
   );
 }

@@ -798,7 +798,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Card className="rounded-2xl shadow-sm">
           <CardHeader className="pb-2">
             <CardDescription className="text-xs uppercase tracking-wide">Total</CardDescription>
@@ -845,7 +845,7 @@ export function Dashboard() {
             onChange={setEncounterFilter}
             showHint
           />
-          <div className="grid gap-3 md:grid-cols-[1fr_auto_auto_auto]">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto_auto]">
             <div className="relative">
               <Search
                 className="text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2"

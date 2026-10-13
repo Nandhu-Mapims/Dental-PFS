@@ -6,11 +6,11 @@
 #   ./backend/scripts/importUploadsToVolume.sh                    # from backend/uploads on host
 #   ./backend/scripts/importUploadsToVolume.sh /path/to/backup    # from a backup folder
 #
-# Copies into pfs_backend:/app/uploads/ (Docker volume pfs_uploads_data).
+# Copies into apdch_pfs_backend:/app/uploads/ (Docker volume apdch_pfs_uploads_data).
 
 set -e
 
-CONTAINER="${PFS_BACKEND_CONTAINER:-pfs_backend}"
+CONTAINER="${PFS_BACKEND_CONTAINER:-apdch_pfs_backend}"
 SRC="${1:-$(dirname "$0")/../uploads}"
 
 if [ ! -d "$SRC" ]; then

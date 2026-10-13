@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import QRCode from "qrcode";
 import {
   deleteFeedback,
   getFeedback,
@@ -27,13 +26,9 @@ import {
   last30DaysRange,
   type FeedbackListScope,
 } from "../lib/insightsFilters";
-import {
-  getBrandingSettings,
-  loadBrandingSettings,
-  onBrandingSettingsChange,
-  useTicketingEnabled,
-} from "../lib/branding";
-import feedbackLogo from "./image/feedback_logo.png";
+import { useTicketingEnabled } from "../lib/branding";
+import feedbackQr from "./image/feedback_qr.jpg";
+import feedbackQrPrint from "./image/feedback_qr_print.jpg";
 import { HOSPITAL } from "../lib/hospital";
 import {
   Bar,
@@ -69,12 +64,8 @@ const STATUS_COLORS: Record<string, string> = {
   Resolved: "#2FBF71",
 };
 
-/** QR + frame colours aligned with feedback logo (deep red / cream / gold) */
-const BRAND_QR = {
-  modules: "#8B1538",
-  background: "#FFFBF7",
-  borderGold: "#C9A227",
-};
+/** The address the hospital's printed QR code opens. */
+const FEEDBACK_QR_TARGET = "http://pfs.apdch.mapims.edu.in/";
 
 export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
   const navigate = useNavigate();
@@ -86,10 +77,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [chartsReady, setChartsReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const { enabled: ticketingEnabled } = useTicketingEnabled();
-  const [downloadBusy, setDownloadBusy] = useState(false);
-  const [brandLogoDataUrl, setBrandLogoDataUrl] = useState<string | null>(null);
   const [listScope, setListScope] = useState<FeedbackListScope>(defaultFeedbackListScope);
   const [excelDownloadBusy, setExcelDownloadBusy] = useState(false);
   const lastFeedbackSyncMsRef = useRef(0);
@@ -280,16 +268,6 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
     return () => window.clearInterval(interval);
   }, [loadAnalytics, loadFeedback]);
 
-  useEffect(() => {
-    void loadBrandingSettings().then((next) => {
-      setBrandLogoDataUrl(next.logoDataUrl);
-    });
-    return onBrandingSettingsChange(() => {
-      const updated = getBrandingSettings();
-      setBrandLogoDataUrl(updated.logoDataUrl);
-    });
-  }, []);
-
   const totalSubmissions = analytics?.totals?.all ?? items.length;
   const patientCount = useMemo(() => countPatientFeedbackGroups(items), [items]);
   const averageRatingFromItems = useMemo(() => {
@@ -302,177 +280,6 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
   const negativeAiCount =
     analytics?.totals?.negative ?? items.filter((i) => i.aiSentiment === "negative").length;
   const aiChannelCount = analytics?.totals?.aiTickets ?? items.filter((i) => i.source === "ai").length;
-
-  const feedbackLink = useMemo(() => {
-    const envBase = (
-      import.meta.env.VITE_PUBLIC_FEEDBACK_ORIGIN as string | undefined
-    )?.trim();
-    const origin =
-      envBase ||
-      (typeof window !== "undefined" ? window.location.origin : "");
-    const base = origin.replace(/\/$/, "");
-    return `${base}/feedback`;
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    setQrDataUrl(null);
-    QRCode.toDataURL(feedbackLink, {
-      width: 240,
-      margin: 2,
-      color: {
-        dark: BRAND_QR.modules,
-        light: BRAND_QR.background,
-      },
-      errorCorrectionLevel: "M",
-    })
-      .then((url) => {
-        if (!cancelled) setQrDataUrl(url);
-      })
-      .catch(() => {
-        if (!cancelled) setQrDataUrl(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [feedbackLink]);
-
-  function loadImage(src: string): Promise<HTMLImageElement> {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Logo failed to load"));
-      img.src = src;
-    });
-  }
-
-  function drawWrappedUrl(
-    ctx: CanvasRenderingContext2D,
-    text: string,
-    x: number,
-    y: number,
-    maxWidth: number,
-    lineHeight: number
-  ): number {
-    let line = "";
-    let yy = y;
-    for (let i = 0; i < text.length; i++) {
-      const test = line + text[i];
-      if (ctx.measureText(test).width > maxWidth && line.length > 0) {
-        ctx.fillText(line, x, yy);
-        yy += lineHeight;
-        line = text[i];
-      } else {
-        line = test;
-      }
-    }
-    if (line) {
-      ctx.fillText(line, x, yy);
-      yy += lineHeight;
-    }
-    return yy;
-  }
-
-  async function downloadQrPoster() {
-    setDownloadBusy(true);
-    try {
-      const W = 720;
-      const H = 1280;
-      const pad = 40;
-      const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-
-      ctx.fillStyle = BRAND_QR.background;
-      ctx.fillRect(0, 0, W, H);
-
-      ctx.fillStyle = BRAND_QR.borderGold;
-      ctx.fillRect(0, 0, W, 10);
-
-      ctx.strokeStyle = `${BRAND_QR.borderGold}99`;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(12, 12, W - 24, H - 24);
-
-      const logoImg = await loadImage(brandLogoDataUrl || feedbackLogo);
-      const logoMaxW = W - pad * 2;
-      const logoScale = Math.min(logoMaxW / logoImg.width, 400 / logoImg.height);
-      const lw = logoImg.width * logoScale;
-      const lh = logoImg.height * logoScale;
-      const lx = (W - lw) / 2;
-      let yCursor = 36;
-      ctx.drawImage(logoImg, lx, yCursor, lw, lh);
-      yCursor += lh + 14;
-
-      ctx.fillStyle = BRAND_QR.modules;
-      ctx.font = "bold 28px system-ui, Segoe UI, sans-serif";
-      ctx.textAlign = "center";
-      ctx.fillText("Patient feedback", W / 2, yCursor);
-      yCursor += 38;
-      ctx.font = "17px system-ui, Segoe UI, sans-serif";
-      ctx.fillStyle = "#6b1229";
-      ctx.fillText("Scan the code below with your phone camera", W / 2, yCursor);
-      yCursor += 42;
-
-      const qrSize = 480;
-      const qrCanvas = document.createElement("canvas");
-      await QRCode.toCanvas(qrCanvas, feedbackLink, {
-        width: qrSize,
-        margin: 2,
-        color: {
-          dark: BRAND_QR.modules,
-          light: "#ffffff",
-        },
-        errorCorrectionLevel: "M",
-      });
-
-      const qrX = (W - qrSize) / 2;
-      const padQr = 16;
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(qrX - padQr, yCursor - padQr, qrSize + padQr * 2, qrSize + padQr * 2);
-      ctx.strokeStyle = BRAND_QR.borderGold;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(qrX - padQr, yCursor - padQr, qrSize + padQr * 2, qrSize + padQr * 2);
-      ctx.drawImage(qrCanvas, qrX, yCursor);
-      yCursor += qrSize + padQr * 2 + 22;
-
-      ctx.textAlign = "center";
-      ctx.font = "13px ui-monospace, monospace";
-      ctx.fillStyle = "#4a0d18";
-      const urlBottom = drawWrappedUrl(ctx, feedbackLink, W / 2, yCursor, W - pad * 2, 18);
-      yCursor = urlBottom + 24;
-
-      ctx.font = "12px system-ui, sans-serif";
-      ctx.fillStyle = "#8B1538";
-      ctx.fillText(`${HOSPITAL.shortName} · Feedback System`, W / 2, H - pad);
-
-      await new Promise<void>((resolve, reject) => {
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error("Export failed"));
-              return;
-            }
-            const url = URL.createObjectURL(blob);
-            const anchor = document.createElement("a");
-            anchor.href = url;
-            anchor.download = `${HOSPITAL.shortName.toLowerCase()}-feedback-qr-poster.png`;
-            anchor.click();
-            URL.revokeObjectURL(url);
-            resolve();
-          },
-          "image/png",
-          1
-        );
-      });
-    } catch {
-      // silent; optional: toast
-    } finally {
-      setDownloadBusy(false);
-    }
-  }
 
   const statusChartData = analytics?.byStatus ?? [];
   const pieData = useMemo(
@@ -669,63 +476,37 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
       </div>
 
       {!readOnly && (
-      <div className="rounded-2xl border-2 border-brand-gold bg-gradient-to-br from-[#FFFBF7] via-[#FFF8F0] to-[#FFF0F0] p-6 sm:p-8 shadow-md mb-6">
-        <h3 className="text-xl font-bold text-primary mb-1">Feedback QR Code</h3>
-        <p className="text-sm text-[#6b1229] mb-6">
-          Logo and QR use the same brand colours. Download saves a tall poster: logo on top, QR
-          below (rectangle PNG for print or WhatsApp).
-        </p>
-        <div className="flex flex-col lg:flex-row lg:items-center gap-8">
-          <div className="flex flex-col items-center justify-center gap-3 shrink-0 lg:border-r lg:border-brand-gold/40 lg:pr-8">
+        <div className="rounded-2xl border-2 border-brand-gold bg-gradient-to-br from-[#FFFBF7] via-[#FFF8F0] to-[#FFF0F0] p-4 sm:p-8 shadow-md mb-6">
+          <h3 className="text-xl font-bold text-primary mb-1">Feedback QR Code</h3>
+          <p className="text-sm text-[#6b1229] mb-6">
+            The hospital's official feedback QR code. Download the print-quality file for posters,
+            counters and WhatsApp.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
             <img
-              src={brandLogoDataUrl || feedbackLogo}
-              alt={`${HOSPITAL.shortName} feedback system`}
-              className="h-28 w-auto max-w-[220px] object-contain drop-shadow-sm"
+              src={feedbackQr}
+              alt={`${HOSPITAL.name} feedback QR code`}
+              width={1000}
+              height={1210}
+              className="mx-auto sm:mx-0 h-auto w-full max-w-[260px] shrink-0 rounded-xl bg-white shadow-md ring-2 ring-primary/20"
             />
-            <p className="text-xs font-bold uppercase tracking-wider text-primary">
-              Official {HOSPITAL.shortName} feedback
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-1 min-w-0">
-            <div
-              className="mx-auto sm:mx-0 rounded-xl bg-white p-3 shadow-md ring-2 ring-primary/20"
-              style={{ backgroundColor: BRAND_QR.background }}
-            >
-              {qrDataUrl ? (
-                <img
-                  src={qrDataUrl}
-                  alt="QR code linking to patient feedback form"
-                  width={240}
-                  height={240}
-                  className="block rounded-lg"
-                />
-              ) : (
-                <div
-                  className="w-[240px] h-[240px] rounded-lg animate-pulse"
-                  style={{ backgroundColor: `${BRAND_QR.modules}18` }}
-                  aria-hidden
-                />
-              )}
-            </div>
             <div className="space-y-3 text-center sm:text-left flex-1 min-w-0">
               <p className="text-xs font-semibold text-primary uppercase tracking-wide">
                 Scan target
               </p>
               <p className="text-sm text-[#4a0d18] break-all font-mono bg-white/70 rounded-lg px-3 py-2 border border-brand-gold/30">
-                {feedbackLink}
+                {FEEDBACK_QR_TARGET}
               </p>
-              <button
-                type="button"
-                disabled={downloadBusy}
-                onClick={() => void downloadQrPoster()}
-                className="inline-flex px-4 py-2 rounded-lg font-semibold text-white bg-primary hover:bg-[#6f1029] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm ring-1 ring-brand-gold/40"
+              <a
+                href={feedbackQrPrint}
+                download={`${HOSPITAL.shortName.toLowerCase()}-feedback-qr.jpg`}
+                className="inline-flex px-4 py-2 rounded-lg font-semibold text-white bg-primary hover:bg-[#6f1029] transition-colors shadow-sm ring-1 ring-brand-gold/40"
               >
-                {downloadBusy ? "Preparing download…" : "Download poster (logo + QR)"}
-              </button>
+                Download QR (print quality)
+              </a>
             </div>
           </div>
         </div>
-      </div>
       )}
 
       <RecentFeedbackBySentiment

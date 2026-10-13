@@ -94,10 +94,16 @@ export interface BrandingSettings {
   botSkipThinkCountdown: boolean;
   /** Ticketing module (ticket queue, detail, ticket insights). Toggled by a Super Admin. */
   ticketingEnabled: boolean;
+  /** Admin Departments screen. Toggled by a Super Admin. */
+  departmentsEnabled: boolean;
+  /** Admin Services screen. Toggled by a Super Admin. */
+  servicesEnabled: boolean;
 }
 
+export type ModuleFlag = "ticketingEnabled" | "departmentsEnabled" | "servicesEnabled";
+
 /** Fields the Settings page saves; module switches go through saveFeatureSettingsApi. */
-export type BrandingSettingsInput = Omit<BrandingSettings, "ticketingEnabled">;
+export type BrandingSettingsInput = Omit<BrandingSettings, ModuleFlag>;
 
 export interface CreateFeedbackResponse extends FeedbackItem {
   ticketRaised?: boolean;
@@ -1022,9 +1028,9 @@ export async function getBrandingSettingsApi(): Promise<BrandingSettings> {
   return response.json();
 }
 
-export async function saveFeatureSettingsApi(payload: {
-  ticketingEnabled: boolean;
-}): Promise<BrandingSettings> {
+export async function saveFeatureSettingsApi(
+  payload: Partial<Record<ModuleFlag, boolean>>
+): Promise<BrandingSettings> {
   const response = await apiFetch(`${API_BASE_URL}/api/settings/features`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },

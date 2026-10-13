@@ -178,7 +178,7 @@ export function AdminRolesPage() {
                 )}
               </header>
 
-              <div className="grid gap-5 p-4 sm:p-5 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-5 p-4 sm:p-5 md:grid-cols-3">
                 {catalog.map((group) => (
                   <div key={group.group}>
                     <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">

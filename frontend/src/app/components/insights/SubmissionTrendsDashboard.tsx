@@ -44,6 +44,7 @@ import { InsightsKpiCard } from "./InsightsKpiCard";
 import { InsightsKpiDetailDialog } from "./InsightsKpiDetailDialog";
 import { matchesFollowUp, THEME_RULES, type InsightsKpiKind, type SubmissionChartFilter, type SubmissionSelection } from "./insightsKpiDetail";
 import type { InsightsDataState } from "./useInsightsData";
+import { useCategoryAxis } from "../../lib/useCategoryAxis";
 
 // Colour comes from the shared, validated chart palette (see chartPalette.ts) --
 // keyed to the department name so an entity keeps its colour across re-sorts
@@ -86,6 +87,7 @@ export function SubmissionTrendsDashboard({
   customRange,
   filterWindow,
 }: Props) {
+  const axis = useCategoryAxis();
   const [openRouterConfigured, setOpenRouterConfigured] = useState<boolean | null>(null);
   const [selection, setSelection] = useState<SubmissionSelection | null>(null);
 
@@ -299,7 +301,7 @@ export function SubmissionTrendsDashboard({
         row (split tickets included). Click any metric, chart, or action item to view details.
       </p>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
         <InsightsKpiCard
           label="Submissions"
           value={filteredTotal}
@@ -362,7 +364,7 @@ export function SubmissionTrendsDashboard({
           <CardDescription>Follow-up by visit department and routing service</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <ActionList
               title="Complaint themes"
               icon={<AlertTriangle size={16} className="text-red-600" />}
@@ -432,7 +434,7 @@ export function SubmissionTrendsDashboard({
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                   <XAxis type="number" allowDecimals={false} />
-                  <YAxis type="category" dataKey="label" width={200} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="label" width={axis.width(200)} tick={axis.tick} />
                   <Tooltip />
                   <Legend />
                   <Bar
@@ -479,7 +481,7 @@ export function SubmissionTrendsDashboard({
             {timeSlotLabel(timeFilter)}
           </p>
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <TrendLineCard
             title="Submission volume"
             description={`One point per ${periodFilter === "weekly" ? "week" : periodFilter === "yearly" ? "month" : "day"} · ${periodLabel} · click a point`}
@@ -553,7 +555,7 @@ export function SubmissionTrendsDashboard({
             </CardContent>
           </Card>
         </div>
-        <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card className={CHART_CARD}>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">By time of day</CardTitle>
@@ -608,7 +610,7 @@ export function SubmissionTrendsDashboard({
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" width={axis.width(140)} tick={axis.tick} />
                     <Tooltip formatter={(value: number) => [`${value} submission(s)`, "Count"]} />
                     <Bar
                       dataKey="value"
@@ -652,7 +654,7 @@ export function SubmissionTrendsDashboard({
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                     <XAxis type="number" allowDecimals={false} />
-                    <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                    <YAxis type="category" dataKey="name" width={axis.width(140)} tick={axis.tick} />
                     <Tooltip formatter={(value: number) => [`${value} complaint(s)`, "Count"]} />
                     <Bar
                       dataKey="value"
@@ -687,7 +689,7 @@ export function SubmissionTrendsDashboard({
               <BarChart data={categoryData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                 <XAxis type="number" allowDecimals={false} />
-                <YAxis dataKey="category" type="category" width={130} tick={{ fontSize: 11 }} />
+                <YAxis dataKey="category" type="category" width={axis.width(130)} tick={axis.tick} />
                 <Tooltip />
                 <Bar
                   dataKey="count"
@@ -813,7 +815,7 @@ function ActionList({
               onClick={() => onItemClick?.(item.label)}
               className="flex w-full justify-between text-sm gap-2 rounded-lg px-1 py-0.5 text-left hover:bg-amber-50/80 transition-colors"
             >
-              <span className="truncate">{item.label}</span>
+              <span className="min-w-0 truncate">{item.label}</span>
               <Badge variant="outline">{item.value}</Badge>
             </button>
           </li>
@@ -840,7 +842,7 @@ function RatioList({
             onClick={() => onItemClick?.(item.name)}
             className="flex w-full justify-between text-sm gap-2 rounded px-1 py-0.5 text-left hover:bg-emerald-50/80 transition-colors"
           >
-            <span className="truncate">{item.name}</span>
+            <span className="min-w-0 truncate">{item.name}</span>
             <span className="font-semibold text-emerald-600 shrink-0">{item.ratio}%</span>
           </button>
         </li>

@@ -4,7 +4,7 @@ import { CAPABILITY, hasCapability } from "../RouteGuards";
 import { useTicketingEnabled } from "../../lib/branding";
 
 function tabClass({ isActive }: { isActive: boolean }) {
-  return `inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-2 sm:px-3 py-2 text-[11px] sm:text-sm font-semibold transition-all ${
+  return `inline-flex shrink-0 whitespace-nowrap md:w-full md:shrink md:whitespace-normal items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs sm:text-sm font-semibold transition-all ${
     isActive
       ? "bg-primary text-white shadow-sm"
       : "text-gray-600 hover:bg-white hover:text-gray-900"
@@ -24,7 +24,7 @@ export function InsightsViewTabs({ basePath }: { basePath: string }) {
 
   return (
     <div
-      className={`grid w-full ${gridCols} rounded-xl border border-gray-200 bg-gray-50 p-1`}
+      className={`flex w-full gap-1 overflow-x-auto md:grid md:gap-0 ${gridCols} rounded-xl border border-gray-200 bg-gray-50 p-1`}
       role="tablist"
       aria-label="Insights views"
     >

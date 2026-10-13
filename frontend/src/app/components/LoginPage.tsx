@@ -2,7 +2,7 @@ import { FormEvent, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useLocation, useNavigate } from "react-router";
 import { login } from "../lib/auth";
-import feedbackLogo from "./image/feedback_logo.png";
+import feedbackLogo from "./image/hospital_logo.png";
 import { HOSPITAL } from "../lib/hospital";
 
 export function LoginPage() {

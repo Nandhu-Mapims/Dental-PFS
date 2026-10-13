@@ -34,6 +34,7 @@ import { periodDescription, timeSlotLabel } from "../../lib/insightsFilters";
 import type { InsightsDataState } from "./useInsightsData";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
+import { useCategoryAxis } from "../../lib/useCategoryAxis";
 
 type Props = Pick<
   InsightsDataState,
@@ -167,6 +168,7 @@ function LeaderboardColumn({
   showAll: boolean;
   onShowAllChange: (v: boolean) => void;
 }) {
+  const axis = useCategoryAxis();
   const chartHeight = Math.min(900, Math.max(280, chartData.length * 36));
 
   return (
@@ -179,7 +181,7 @@ function LeaderboardColumn({
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-emerald-700 flex items-center gap-2">
             <TrendingUp size={16} />
@@ -240,7 +242,7 @@ function LeaderboardColumn({
                 <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 16, top: 8, bottom: 8 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                   <XAxis type="number" allowDecimals={false} />
-                  <YAxis type="category" dataKey="name" width={140} tick={{ fontSize: 11 }} />
+                  <YAxis type="category" dataKey="name" width={axis.width(140)} tick={axis.tick} />
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="positive" stackId="s" fill={SENTIMENT_COLORS.positive} name="Positive" />
@@ -310,7 +312,7 @@ export function SentimentLeaderboardDashboard({
         ) : null}
       </p>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryTile
           label="Positive"
           value={totals.positive}
@@ -341,7 +343,7 @@ export function SentimentLeaderboardDashboard({
         />
       </div>
 
-      <div className="grid gap-10 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-10 xl:grid-cols-2">
         <LeaderboardColumn
           title="Departments"
           subtitle="AI routing department per issue / split ticket"

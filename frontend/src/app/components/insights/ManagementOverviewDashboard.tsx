@@ -39,6 +39,7 @@ import { periodDescription, timeSlotLabel } from "../../lib/insightsFilters";
 import { useTicketingEnabled } from "../../lib/branding";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import type { InsightsDataState } from "./useInsightsData";
+import { useCategoryAxis } from "../../lib/useCategoryAxis";
 
 const CHART_CARD =
   "rounded-2xl shadow-sm border border-gray-100 transition-shadow hover:shadow-md hover:border-teal-200";
@@ -297,6 +298,7 @@ export function ManagementOverviewDashboard({
   encounterFilter,
   customRange,
 }: Props) {
+  const axis = useCategoryAxis();
   const [departments, setDepartments] = useState<Department[]>([]);
   const [users, setUsers] = useState<UserRow[]>([]);
   const [sort, setSort] = useState<ScorecardSort>("volume");
@@ -374,7 +376,7 @@ export function ManagementOverviewDashboard({
         {timeSlotLabel(timeFilter)}
       </p>
 
-      <div className={`grid gap-4 sm:grid-cols-2 ${ticketingEnabled ? "lg:grid-cols-4" : ""}`}>
+      <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${ticketingEnabled ? "lg:grid-cols-4" : ""}`}>
         <SummaryTile
           label="Complaints"
           value={complaintSlices.length}
@@ -434,7 +436,7 @@ export function ManagementOverviewDashboard({
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" width={axis.width(180)} tick={axis.tick} />
                 <Tooltip formatter={(value: number) => [`${value} complaint(s)`, "Count"]} />
                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                   {chartData.map((entry) => (
@@ -459,7 +461,7 @@ export function ManagementOverviewDashboard({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="rounded-xl border border-gray-200 p-4">
               <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 <Clock size={14} /> Time to first assignment
@@ -504,7 +506,7 @@ export function ManagementOverviewDashboard({
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" horizontal={false} />
                 <XAxis type="number" allowDecimals={false} />
-                <YAxis type="category" dataKey="label" width={90} tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="label" width={axis.width(90)} tick={axis.tick} />
                 <Tooltip formatter={(value: number) => [`${value} ticket(s)`, "Open"]} />
                 <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                   {backlogChartData.map((entry) => (

@@ -207,6 +207,8 @@ function serializeBrandingSettings(doc) {
       botSkipIntro: DEFAULT_BOT_SKIP_INTRO,
       botSkipThinkCountdown: DEFAULT_BOT_SKIP_THINK_COUNTDOWN,
       ticketingEnabled: false,
+      departmentsEnabled: false,
+      servicesEnabled: false,
     };
   }
   return {
@@ -219,6 +221,8 @@ function serializeBrandingSettings(doc) {
     botSkipIntro: Boolean(doc.botSkipIntro ?? doc.botSkipIntroAndCountdown),
     botSkipThinkCountdown: Boolean(doc.botSkipThinkCountdown ?? doc.botSkipIntroAndCountdown),
     ticketingEnabled: Boolean(doc.ticketingEnabled),
+    departmentsEnabled: Boolean(doc.departmentsEnabled),
+    servicesEnabled: Boolean(doc.servicesEnabled),
   };
 }
 
@@ -479,7 +483,7 @@ async function ensureDefaults() {
   if (deptCount === 0) {
     // eslint-disable-next-line no-console
     console.warn(
-      "[feedback] No departments in DB. Run: npm run seed-mock -- --yes"
+      "[feedback] No departments in DB. Run: npm run seed (adds the hospital departments and default logins without touching other data)"
     );
   }
 
@@ -3247,19 +3251,29 @@ app.delete("/api/branding", requireCapability(CAPABILITIES.BRANDING_MANAGE), asy
   }
 });
 
-/** Module switches. Lives on the global settings doc so GET /api/branding carries it to every screen. */
+/** Module switches. Live on the global settings doc so GET /api/branding carries them to every screen. */
+const MODULE_FLAGS = ["ticketingEnabled", "departmentsEnabled", "servicesEnabled"];
+
 app.put(
   "/api/settings/features",
   requireCapability(CAPABILITIES.FEATURES_MANAGE),
   async (req, res) => {
     try {
-      const { ticketingEnabled } = req.body ?? {};
-      if (typeof ticketingEnabled !== "boolean") {
-        return res.status(400).json({ message: "ticketingEnabled must be true or false" });
+      const body = req.body ?? {};
+      const changes = {};
+      for (const flag of MODULE_FLAGS) {
+        if (!(flag in body)) continue;
+        if (typeof body[flag] !== "boolean") {
+          return res.status(400).json({ message: `${flag} must be true or false` });
+        }
+        changes[flag] = body[flag];
+      }
+      if (!Object.keys(changes).length) {
+        return res.status(400).json({ message: `Send at least one of: ${MODULE_FLAGS.join(", ")}` });
       }
       const updated = await Branding.findOneAndUpdate(
         { key: "global" },
-        { $set: { ticketingEnabled } },
+        { $set: changes },
         { upsert: true, new: true, runValidators: true, setDefaultsOnInsert: true }
       ).lean();
       return res.json(serializeBrandingSettings(updated));

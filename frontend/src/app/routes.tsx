@@ -4,6 +4,8 @@ import { LoginPage } from "./components/LoginPage";
 import {
   AdminGuard,
   RequireCapability,
+  RequireDepartments,
+  RequireServices,
   RequireTicketing,
   StaffGuard,
 } from "./components/RouteGuards";
@@ -239,17 +241,27 @@ export const router = createBrowserRouter([
             element: <Navigate to="/admin/management-overview/submissions" replace />,
           },
           {
-            path: "admin/departments",
-            lazy: async () => ({
-              Component: (await import("./components/AdminHospitalDepartmentsPage"))
-                .AdminHospitalDepartmentsPage,
-            }),
+            Component: RequireDepartments,
+            children: [
+              {
+                path: "admin/departments",
+                lazy: async () => ({
+                  Component: (await import("./components/AdminHospitalDepartmentsPage"))
+                    .AdminHospitalDepartmentsPage,
+                }),
+              },
+            ],
           },
           {
-            path: "admin/services",
-            lazy: async () => ({
-              Component: (await import("./components/AdminServicesPage")).AdminServicesPage,
-            }),
+            Component: RequireServices,
+            children: [
+              {
+                path: "admin/services",
+                lazy: async () => ({
+                  Component: (await import("./components/AdminServicesPage")).AdminServicesPage,
+                }),
+              },
+            ],
           },
           {
             path: "admin/users",
