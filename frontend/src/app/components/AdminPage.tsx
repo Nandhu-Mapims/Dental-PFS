@@ -65,7 +65,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 /** The address the hospital's printed QR code opens. */
-const FEEDBACK_QR_TARGET = "http://pfs.apdch.mapims.edu.in/";
+const FEEDBACK_QR_TARGET = "http://pfs.apdch.mapims.edu.in/feedback";
 
 export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
   const navigate = useNavigate();
