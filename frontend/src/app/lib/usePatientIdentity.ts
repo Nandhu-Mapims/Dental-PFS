@@ -16,8 +16,6 @@ export type PatientIdentitySubmitFields = Pick<
   | "patientEncounterType"
   | "department"
   | "lookupDepartment"
-  | "ward"
-  | "ipNo"
   | "visitOrAdmissionDate"
 >;
 
@@ -25,7 +23,6 @@ export function usePatientIdentity() {
   const [identificationMode, setIdentificationMode] = useState<IdentificationMode>("name");
   const [manualPatientName, setManualPatientName] = useState("");
   const [manualDepartment, setManualDepartment] = useState("");
-  const [manualWard, setManualWard] = useState("");
   const [hospitalDepartments, setHospitalDepartments] = useState<Department[]>([]);
   const [uhidInput, setUhidInput] = useState("");
   const [lookupFrmDate, setLookupFrmDate] = useState("");
@@ -110,7 +107,7 @@ export function usePatientIdentity() {
       setLookupRangeLabel(`${result.frmDate} – ${result.toDate}`);
       if (!result.matches.length) {
         setLookupError(
-          "No OP/IP rows returned for this number in the selected period. Try a wider optional date range (MM/DD/YYYY), then tap Look up again."
+          "No OP visits returned for this number in the selected period. Try a wider optional date range (MM/DD/YYYY), then tap Look up again."
         );
       }
     } catch (e) {
@@ -148,7 +145,6 @@ export function usePatientIdentity() {
       return {
         patientName: manualPatientName.trim(),
         department: dept || undefined,
-        ward: manualWard.trim() || undefined,
       };
     }
 
@@ -161,16 +157,12 @@ export function usePatientIdentity() {
       patientEncounterType: sel.encounterType,
       department: emrDept || undefined,
       lookupDepartment: emrDept || undefined,
-      ward: sel.ward.trim() || undefined,
-      ipNo: sel.ipNo || undefined,
-      visitOrAdmissionDate:
-        sel.encounterType === "ip" ? sel.admissionDate || undefined : sel.visitDate || undefined,
+      visitOrAdmissionDate: sel.visitDate || undefined,
     };
   }, [
     identificationMode,
     manualDepartment,
     manualPatientName,
-    manualWard,
     selectedMatch,
     uhidInput,
   ]);
@@ -179,7 +171,6 @@ export function usePatientIdentity() {
     setIdentificationMode("name");
     setManualPatientName("");
     setManualDepartment("");
-    setManualWard("");
     setUhidInput("");
     setLookupFrmDate("");
     setLookupToDate("");
@@ -196,7 +187,6 @@ export function usePatientIdentity() {
       if (mode === "name") {
         setManualPatientName(fields.patientName?.trim() || "");
         setManualDepartment(fields.department?.trim() || "");
-        setManualWard(fields.ward?.trim() || "");
         setUhidInput("");
         setLookupMatches([]);
         setLookupRangeLabel("");
@@ -206,7 +196,6 @@ export function usePatientIdentity() {
       setUhidInput(fields.patientRegNo?.trim() || "");
       setManualPatientName("");
       setManualDepartment("");
-      setManualWard("");
       if (match) {
         setLookupMatches([match]);
         setSelectedMatchKey(match.key);
@@ -225,8 +214,6 @@ export function usePatientIdentity() {
     setManualPatientName,
     manualDepartment,
     setManualDepartment,
-    manualWard,
-    setManualWard,
     hospitalDepartments,
     uhidInput,
     setUhidInput,

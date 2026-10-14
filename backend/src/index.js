@@ -2180,7 +2180,8 @@ app.post("/api/feedback", (req, res, next) => {
     const deferAiProcessing =
       submissionMode === "voice" || submissionMode === "standard" || submissionMode === "bot";
     const rawEncounter = String(req.body.patientEncounterType || "").toLowerCase().trim();
-    const patientEncounterType = ["op", "ip"].includes(rawEncounter) ? rawEncounter : "";
+    // Outpatients only — the dental hospital has no inpatient visits.
+    const patientEncounterType = rawEncounter === "op" ? "op" : "";
     const patientRegNo = String(req.body.patientRegNo || "").trim().slice(0, 80);
     const ward = String(req.body.ward || "").trim().slice(0, 120);
     const ipNo = String(req.body.ipNo || "").trim().slice(0, 80);

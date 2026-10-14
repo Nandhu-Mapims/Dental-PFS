@@ -5,11 +5,11 @@ export const SEED_DEPARTMENTS = HOSPITAL.departments;
 
 /** AI routing services (under departments on tickets). */
 export const SEED_ROUTING_SERVICES = [
-  { name: "House Keeping", description: "Cleaning, linen, and ward hygiene" },
+  { name: "House Keeping", description: "Cleaning and clinic hygiene" },
   { name: "Engineering", description: "Maintenance, HVAC, and facilities" },
   { name: "Billing", description: "Charges, invoices, and payments" },
   { name: "Pharmacy", description: "Medicines and dispensing" },
-  { name: "Nursing", description: "Nursing care and bedside support" },
+  { name: "Nursing", description: "Nursing and chairside support" },
   { name: "Food Services", description: "Patient meals and diet kitchen" },
   { name: "Security", description: "Hospital security and access" },
   { name: "Front Office", description: "Registration and reception" },
@@ -26,12 +26,12 @@ export function buildSeedFeedback(departmentIds) {
     {
       patientName: "Durgaram",
       patientRegNo: "UHID-10021",
-      patientEncounterType: "ip",
+      patientEncounterType: "op",
       department: dept("Oral & Maxillofacial Surgery"),
       lookupDepartment: dept("Oral & Maxillofacial Surgery"),
       service: "House Keeping",
       rating: 3,
-      comments: "Room was not cleaned on time. Linen was delayed.",
+      comments: "Treatment room was not cleaned on time. The dental chair area was untidy.",
       status: "New",
       source: "patient",
       aiSentiment: "negative",
@@ -42,7 +42,7 @@ export function buildSeedFeedback(departmentIds) {
         {
           department: "Oral & Maxillofacial Surgery",
           recommendedService: "House Keeping",
-          issueSummary: "Delayed room cleaning and linen",
+          issueSummary: "Delayed treatment room cleaning",
           suggestedAction: "Escalate to housekeeping supervisor",
           ticketId: "TKT-FBK-2026-0043",
         },

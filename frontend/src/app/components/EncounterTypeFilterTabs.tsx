@@ -2,9 +2,7 @@ import type { EncounterTypeFilter } from "../lib/insightsFilters";
 
 const OPTIONS: { id: EncounterTypeFilter; label: string }[] = [
   { id: "all", label: "ALL" },
-  { id: "op-ip", label: "OP + IP" },
   { id: "op", label: "OP" },
-  { id: "ip", label: "IP" },
   { id: "name-only", label: "Name-only" },
 ];
 
@@ -27,7 +25,7 @@ export function EncounterTypeFilterTabs({
         <p className="text-sm font-semibold text-gray-800">Patient type</p>
         {showHint ? (
           <p className="text-xs text-muted-foreground mt-0.5">
-            All types · OP + IP = UHID visits · OP or IP alone · Name-only = no UHID
+            All patients · OP = matched by UHID · Name-only = no UHID
           </p>
         ) : null}
       </div>

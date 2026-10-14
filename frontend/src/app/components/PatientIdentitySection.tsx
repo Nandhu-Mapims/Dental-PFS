@@ -170,21 +170,8 @@ export function PatientIdentitySection({
                       {displayOptionalLabel(m.department) !== "—" ? (
                         <span className="text-gray-800">{displayOptionalLabel(m.department)}</span>
                       ) : null}
-                      {m.ward ? (
-                        <>
-                          <span className="text-gray-500"> · Ward </span>
-                          <span className="text-gray-800">{m.ward}</span>
-                        </>
-                      ) : null}
                       <div className="text-xs text-gray-600 mt-1">
-                        {m.encounterType === "ip"
-                          ? m.admissionDate
-                            ? `Admitted ${m.admissionDate}`
-                            : "Inpatient"
-                          : m.visitDate
-                            ? `Visit ${m.visitDate}`
-                            : "Outpatient"}
-                        {m.ipNo ? ` · IP ${m.ipNo}` : ""}
+                        {m.visitDate ? `Visit ${m.visitDate}` : "Outpatient"}
                         {m.tokenNo ? ` · Token ${m.tokenNo}` : ""}
                       </div>
                     </button>
@@ -210,12 +197,6 @@ export function PatientIdentitySection({
                   · <span>{identity.selectedMatch.department}</span>
                 </>
               ) : null}
-              {identity.selectedMatch.ward ? (
-                <>
-                  {" "}
-                  · Ward <span>{identity.selectedMatch.ward}</span>
-                </>
-              ) : null}
             </p>
           )}
 
@@ -229,9 +210,7 @@ export function PatientIdentitySection({
         className={
           compact
             ? "space-y-4"
-            : `grid grid-cols-1 ${
-                identity.identificationMode === "name" ? "md:grid-cols-2" : "md:grid-cols-3"
-              } gap-4`
+            : "grid grid-cols-1 md:grid-cols-2 gap-4"
         }
       >
         {identity.identificationMode === "name" ? (
@@ -289,12 +268,6 @@ export function PatientIdentitySection({
               <div className={readonlyBox}>
                 {displayOptionalLabel(identity.selectedMatch?.department)}
               </div>
-            </div>
-            <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-                Ward (EMR)
-              </p>
-              <div className={readonlyBox}>{identity.selectedMatch?.ward?.trim() || "—"}</div>
             </div>
           </>
         )}

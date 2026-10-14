@@ -79,18 +79,6 @@ function buildOpQuery({ frmDate, toDate, regno, patname }) {
   );
 }
 
-function buildIpQuery({ frmDate, toDate, regno, patname }) {
-  const r = sqlLiteral(regno ?? "");
-  const p = sqlLiteral(patname ?? "");
-  return (
-    `Use kmch_frontoffice EXEC Fo_Rpt_IPPatdetailsprint_QB  @frmdate = ${sqlLiteral(frmDate)} , @todate = ${sqlLiteral(toDate)} , ` +
-    `@patname = ${p} , @regno = ${r} , @ipno = '' , @docid = '0' , @MatrixFormat = '0' , @wardid = '0' , ` +
-    `@Status = '0' , @PatType = '0' , @Corporate_type = '0' , @depid = '0' , @BedId = '0' , ` +
-    `@RegDocCity = '0' , @optoip = '0' , @ReligionId = '0' , @RefDocDays = '0' , @VisitCategory = '' , ` +
-    `@CorporateId = '' , @unit = '0' , @grpby = '0' `
-  );
-}
-
 function normKey(k) {
   return String(k || "")
     .toLowerCase()
@@ -134,51 +122,17 @@ function mapOpRow(row, frmDate, toDate) {
   // down to the visible name here, at the point it enters this app.
   const patientName = sanitizePatientName(getFromRow(row, "NAME", "PATIENT NAME"));
   const department = sanitizeOptionalLabel(getFromRow(row, "DEPARTMENT"));
-  const ward = getFromRow(row, "WARD");
   const patientType = getFromRow(row, "PATIENT TYPE");
   const tokenNo = getFromRow(row, "TOKEN NO");
   const visitDate = getFromRow(row, "VISIT DATE");
-  const ipNo = "";
   const sortKey = parseLooseDate(visitDate);
   return {
     encounterType: /** @type {"op"} */ ("op"),
     regNo,
     patientName,
     department,
-    ward,
     patientType,
-    ipNo,
     visitDate,
-    admissionDate: "",
-    tokenNo,
-    sortKey,
-    frmDate,
-    toDate,
-  };
-}
-
-/** @param {Record<string, unknown>} row */
-function mapIpRow(row, frmDate, toDate) {
-  const regNo = getFromRow(row, "REG NO", "REGNO", "REG_NO");
-  const patientName = sanitizePatientName(getFromRow(row, "PATIENT NAME", "NAME"));
-  const department = sanitizeOptionalLabel(getFromRow(row, "DEPARTMENT"));
-  const ward = getFromRow(row, "WARD");
-  const patientType = getFromRow(row, "PATIENT TYPE");
-  const ipNo = getFromRow(row, "IP NO");
-  const admissionDate = getFromRow(row, "ADMISSION DATE");
-  const visitDate = admissionDate;
-  const tokenNo = "";
-  const sortKey = parseLooseDate(admissionDate);
-  return {
-    encounterType: /** @type {"ip"} */ ("ip"),
-    regNo,
-    patientName,
-    department,
-    ward,
-    patientType,
-    ipNo,
-    visitDate,
-    admissionDate,
     tokenNo,
     sortKey,
     frmDate,
@@ -268,59 +222,24 @@ export async function lookupPatientRecords(params) {
         })
       : null;
 
-  const ipQuery =
-    regNo || patientName
-      ? buildIpQuery({
-          frmDate,
-          toDate,
-          regno: regNo,
-          patname: regNo ? "" : patientName,
-        })
-      : null;
-
-  /** Run OP and IP separately so one failing proc does not blank the other. */
+  // The dental hospital has outpatients only, so only the OP visit report is queried.
   let opRaw = [];
-  let ipRaw = [];
-  /** @type {string[]} */
-  const partialErrors = [];
-
   if (opQuery) {
     try {
       opRaw = await fetchEmrRows(opQuery);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
-      partialErrors.push(`OP: ${msg}`);
       // eslint-disable-next-line no-console
       console.error("[patient lookup] OP query failed", { message: msg });
+      throw new Error(`OP: ${msg}`);
     }
-  }
-
-  if (ipQuery) {
-    try {
-      ipRaw = await fetchEmrRows(ipQuery);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      partialErrors.push(`IP: ${msg}`);
-      // eslint-disable-next-line no-console
-      console.error("[patient lookup] IP query failed", { message: msg });
-    }
-  }
-
-  if (!opRaw.length && !ipRaw.length && partialErrors.length) {
-    const err = new Error(partialErrors.join(" | "));
-    throw err;
   }
 
   const opMatches = opRaw.map((row, idx) => {
     const m = mapOpRow(row, frmDate, toDate);
     return { ...m, key: `op:${idx}:${m.regNo}:${m.visitDate}:${m.tokenNo}:${m.sortKey}` };
   });
-  const ipMatches = ipRaw.map((row, idx) => {
-    const m = mapIpRow(row, frmDate, toDate);
-    return { ...m, key: `ip:${idx}:${m.regNo}:${m.ipNo}:${m.admissionDate}:${m.sortKey}` };
-  });
-
-  const matches = [...opMatches, ...ipMatches].sort((a, b) => b.sortKey - a.sortKey);
+  const matches = opMatches.sort((a, b) => b.sortKey - a.sortKey);
 
   return {
     frmDate,
@@ -331,7 +250,7 @@ export async function lookupPatientRecords(params) {
 
 /**
  * First-time department bootstrap for feedback form dropdowns.
- * Pulls distinct non-empty department labels from recent OP/IP EMR rows.
+ * Pulls distinct non-empty department labels from recent OP EMR rows.
  *
  * @param {{ frmDate?: string; toDate?: string }} [params]
  * @returns {Promise<string[]>}
@@ -339,10 +258,8 @@ export async function lookupPatientRecords(params) {
 export async function listEmrDepartments(params = {}) {
   const { frmDate, toDate } = resolveDateRange(params.frmDate, params.toDate);
   const opQuery = buildOpQuery({ frmDate, toDate, regno: "", patname: "" });
-  const ipQuery = buildIpQuery({ frmDate, toDate, regno: "", patname: "" });
 
   let opRows = [];
-  let ipRows = [];
   try {
     opRows = await fetchEmrRows(opQuery);
   } catch (e) {
@@ -351,16 +268,8 @@ export async function listEmrDepartments(params = {}) {
       message: e instanceof Error ? e.message : String(e),
     });
   }
-  try {
-    ipRows = await fetchEmrRows(ipQuery);
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.error("[emr departments] IP query failed", {
-      message: e instanceof Error ? e.message : String(e),
-    });
-  }
 
-  const labels = [...opRows, ...ipRows]
+  const labels = opRows
     .map((row) => sanitizeOptionalLabel(getFromRow(row, "DEPARTMENT")))
     .filter(Boolean);
   return [...new Set(labels)].sort((a, b) => a.localeCompare(b));

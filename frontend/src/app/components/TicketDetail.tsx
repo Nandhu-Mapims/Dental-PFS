@@ -554,11 +554,7 @@ export function TicketDetail() {
               <div>
                 <p className="text-sm text-gray-600 mb-1">Visit type</p>
                 <p className="text-base font-semibold text-gray-800 uppercase">
-                  {ticket.patientEncounterType === "op"
-                    ? "OP"
-                    : ticket.patientEncounterType === "ip"
-                      ? "IP"
-                      : "—"}
+                  {ticket.patientEncounterType === "op" ? "OP" : "—"}
                 </p>
               </div>
               <div>
@@ -580,15 +576,7 @@ export function TicketDetail() {
                 </div>
               ) : null}
               <div>
-                <p className="text-sm text-gray-600 mb-1">Ward</p>
-                <p className="text-base font-semibold text-gray-800">{ticket.ward?.trim() || "—"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">IP number</p>
-                <p className="text-base font-semibold text-gray-800">{ticket.ipNo?.trim() || "—"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 mb-1">Visit / admission date</p>
+                <p className="text-sm text-gray-600 mb-1">Visit date</p>
                 <p className="text-base font-semibold text-gray-800">{ticket.visitOrAdmissionDate?.trim() || "—"}</p>
               </div>
               <div>

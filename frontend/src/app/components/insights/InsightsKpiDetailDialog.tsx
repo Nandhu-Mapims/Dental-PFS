@@ -87,7 +87,7 @@ function filterGroups(
   );
 }
 
-const ENCOUNTER_OPTIONS: EncounterTypeFilter[] = ["all", "op-ip", "op", "ip", "name-only"];
+const ENCOUNTER_OPTIONS: EncounterTypeFilter[] = ["all", "op", "name-only"];
 
 function groupComments(group: PatientFeedbackGroup): string {
   const parts = [...new Set(group.items.map((i) => i.comments?.trim()).filter(Boolean))];
@@ -226,7 +226,7 @@ export function InsightsKpiDetailDialog({
   const description =
     kind === "patients"
       ? showEncounterFilters
-        ? `Unique patients for ${periodLabel}. One visit = one patient. Narrow by OP, IP, or name-only below.`
+        ? `Unique patients for ${periodLabel}. One visit = one patient. Narrow by OP or name-only below.`
         : `Unique patients for ${periodLabel}. One visit = one patient.`
       : showEncounterFilters
         ? `${label} for ${periodLabel}. Narrow by visit type below or search by name, UHID, department.`

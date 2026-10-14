@@ -54,8 +54,8 @@ const CANONICAL_TOPICS: Array<{ label: string; pattern: RegExp }> = [
       /(\broom|\bward|\bbed\b|\bac\b|air\s*condition|\bfan\b|lift|elevator|facilit|infrastructur|building|power|electric|water\s*supply|wifi)/i,
   },
   {
-    label: "Admission & Discharge",
-    pattern: /(admission|admit|discharge|registration|register|token|appointment)/i,
+    label: "Registration & Appointments",
+    pattern: /(registration|register|token|appointment)/i,
   },
   {
     label: "Communication & Information",

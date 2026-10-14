@@ -51,7 +51,6 @@ export function rowsForKpi(kind: InsightsKpiKind, rows: FeedbackItem[]): Feedbac
 
 export function visitTypeLabel(encounterType: string | null | undefined): string {
   if (encounterType === "op") return "OP";
-  if (encounterType === "ip") return "IP";
   return "Name only";
 }
 

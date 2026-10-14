@@ -33,7 +33,7 @@ type Props = {
   dashboardEncounterFilter: EncounterTypeFilter;
 };
 
-const ENCOUNTER_OPTIONS: EncounterTypeFilter[] = ["all", "op-ip", "op", "ip", "name-only"];
+const ENCOUNTER_OPTIONS: EncounterTypeFilter[] = ["all", "op", "name-only"];
 
 function downloadExcel(fileName: string, headers: string[], rows: Array<Array<string | number>>) {
   const sheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);

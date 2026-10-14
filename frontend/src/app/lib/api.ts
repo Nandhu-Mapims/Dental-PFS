@@ -55,7 +55,7 @@ export interface FeedbackPayload {
   answerAudioBlobs?: Blob[];
   /** Hospital registration number / UHID when supplied or resolved via EMR lookup */
   patientRegNo?: string;
-  patientEncounterType?: "op" | "ip" | "";
+  patientEncounterType?: "op" | "";
   ward?: string;
   ipNo?: string;
   visitOrAdmissionDate?: string;
@@ -64,15 +64,12 @@ export interface FeedbackPayload {
 }
 
 export interface PatientLookupMatch {
-  encounterType: "op" | "ip";
+  encounterType: "op";
   regNo: string;
   patientName: string;
   department: string;
-  ward: string;
   patientType: string;
-  ipNo: string;
   visitDate: string;
-  admissionDate: string;
   tokenNo: string;
   frmDate: string;
   toDate: string;
@@ -462,7 +459,7 @@ export async function lookupPatientRecords(payload: {
 export type FeedbackInsightsQuery = {
   startMs?: number;
   endMs?: number;
-  encounter?: "all" | "op" | "ip" | "op-ip" | "name-only";
+  encounter?: "all" | "op" | "name-only";
   /** Omit bot Q&A transcripts and voice URLs — much smaller payload for list views. */
   lite?: boolean;
   /** Return only rows updated at or after this time (incremental refresh). */

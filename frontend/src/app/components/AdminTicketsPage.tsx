@@ -308,8 +308,6 @@ export function AdminTicketsPage() {
       chips.push({ key: "assignee", label });
     }
     if (encounterFilter === "op") chips.push({ key: "enc", label: "OP" });
-    else if (encounterFilter === "ip") chips.push({ key: "enc", label: "IP" });
-    else if (encounterFilter === "op-ip") chips.push({ key: "enc", label: "OP + IP" });
     else if (encounterFilter === "name-only") chips.push({ key: "enc", label: "Name-only" });
     if (dateFilterActive) chips.push({ key: "date", label: "Date range" });
     return chips;
