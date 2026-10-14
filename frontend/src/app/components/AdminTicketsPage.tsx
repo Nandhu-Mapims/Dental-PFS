@@ -10,7 +10,6 @@ import {
   periodWindowStart,
   resolveFilterWindow,
   thisWeekRange,
-  type EncounterTypeFilter,
   type PeriodGranularity,
 } from "../lib/insightsFilters";
 import {
@@ -93,7 +92,6 @@ export function AdminTicketsPage() {
   const [serviceFilter, setServiceFilter] = useState("all");
   const [assigneeFilter, setAssigneeFilter] = useState<TicketAssigneeFilter>("all");
   const [hodUsers, setHodUsers] = useState<UserRow[]>([]);
-  const [encounterFilter, setEncounterFilter] = useState<EncounterTypeFilter>("all");
   const [catalogDepartments, setCatalogDepartments] = useState<string[]>([]);
   const [catalogServices, setCatalogServices] = useState<string[]>([]);
   const [filtersExpanded, setFiltersExpanded] = useState(true);
@@ -259,7 +257,6 @@ export function AdminTicketsPage() {
     departmentFilter !== "all" ||
     serviceFilter !== "all" ||
     assigneeFilter !== "all" ||
-    encounterFilter !== "all" ||
     dateFilterActive;
 
   const sortedItems = useMemo(() => {
@@ -273,7 +270,6 @@ export function AdminTicketsPage() {
       status: statusFilter,
       department: departmentFilter,
       service: serviceFilter,
-      encounterFilter,
       assignee: assigneeFilter,
     });
     return [...filtered].sort((a, b) => b._id.localeCompare(a._id));
@@ -287,7 +283,6 @@ export function AdminTicketsPage() {
     departmentFilter,
     serviceFilter,
     assigneeFilter,
-    encounterFilter,
   ]);
 
   const patientGroups = useMemo(
@@ -307,18 +302,15 @@ export function AdminTicketsPage() {
       const label = assigneeOptions.find((o) => o.id === assigneeFilter)?.label || "Assigned";
       chips.push({ key: "assignee", label });
     }
-    if (encounterFilter === "op") chips.push({ key: "enc", label: "OP" });
-    else if (encounterFilter === "name-only") chips.push({ key: "enc", label: "Name-only" });
     if (dateFilterActive) chips.push({ key: "date", label: "Date range" });
     return chips;
-  }, [statusFilter, departmentFilter, serviceFilter, assigneeFilter, assigneeOptions, encounterFilter, dateFilterActive]);
+  }, [statusFilter, departmentFilter, serviceFilter, assigneeFilter, assigneeOptions, dateFilterActive]);
 
   const clearAllFilters = () => {
     setStatusFilter("all");
     setDepartmentFilter("all");
     setServiceFilter("all");
     setAssigneeFilter("all");
-    setEncounterFilter("all");
     setCustomFrom("");
     setCustomTo("");
     setDateFilterActive(false);
@@ -617,8 +609,6 @@ export function AdminTicketsPage() {
         resultCount={patientGroups.length}
         totalCount={ticketRows.length}
         resultUnit="tickets"
-        encounterFilter={encounterFilter}
-        onEncounterFilterChange={setEncounterFilter}
         assigneeFilter={assigneeFilter}
         onAssigneeFilterChange={setAssigneeFilter}
         assigneeOptions={assigneeOptions}

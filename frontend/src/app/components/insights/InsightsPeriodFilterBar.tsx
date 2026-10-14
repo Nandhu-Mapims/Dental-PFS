@@ -6,12 +6,10 @@ import {
   rangesEqual,
   thisMonthRange,
   thisWeekRange,
-  type EncounterTypeFilter,
   type PeriodGranularity,
   type TimeOfDaySlot,
 } from "../../lib/insightsFilters";
 import type { InsightsDataState } from "./useInsightsData";
-import { EncounterTypeFilterTabs } from "../EncounterTypeFilterTabs";
 import { Card, CardContent } from "../ui/card";
 import {
   Select,
@@ -27,8 +25,6 @@ type Props = Pick<
   | "setPeriodFilter"
   | "timeFilter"
   | "setTimeFilter"
-  | "encounterFilter"
-  | "setEncounterFilter"
   | "customFrom"
   | "setCustomFrom"
   | "customTo"
@@ -46,8 +42,6 @@ export function InsightsPeriodFilterBar(props: Props) {
     setPeriodFilter,
     timeFilter,
     setTimeFilter,
-    encounterFilter,
-    setEncounterFilter,
     customFrom,
     setCustomFrom,
     customTo,
@@ -59,7 +53,7 @@ export function InsightsPeriodFilterBar(props: Props) {
     isLoading,
   } = props;
 
-  const periodLabel = periodDescription(periodFilter, timeFilter, customRange, encounterFilter);
+  const periodLabel = periodDescription(periodFilter, timeFilter, customRange);
   const usingCustomRange = hasCustomDateRange(customRange);
 
   const presetChipClass = (active: boolean) =>
@@ -77,13 +71,7 @@ export function InsightsPeriodFilterBar(props: Props) {
   return (
     <Card className="rounded-2xl shadow-sm border border-gray-100">
       <CardContent className="pt-5 pb-5 space-y-4">
-        <EncounterTypeFilterTabs
-          value={encounterFilter}
-          onChange={setEncounterFilter}
-          showHint
-        />
-
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between pt-3 border-t border-gray-100">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-sm font-semibold text-gray-800">Period & time</p>
             <p className="text-xs text-muted-foreground mt-0.5">{periodLabel}</p>

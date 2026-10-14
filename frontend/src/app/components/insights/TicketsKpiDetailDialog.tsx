@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Download, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { FeedbackItem } from "../../lib/api";
-import {
-  encounterTypeLabel,
-  matchesEncounterType,
-  type EncounterTypeFilter,
-  type PeriodGranularity,
-} from "../../lib/insightsFilters";
+import { type PeriodGranularity } from "../../lib/insightsFilters";
 import { getAiSentimentBucket } from "../../lib/sentiment";
 import { FeedbackDetailDialog } from "../FeedbackDetailDialog";
 import {
@@ -30,10 +25,7 @@ type Props = {
   ticketRows: FeedbackItem[];
   periodLabel: string;
   periodFilter: PeriodGranularity;
-  dashboardEncounterFilter: EncounterTypeFilter;
 };
-
-const ENCOUNTER_OPTIONS: EncounterTypeFilter[] = ["all", "op", "name-only"];
 
 function downloadExcel(fileName: string, headers: string[], rows: Array<Array<string | number>>) {
   const sheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
@@ -73,37 +65,27 @@ export function TicketsKpiDetailDialog({
   ticketRows,
   periodLabel,
   periodFilter,
-  dashboardEncounterFilter,
 }: Props) {
-  const [encounter, setEncounter] = useState<EncounterTypeFilter>(dashboardEncounterFilter);
   const [search, setSearch] = useState("");
   const [detailItem, setDetailItem] = useState<FeedbackItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
   const open = selection !== null;
   const label = selection ? titleForTicketSelection(selection, periodFilter) : "";
-  const showEncounterFilters = dashboardEncounterFilter === "all";
 
   useEffect(() => {
-    if (selection !== null) {
-      setEncounter(dashboardEncounterFilter);
-      setSearch("");
-    }
-  }, [selection, dashboardEncounterFilter]);
+    if (selection !== null) setSearch("");
+  }, [selection]);
 
   const baseRows = useMemo(
     () => (selection ? rowsForTicketSelection(ticketRows, selection, periodFilter) : []),
     [selection, ticketRows, periodFilter]
   );
 
-  const filteredRows = useMemo(() => {
-    const encounterFilter = showEncounterFilters ? encounter : dashboardEncounterFilter;
-    return baseRows.filter(
-      (item) =>
-        matchesEncounterType(item.patientEncounterType, encounterFilter) &&
-        matchesSearch(item, search)
-    );
-  }, [baseRows, encounter, search, showEncounterFilters, dashboardEncounterFilter]);
+  const filteredRows = useMemo(
+    () => baseRows.filter((item) => matchesSearch(item, search)),
+    [baseRows, search]
+  );
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -150,9 +132,7 @@ export function TicketsKpiDetailDialog({
     );
   };
 
-  const description = showEncounterFilters
-    ? `${label} for ${periodLabel}. Narrow by visit type or search below.`
-    : `${label} for ${periodLabel}. Search by name, UHID, ticket ID, or department.`;
+  const description = `${label} for ${periodLabel}. Search by name, UHID, ticket ID, or department.`;
 
   return (
     <>
@@ -188,26 +168,8 @@ export function TicketsKpiDetailDialog({
           </DialogHeader>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            {showEncounterFilters ? (
-              <div className="flex flex-wrap gap-1.5">
-                {ENCOUNTER_OPTIONS.map((opt) => (
-                  <button
-                    key={opt}
-                    type="button"
-                    onClick={() => setEncounter(opt)}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition-colors ${
-                      encounter === opt
-                        ? "bg-primary text-white border-primary"
-                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                    }`}
-                  >
-                    {encounterTypeLabel(opt)}
-                  </button>
-                ))}
-              </div>
-            ) : null}
             <div
-              className={`relative flex-1 min-w-[180px]${showEncounterFilters ? "" : " sm:max-w-md"}`}
+              className="relative flex-1 min-w-[180px] sm:max-w-md"
             >
               <Search
                 size={16}

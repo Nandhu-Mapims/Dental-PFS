@@ -243,10 +243,10 @@ const brandingSchema = new mongoose.Schema(
      * Super Admin enables it; tickets are still recorded in the meantime.
      */
     ticketingEnabled: { type: Boolean, default: false },
-    /** Admin Departments screen. Off until a Super Admin enables it; the department list still feeds the patient forms. */
-    departmentsEnabled: { type: Boolean, default: false },
-    /** Admin Services screen. Off until a Super Admin enables it. */
-    servicesEnabled: { type: Boolean, default: false },
+    /** Admin Departments screen. On by default; a Super Admin can switch it off. The department list still feeds the patient forms either way. */
+    departmentsEnabled: { type: Boolean, default: true },
+    /** Admin Services screen. On by default; a Super Admin can switch it off. */
+    servicesEnabled: { type: Boolean, default: true },
   },
   { timestamps: true }
 );

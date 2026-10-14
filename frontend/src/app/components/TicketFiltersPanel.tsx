@@ -15,9 +15,7 @@ import {
   type CustomDateRange,
   type PeriodGranularity,
 } from "../lib/insightsFilters";
-import type { EncounterTypeFilter } from "../lib/insightsFilters";
 import type { TicketStatusFilter, TicketAssigneeFilter } from "../lib/ticketFilters";
-import { EncounterTypeFilterTabs } from "./EncounterTypeFilterTabs";
 
 const STATUS_OPTIONS: { id: TicketStatusFilter; label: string }[] = [
   { id: "all", label: "All" },
@@ -54,8 +52,6 @@ type TicketFiltersPanelProps = {
   totalCount: number;
   /** Label for result count, e.g. "patients" or "tickets" */
   resultUnit?: string;
-  encounterFilter: EncounterTypeFilter;
-  onEncounterFilterChange: (v: EncounterTypeFilter) => void;
   assigneeFilter: TicketAssigneeFilter;
   onAssigneeFilterChange: (v: TicketAssigneeFilter) => void;
   assigneeOptions: Array<{ id: string; label: string }>;
@@ -95,8 +91,6 @@ export function TicketFiltersPanel({
   resultCount,
   totalCount,
   resultUnit = "tickets",
-  encounterFilter,
-  onEncounterFilterChange,
   assigneeFilter,
   onAssigneeFilterChange,
   assigneeOptions,
@@ -118,13 +112,6 @@ export function TicketFiltersPanel({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-gray-200 bg-white shadow-sm px-4 py-4">
-        <EncounterTypeFilterTabs
-          value={encounterFilter}
-          onChange={onEncounterFilterChange}
-          showHint
-        />
-      </div>
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
       <button
         type="button"

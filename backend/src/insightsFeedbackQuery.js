@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-/** Build Mongo filter for insights list queries (date window + OP/name-only). */
+/** Build Mongo filter for insights list queries (date window, assignee). */
 
 export function buildFeedbackInsightsFilter(query = {}) {
   const filter = {};
@@ -24,13 +24,6 @@ export function buildFeedbackInsightsFilter(query = {}) {
     filter.assignedToUserId = new mongoose.Types.ObjectId(assignedToUserId);
   }
 
-  const encounter = String(query.encounter || "all").toLowerCase();
-  if (encounter === "op") {
-    filter.patientEncounterType = "op";
-  } else if (encounter === "name-only") {
-    filter.patientEncounterType = { $nin: ["op", "ip"] };
-  }
-
   return filter;
 }
 
@@ -38,7 +31,6 @@ export function hasInsightsFilterQuery(query = {}) {
   return (
     (Number.isFinite(Number(query.startMs)) && Number.isFinite(Number(query.endMs))) ||
     (Number.isFinite(Number(query.sinceMs)) && Number(query.sinceMs) > 0) ||
-    Boolean(String(query.assignedToUserId || "").trim()) ||
-    ["op", "name-only"].includes(String(query.encounter || "").toLowerCase())
+    Boolean(String(query.assignedToUserId || "").trim())
   );
 }

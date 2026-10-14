@@ -9,7 +9,6 @@ export function SubmissionTrendsRoute() {
       submissionRows={data.submissionRows}
       periodFilter={data.periodFilter}
       timeFilter={data.timeFilter}
-      encounterFilter={data.encounterFilter}
       customRange={data.customRange}
       filterWindow={data.filterWindow}
     />

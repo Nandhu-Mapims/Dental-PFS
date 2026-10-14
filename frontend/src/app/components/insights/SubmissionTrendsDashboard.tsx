@@ -74,7 +74,6 @@ type Props = Pick<
   | "submissionRows"
   | "periodFilter"
   | "timeFilter"
-  | "encounterFilter"
   | "customRange"
   | "filterWindow"
 >;
@@ -83,7 +82,6 @@ export function SubmissionTrendsDashboard({
   submissionRows,
   periodFilter,
   timeFilter,
-  encounterFilter,
   customRange,
   filterWindow,
 }: Props) {
@@ -100,7 +98,7 @@ export function SubmissionTrendsDashboard({
     });
   }, []);
 
-  const periodLabel = periodDescription(periodFilter, timeFilter, customRange, encounterFilter);
+  const periodLabel = periodDescription(periodFilter, timeFilter, customRange);
   const filteredTotal = submissionRows.length;
   const patientCount = useMemo(
     () => countPatientFeedbackGroups(submissionRows),
@@ -713,7 +711,6 @@ export function SubmissionTrendsDashboard({
         submissionRows={submissionRows}
         periodLabel={periodLabel}
         periodFilter={periodFilter}
-        dashboardEncounterFilter={encounterFilter}
       />
     </div>
   );

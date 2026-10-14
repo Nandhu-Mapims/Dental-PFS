@@ -10,7 +10,6 @@ export function ManagementOverviewRoute() {
       ticketRows={data.ticketRows}
       periodFilter={data.periodFilter}
       timeFilter={data.timeFilter}
-      encounterFilter={data.encounterFilter}
       customRange={data.customRange}
     />
   );

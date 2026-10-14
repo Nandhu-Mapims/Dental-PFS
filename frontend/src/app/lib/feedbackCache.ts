@@ -34,7 +34,6 @@ export function feedbackCacheKey(query: FeedbackInsightsQuery): string {
   return JSON.stringify({
     startMs: query.startMs ?? null,
     endMs: query.endMs ?? null,
-    encounter: query.encounter ?? "all",
     lite: query.lite ? 1 : 0,
     assignedToUserId: query.assignedToUserId?.trim() || null,
   });

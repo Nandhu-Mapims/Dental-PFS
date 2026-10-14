@@ -27,8 +27,6 @@ import { displayOptionalLabel, sanitizeOptionalLabel } from "../lib/fieldSanitiz
 import { ticketAiSummaryForItem } from "../lib/feedbackDisplay";
 import { useTicketingEnabled } from "../lib/branding";
 import { visibleToHod } from "../lib/hodRouting";
-import { matchesEncounterType, type EncounterTypeFilter } from "../lib/insightsFilters";
-import { EncounterTypeFilterTabs } from "./EncounterTypeFilterTabs";
 import { CAPABILITY, hasCapability } from "./RouteGuards";
 import { Badge } from "./ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
@@ -363,7 +361,6 @@ export function Dashboard() {
   const [filterService, setFilterService] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterCombined, setFilterCombined] = useState("All");
-  const [encounterFilter, setEncounterFilter] = useState<EncounterTypeFilter>("all");
   // Independent of filterStatus -- these read AI urgency/sentiment rather than
   // workflow status, so a New ticket can be both "needs attention" and "New".
   const [attentionFilter, setAttentionFilter] = useState<
@@ -467,7 +464,6 @@ export function Dashboard() {
         filterDepartment === "All" || dept === filterDepartment;
       const matchesService = filterService === "All" || svc === filterService;
       const matchesStatus = filterStatus === "All" || item.status === filterStatus;
-      const matchesEncounter = matchesEncounterType(item.patientEncounterType, encounterFilter);
       const unassigned = !item.assignedToUserId;
       const matchesAttention =
         attentionFilter === "all" ||
@@ -480,7 +476,6 @@ export function Dashboard() {
         matchesDepartment &&
         matchesService &&
         matchesStatus &&
-        matchesEncounter &&
         matchesAttention
       );
     });
@@ -490,7 +485,6 @@ export function Dashboard() {
     filterDepartment,
     filterService,
     filterStatus,
-    encounterFilter,
     attentionFilter,
   ]);
 
@@ -840,11 +834,6 @@ export function Dashboard() {
 
       <Card className="rounded-2xl shadow-sm">
         <CardContent className="pt-6 space-y-4">
-          <EncounterTypeFilterTabs
-            value={encounterFilter}
-            onChange={setEncounterFilter}
-            showHint
-          />
           <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_auto_auto_auto]">
             <div className="relative">
               <Search

@@ -1,16 +1,5 @@
 export type PeriodGranularity = "daily" | "weekly" | "yearly";
 export type TimeOfDaySlot = "all" | "morning" | "afternoon" | "evening" | "night";
-/** OP = visit matched by UHID lookup; name-only = no UHID. The dental hospital has no inpatients. */
-export type EncounterTypeFilter = "all" | "op" | "name-only";
-
-export function feedbackEncounterKind(
-  encounterType: string | null | undefined
-): "op" | "ip" | "other" {
-  const kind = String(encounterType || "").toLowerCase();
-  if (kind === "op") return "op";
-  if (kind === "ip") return "ip";
-  return "other";
-}
 export type CustomDateRange = { from: string; to: string };
 
 export type FilterWindow = { start: Date; end: Date };
@@ -82,22 +71,6 @@ export function matchesTimeOfDay(date: Date, slot: TimeOfDaySlot): boolean {
 export function timeSlotLabel(slot: TimeOfDaySlot): string {
   if (slot === "all") return "All times";
   return TIME_SLOTS[slot].label;
-}
-
-export function encounterTypeLabel(filter: EncounterTypeFilter): string {
-  if (filter === "op") return "OP (UHID)";
-  if (filter === "name-only") return "Name-only";
-  return "All patient types";
-}
-
-export function matchesEncounterType(
-  encounterType: string | null | undefined,
-  filter: EncounterTypeFilter
-): boolean {
-  if (filter === "all") return true;
-  const kind = feedbackEncounterKind(encounterType);
-  if (filter === "name-only") return kind === "other";
-  return kind === filter;
 }
 
 export function startOfWeek(date: Date): Date {
@@ -276,17 +249,15 @@ export function enumerateBucketKeys(granularity: PeriodGranularity, window: Filt
   return keys;
 }
 
-export function filterItemsInWindow<T extends { createdAt: string; patientEncounterType?: string }>(
+export function filterItemsInWindow<T extends { createdAt: string }>(
   items: T[],
   window: FilterWindow,
-  timeSlot: TimeOfDaySlot,
-  encounterFilter: EncounterTypeFilter = "all"
+  timeSlot: TimeOfDaySlot
 ): T[] {
   return items.filter((row) => {
     const d = new Date(row.createdAt);
     if (d < window.start || d > window.end) return false;
-    if (!matchesTimeOfDay(d, timeSlot)) return false;
-    return matchesEncounterType(row.patientEncounterType, encounterFilter);
+    return matchesTimeOfDay(d, timeSlot);
   });
 }
 
@@ -433,34 +404,31 @@ export function buildSubmissionsByHour(
 export function periodDescription(
   granularity: PeriodGranularity,
   timeSlot: TimeOfDaySlot,
-  customRange?: Partial<CustomDateRange> | null,
-  encounterFilter: EncounterTypeFilter = "all"
+  customRange?: Partial<CustomDateRange> | null
 ): string {
-  const encounter =
-    encounterFilter === "all" ? "" : ` · ${encounterTypeLabel(encounterFilter)}`;
   if (hasCustomDateRange(customRange)) {
     const time = timeSlot === "all" ? "" : ` · ${timeSlotLabel(timeSlot)}`;
     const bucket =
       granularity === "daily" ? "by day" : granularity === "weekly" ? "by week" : "by month";
     if (granularity === "weekly" && rangesEqual(customRange, thisWeekRange())) {
-      return `This week (${bucket})${time}${encounter}`;
+      return `This week (${bucket})${time}`;
     }
     if (granularity === "yearly" && rangesEqual(customRange, thisMonthRange())) {
-      return `This month (${bucket})${time}${encounter}`;
+      return `This month (${bucket})${time}`;
     }
     if (granularity === "weekly" && rangesEqual(customRange, last12WeeksRange())) {
-      return `Last 12 weeks (${bucket})${time}${encounter}`;
+      return `Last 12 weeks (${bucket})${time}`;
     }
     if (granularity === "yearly" && rangesEqual(customRange, last12MonthsRange())) {
-      return `Last 12 months (${bucket})${time}${encounter}`;
+      return `Last 12 months (${bucket})${time}`;
     }
     if (granularity === "daily" && rangesEqual(customRange, last30DaysRange())) {
-      return `Last 30 days (${bucket})${time}${encounter}`;
+      return `Last 30 days (${bucket})${time}`;
     }
     if (granularity === "daily" && rangesEqual(customRange, thisWeekRange())) {
-      return `This week (${bucket})${time}${encounter}`;
+      return `This week (${bucket})${time}`;
     }
-    return `${formatDisplayDate(customRange!.from!)} – ${formatDisplayDate(customRange!.to!)} (${bucket})${time}${encounter}`;
+    return `${formatDisplayDate(customRange!.from!)} – ${formatDisplayDate(customRange!.to!)} (${bucket})${time}`;
   }
   const window =
     granularity === "daily"
@@ -469,7 +437,7 @@ export function periodDescription(
         ? "Last 12 weeks · by week"
         : "Last 12 months · by month";
   const time = timeSlot === "all" ? "" : ` · ${timeSlotLabel(timeSlot)}`;
-  return `${window}${time}${encounter}`;
+  return `${window}${time}`;
 }
 
 /** @deprecated Use last12WeeksRange */

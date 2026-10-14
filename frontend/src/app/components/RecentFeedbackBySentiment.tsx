@@ -7,11 +7,8 @@ import { ticketDepartment, ticketService, uniqueSorted } from "../lib/ticketFilt
 import {
   last12WeeksRange,
   last30DaysRange,
-  matchesEncounterType,
-  type EncounterTypeFilter,
   type FeedbackListScope,
 } from "../lib/insightsFilters";
-import { EncounterTypeFilterTabs } from "./EncounterTypeFilterTabs";
 import { FeedbackDetailDialog } from "./FeedbackDetailDialog";
 import { ListPagination } from "./ListPagination";
 import { PatientGroupedFeedbackTable } from "./PatientGroupedFeedbackTable";
@@ -78,7 +75,6 @@ export function RecentFeedbackBySentiment({
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
-  const [encounterFilter, setEncounterFilter] = useState<EncounterTypeFilter>("all");
   const [draftFrom, setDraftFrom] = useState(listScope.from);
   const [draftTo, setDraftTo] = useState(listScope.to);
   const [page, setPage] = useState(1);
@@ -117,17 +113,15 @@ export function RecentFeedbackBySentiment({
       const svc = ticketService(item);
       if (serviceFilter !== "all" && svc !== serviceFilter) return false;
 
-      if (!matchesEncounterType(item.patientEncounterType, encounterFilter)) return false;
-
       return true;
     });
-  }, [sorted, sentimentFilter, statusFilter, departmentFilter, serviceFilter, encounterFilter]);
+  }, [sorted, sentimentFilter, statusFilter, departmentFilter, serviceFilter]);
 
   const patientGroups = useMemo(() => buildPatientFeedbackGroups(filtered), [filtered]);
 
   useEffect(() => {
     setPage(1);
-  }, [sentimentFilter, statusFilter, departmentFilter, serviceFilter, encounterFilter, pageSize, listScope]);
+  }, [sentimentFilter, statusFilter, departmentFilter, serviceFilter, pageSize, listScope]);
 
   const listScopeLabel = listScope.allTime
     ? "all time"
@@ -158,15 +152,13 @@ export function RecentFeedbackBySentiment({
     sentimentFilter !== "all" ||
     statusFilter !== "all" ||
     departmentFilter !== "all" ||
-    serviceFilter !== "all" ||
-    encounterFilter !== "all";
+    serviceFilter !== "all";
 
   const clearFilters = () => {
     setSentimentFilter("all");
     setStatusFilter("all");
     setDepartmentFilter("all");
     setServiceFilter("all");
-    setEncounterFilter("all");
   };
 
   const presetChip = (active: boolean) =>
@@ -281,12 +273,6 @@ export function RecentFeedbackBySentiment({
             All time
           </button>
         </div>
-
-        <EncounterTypeFilterTabs
-          value={encounterFilter}
-          onChange={setEncounterFilter}
-          showHint
-        />
 
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col gap-1">

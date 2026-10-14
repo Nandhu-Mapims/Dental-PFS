@@ -38,7 +38,7 @@ import { useCategoryAxis } from "../../lib/useCategoryAxis";
 
 type Props = Pick<
   InsightsDataState,
-  "filteredByPeriod" | "periodFilter" | "timeFilter" | "encounterFilter" | "customRange"
+  "filteredByPeriod" | "periodFilter" | "timeFilter" | "customRange"
 >;
 
 const RANK_STYLES = [
@@ -262,10 +262,9 @@ export function SentimentLeaderboardDashboard({
   filteredByPeriod,
   periodFilter,
   timeFilter,
-  encounterFilter,
   customRange,
 }: Props) {
-  const periodLabel = periodDescription(periodFilter, timeFilter, customRange, encounterFilter);
+  const periodLabel = periodDescription(periodFilter, timeFilter, customRange);
   const [showAllDepartments, setShowAllDepartments] = useState(false);
   const [showAllServices, setShowAllServices] = useState(false);
 

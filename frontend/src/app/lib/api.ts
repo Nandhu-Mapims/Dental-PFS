@@ -459,7 +459,6 @@ export async function lookupPatientRecords(payload: {
 export type FeedbackInsightsQuery = {
   startMs?: number;
   endMs?: number;
-  encounter?: "all" | "op" | "name-only";
   /** Omit bot Q&A transcripts and voice URLs — much smaller payload for list views. */
   lite?: boolean;
   /** Return only rows updated at or after this time (incremental refresh). */
@@ -473,9 +472,6 @@ function feedbackQueryString(query?: FeedbackInsightsQuery): string {
   if (query?.startMs != null && query?.endMs != null) {
     params.set("startMs", String(query.startMs));
     params.set("endMs", String(query.endMs));
-  }
-  if (query?.encounter && query.encounter !== "all") {
-    params.set("encounter", query.encounter);
   }
   if (query?.lite) {
     params.set("lite", "1");

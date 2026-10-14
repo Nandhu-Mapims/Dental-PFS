@@ -1,6 +1,5 @@
 import type { FeedbackItem } from "./api";
 import { sanitizeOptionalLabel } from "./fieldSanitize";
-import { matchesEncounterType, type EncounterTypeFilter } from "./insightsFilters";
 
 export type TicketStatusFilter = "all" | "New" | "In Progress" | "Resolved" | "pending";
 
@@ -75,15 +74,10 @@ export function filterTicketsByDimensions(
     status: TicketStatusFilter;
     department: string;
     service: string;
-    encounterFilter?: EncounterTypeFilter;
     assignee?: TicketAssigneeFilter;
   }
 ): FeedbackItem[] {
   return rows.filter((row) => {
-    if (!matchesEncounterType(row.patientEncounterType, opts.encounterFilter ?? "all")) {
-      return false;
-    }
-
     if (opts.status === "pending") {
       if (row.status === "Resolved") return false;
     } else if (opts.status !== "all" && row.status !== opts.status) {

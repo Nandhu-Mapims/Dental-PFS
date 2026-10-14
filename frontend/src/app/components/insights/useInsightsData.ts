@@ -17,7 +17,6 @@ import {
   filterItemsInWindow,
   resolveFilterWindow,
   type CustomDateRange,
-  type EncounterTypeFilter,
   type PeriodGranularity,
   type TimeOfDaySlot,
 } from "../../lib/insightsFilters";
@@ -29,7 +28,6 @@ export function useInsightsData() {
   const [error, setError] = useState<string | null>(null);
   const [periodFilter, setPeriodFilter] = useState<PeriodGranularity>("weekly");
   const [timeFilter, setTimeFilter] = useState<TimeOfDaySlot>("all");
-  const [encounterFilter, setEncounterFilter] = useState<EncounterTypeFilter>("all");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const activeKeyRef = useRef("");
@@ -49,9 +47,8 @@ export function useInsightsData() {
       lite: true as const,
       startMs: filterWindow.start.getTime(),
       endMs: filterWindow.end.getTime(),
-      encounter: encounterFilter,
     }),
-    [filterWindow, encounterFilter]
+    [filterWindow]
   );
 
   const cacheKey = useMemo(() => feedbackCacheKey(listQuery), [listQuery]);
@@ -137,8 +134,8 @@ export function useInsightsData() {
   }, [cacheKey, loadData]);
 
   const filteredByPeriod = useMemo(
-    () => filterItemsInWindow(items, filterWindow, timeFilter, encounterFilter),
-    [items, filterWindow, timeFilter, encounterFilter]
+    () => filterItemsInWindow(items, filterWindow, timeFilter),
+    [items, filterWindow, timeFilter]
   );
 
   const submissionRows = useMemo(() => filteredByPeriod, [filteredByPeriod]);
@@ -168,8 +165,6 @@ export function useInsightsData() {
     setPeriodFilter,
     timeFilter,
     setTimeFilter,
-    encounterFilter,
-    setEncounterFilter,
     customFrom,
     setCustomFrom,
     customTo,

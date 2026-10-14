@@ -39,7 +39,6 @@ type Props = Pick<
   | "ticketRows"
   | "periodFilter"
   | "timeFilter"
-  | "encounterFilter"
   | "customRange"
   | "filterWindow"
 >;
@@ -59,14 +58,13 @@ export function TicketsTrendsDashboard({
   ticketRows,
   periodFilter,
   timeFilter,
-  encounterFilter,
   customRange,
   filterWindow,
 }: Props) {
   const axis = useCategoryAxis();
   const [selection, setSelection] = useState<TicketSelection | null>(null);
 
-  const periodLabel = periodDescription(periodFilter, timeFilter, customRange, encounterFilter);
+  const periodLabel = periodDescription(periodFilter, timeFilter, customRange);
   const totalTickets = ticketRows.length;
 
   const statusNew = ticketRows.filter((t) => t.status === "New").length;
@@ -488,7 +486,6 @@ export function TicketsTrendsDashboard({
         ticketRows={ticketRows}
         periodLabel={periodLabel}
         periodFilter={periodFilter}
-        dashboardEncounterFilter={encounterFilter}
       />
     </div>
   );

@@ -2,12 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Download, Search } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { FeedbackItem } from "../../lib/api";
-import {
-  encounterTypeLabel,
-  matchesEncounterType,
-  type EncounterTypeFilter,
-  type PeriodGranularity,
-} from "../../lib/insightsFilters";
+import { type PeriodGranularity } from "../../lib/insightsFilters";
 import {
   buildPatientFeedbackGroups,
   type PatientFeedbackGroup,
@@ -34,8 +29,6 @@ type Props = {
   submissionRows: FeedbackItem[];
   periodLabel: string;
   periodFilter: PeriodGranularity;
-  /** Matches the dashboard Patient type filter — dialog inherits this instead of defaulting to "all". */
-  dashboardEncounterFilter: EncounterTypeFilter;
 };
 
 function downloadExcel(fileName: string, headers: string[], rows: Array<Array<string | number>>) {
@@ -63,31 +56,9 @@ function matchesSearch(item: FeedbackItem, query: string): boolean {
   return hay.includes(q);
 }
 
-function filterRows(
-  rows: FeedbackItem[],
-  encounter: EncounterTypeFilter,
-  search: string
-): FeedbackItem[] {
-  return rows.filter(
-    (item) =>
-      matchesEncounterType(item.patientEncounterType, encounter) && matchesSearch(item, search)
-  );
+function filterGroups(groups: PatientFeedbackGroup[], search: string): PatientFeedbackGroup[] {
+  return groups.filter((g) => g.items.some((item) => matchesSearch(item, search)));
 }
-
-function filterGroups(
-  groups: PatientFeedbackGroup[],
-  encounter: EncounterTypeFilter,
-  search: string
-): PatientFeedbackGroup[] {
-  return groups.filter((g) =>
-    g.items.some(
-      (item) =>
-        matchesEncounterType(item.patientEncounterType, encounter) && matchesSearch(item, search)
-    )
-  );
-}
-
-const ENCOUNTER_OPTIONS: EncounterTypeFilter[] = ["all", "op", "name-only"];
 
 function groupComments(group: PatientFeedbackGroup): string {
   const parts = [...new Set(group.items.map((i) => i.comments?.trim()).filter(Boolean))];
@@ -100,9 +71,7 @@ export function InsightsKpiDetailDialog({
   submissionRows,
   periodLabel,
   periodFilter,
-  dashboardEncounterFilter,
 }: Props) {
-  const [encounter, setEncounter] = useState<EncounterTypeFilter>(dashboardEncounterFilter);
   const [search, setSearch] = useState("");
   const [detailItem, setDetailItem] = useState<FeedbackItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -115,30 +84,25 @@ export function InsightsKpiDetailDialog({
   const open = selection !== null;
   const kind = selection?.source === "kpi" ? selection.kind : null;
   const label = selection ? titleForSubmissionSelection(selection, periodFilter) : "";
-  const showEncounterFilters = dashboardEncounterFilter === "all";
 
   useEffect(() => {
-    if (selection !== null) {
-      setEncounter(dashboardEncounterFilter);
-      setSearch("");
-    }
-  }, [selection, dashboardEncounterFilter]);
+    if (selection !== null) setSearch("");
+  }, [selection]);
 
   const baseRows = useMemo(
     () => (selection ? rowsForSubmissionSelection(submissionRows, selection, periodFilter) : []),
     [selection, submissionRows, periodFilter]
   );
 
-  const filteredRows = useMemo(() => {
-    const encounterFilter = showEncounterFilters ? encounter : dashboardEncounterFilter;
-    return filterRows(baseRows, encounterFilter, search);
-  }, [baseRows, encounter, search, showEncounterFilters, dashboardEncounterFilter]);
+  const filteredRows = useMemo(
+    () => baseRows.filter((item) => matchesSearch(item, search)),
+    [baseRows, search]
+  );
 
   const filteredGroups = useMemo(() => {
     if (kind !== "patients") return [];
-    const encounterFilter = showEncounterFilters ? encounter : dashboardEncounterFilter;
-    return filterGroups(buildPatientFeedbackGroups(baseRows), encounterFilter, search);
-  }, [kind, baseRows, encounter, search, showEncounterFilters, dashboardEncounterFilter]);
+    return filterGroups(buildPatientFeedbackGroups(baseRows), search);
+  }, [kind, baseRows, search]);
 
   const count = kind === "patients" ? filteredGroups.length : filteredRows.length;
 
@@ -225,12 +189,8 @@ export function InsightsKpiDetailDialog({
 
   const description =
     kind === "patients"
-      ? showEncounterFilters
-        ? `Unique patients for ${periodLabel}. One visit = one patient. Narrow by OP or name-only below.`
-        : `Unique patients for ${periodLabel}. One visit = one patient.`
-      : showEncounterFilters
-        ? `${label} for ${periodLabel}. Narrow by visit type below or search by name, UHID, department.`
-        : `${label} for ${periodLabel}. Search by name, UHID, or department.`;
+      ? `Unique patients for ${periodLabel}. One visit = one patient.`
+      : `${label} for ${periodLabel}. Search by name, UHID, or department.`;
 
   return (
     <>
@@ -266,25 +226,7 @@ export function InsightsKpiDetailDialog({
         </DialogHeader>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          {showEncounterFilters ? (
-            <div className="flex flex-wrap gap-1.5">
-              {ENCOUNTER_OPTIONS.map((opt) => (
-                <button
-                  key={opt}
-                  type="button"
-                  onClick={() => setEncounter(opt)}
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold border transition-colors ${
-                    encounter === opt
-                      ? "bg-primary text-white border-primary"
-                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
-                  }`}
-                >
-                  {encounterTypeLabel(opt)}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          <div className={`relative flex-1 min-w-[180px]${showEncounterFilters ? "" : " sm:max-w-md"}`}>
+          <div className="relative flex-1 min-w-[180px] sm:max-w-md">
             <Search
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"

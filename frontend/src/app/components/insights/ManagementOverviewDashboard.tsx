@@ -58,7 +58,6 @@ type Props = Pick<
   | "ticketRows"
   | "periodFilter"
   | "timeFilter"
-  | "encounterFilter"
   | "customRange"
 >;
 
@@ -295,7 +294,6 @@ export function ManagementOverviewDashboard({
   ticketRows,
   periodFilter,
   timeFilter,
-  encounterFilter,
   customRange,
 }: Props) {
   const axis = useCategoryAxis();
@@ -322,7 +320,7 @@ export function ManagementOverviewDashboard({
     };
   }, []);
 
-  const periodLabel = periodDescription(periodFilter, timeFilter, customRange, encounterFilter);
+  const periodLabel = periodDescription(periodFilter, timeFilter, customRange);
 
   const complaintSlices = useMemo(
     () => collectComplaintSlices(filteredByPeriod),

@@ -21,8 +21,8 @@ const DEFAULT_BRANDING: BrandingSettings = {
   botSkipIntro: false,
   botSkipThinkCountdown: false,
   ticketingEnabled: false,
-  departmentsEnabled: false,
-  servicesEnabled: false,
+  departmentsEnabled: true,
+  servicesEnabled: true,
 };
 
 function clampVoiceMaxSeconds(value: unknown): number {
@@ -49,8 +49,8 @@ function setBrandingCache(next: BrandingSettings): BrandingSettings {
   brandingCache = {
     ...next,
     ticketingEnabled: Boolean(next.ticketingEnabled),
-    departmentsEnabled: Boolean(next.departmentsEnabled),
-    servicesEnabled: Boolean(next.servicesEnabled),
+    departmentsEnabled: next.departmentsEnabled !== false,
+    servicesEnabled: next.servicesEnabled !== false,
   };
   brandingLoaded = true;
   window.dispatchEvent(new CustomEvent(BRANDING_UPDATED_EVENT));
@@ -72,8 +72,8 @@ export async function loadBrandingSettings(): Promise<BrandingSettings> {
         fetched.botSkipThinkCountdown ?? fetched.botSkipIntroAndCountdown
       ),
       ticketingEnabled: Boolean(fetched.ticketingEnabled),
-      departmentsEnabled: Boolean(fetched.departmentsEnabled),
-      servicesEnabled: Boolean(fetched.servicesEnabled),
+      departmentsEnabled: fetched.departmentsEnabled !== false,
+      servicesEnabled: fetched.servicesEnabled !== false,
     });
   } catch {
     return brandingCache;

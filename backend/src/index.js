@@ -207,8 +207,8 @@ function serializeBrandingSettings(doc) {
       botSkipIntro: DEFAULT_BOT_SKIP_INTRO,
       botSkipThinkCountdown: DEFAULT_BOT_SKIP_THINK_COUNTDOWN,
       ticketingEnabled: false,
-      departmentsEnabled: false,
-      servicesEnabled: false,
+      departmentsEnabled: true,
+      servicesEnabled: true,
     };
   }
   return {
@@ -221,8 +221,9 @@ function serializeBrandingSettings(doc) {
     botSkipIntro: Boolean(doc.botSkipIntro ?? doc.botSkipIntroAndCountdown),
     botSkipThinkCountdown: Boolean(doc.botSkipThinkCountdown ?? doc.botSkipIntroAndCountdown),
     ticketingEnabled: Boolean(doc.ticketingEnabled),
-    departmentsEnabled: Boolean(doc.departmentsEnabled),
-    servicesEnabled: Boolean(doc.servicesEnabled),
+    // On unless explicitly switched off (older settings docs have no value yet).
+    departmentsEnabled: doc.departmentsEnabled !== false,
+    servicesEnabled: doc.servicesEnabled !== false,
   };
 }
 
@@ -2736,7 +2737,7 @@ const ANALYTICS_PROJECTION = [
 
 app.get("/api/analytics", requireCapability(CAPABILITIES.INSIGHTS_VIEW), async (req, res) => {
   try {
-    // Accepts the same date/encounter/assignee filters as /api/feedback so the
+    // Accepts the same date/assignee filters as /api/feedback so the
     // dashboard can be scoped to the period the user selected. With no query
     // params the filter is empty and this returns whole-collection totals,
     // exactly as before.
