@@ -32,7 +32,7 @@ type PatientGroupedFeedbackTableProps = {
   groups: PatientFeedbackGroup[];
   variant: "overview" | "tickets";
   onViewItem: (item: FeedbackItem) => void;
-  onDeleteItem?: (item: FeedbackItem) => void;
+  onDeleteItem?: (item: FeedbackItem, groupItems?: FeedbackItem[]) => void;
   emptyMessage?: string;
 };
 
@@ -255,7 +255,7 @@ function GroupRows({
   variant: "overview" | "tickets";
   sentiment: ReturnType<typeof getAiSentimentBucket>;
   onViewItem: (item: FeedbackItem) => void;
-  onDeleteItem?: (item: FeedbackItem) => void;
+  onDeleteItem?: (item: FeedbackItem, groupItems?: FeedbackItem[]) => void;
 }) {
   const { enabled: ticketingEnabled } = useTicketingEnabled();
   const rep = group.representative;
@@ -417,7 +417,7 @@ function GroupRows({
           {onDeleteItem ? (
             <button
               type="button"
-              onClick={() => onDeleteItem(rep)}
+              onClick={() => onDeleteItem(rep, group.items)}
               className="text-sm font-semibold text-[#E5533D] hover:underline"
             >
               Delete
@@ -501,7 +501,7 @@ function MobileGroupCard({
   variant: "overview" | "tickets";
   sentiment: ReturnType<typeof getAiSentimentBucket>;
   onViewItem: (item: FeedbackItem) => void;
-  onDeleteItem?: (item: FeedbackItem) => void;
+  onDeleteItem?: (item: FeedbackItem, groupItems?: FeedbackItem[]) => void;
 }) {
   const { enabled: ticketingEnabled } = useTicketingEnabled();
   const rep = group.representative;
@@ -570,7 +570,7 @@ function MobileGroupCard({
         {onDeleteItem ? (
           <button
             type="button"
-            onClick={() => onDeleteItem(rep)}
+            onClick={() => onDeleteItem(rep, group.items)}
             className="text-sm font-semibold text-[#E5533D] hover:underline"
           >
             Delete
@@ -718,7 +718,7 @@ function ChildRow({
   item: FeedbackItem;
   variant: "overview" | "tickets";
   onViewItem: (item: FeedbackItem) => void;
-  onDeleteItem?: (item: FeedbackItem) => void;
+  onDeleteItem?: (item: FeedbackItem, groupItems?: FeedbackItem[]) => void;
   groupItems?: FeedbackItem[];
   issueIndex?: number;
   issueTotal?: number;

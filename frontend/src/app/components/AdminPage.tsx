@@ -199,21 +199,31 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
   }, [reloadFeedbackList]);
 
   const handleDeleteFeedback = useCallback(
-    async (item: FeedbackItem) => {
-      const label = item.ticketId ?? item.patientName ?? item._id;
-      const confirmed = window.confirm(
-        `Delete feedback ${label}? This removes the submission${item.ticketId ? " and its ticket" : ""}. This cannot be undone.`
-      );
-      if (!confirmed) return;
+    async (item: FeedbackItem, groupItems?: FeedbackItem[]) => {
+      // A list row can hold several submissions (same patient, same day) plus their split issues.
+      // Deleting a submission removes its split issues on the server, so only top-level rows
+      // need a request; a row made only of split issues deletes those.
+      const rows = groupItems?.length ? groupItems : [item];
+      const submissions = rows.filter((row) => !row.isSplitChild);
+      const targets = submissions.length ? submissions : rows;
+      const who = item.patientName?.trim() || item.ticketId || item._id;
+      const what =
+        targets.length > 1 ? `${targets.length} submissions from ${who}` : `the feedback from ${who}`;
+      if (!window.confirm(`Delete ${what}? Any split issues are removed too. This cannot be undone.`)) {
+        return;
+      }
+      setError(null);
       try {
-        setError(null);
-        await deleteFeedback(item._id);
-        setItems((current) => current.filter((row) => row._id !== item._id));
+        for (const row of targets) await deleteFeedback(row._id);
       } catch {
         setError("Failed to delete feedback.");
       }
+      // Reload instead of patching locally: the server also removed split issues, and the
+      // cleared cache must be refilled from the server so deleted rows cannot come back.
+      await reloadFeedbackList(listScope, { silent: true });
+      void loadAnalytics({ silent: true });
     },
-    []
+    [listScope, loadAnalytics, reloadFeedbackList]
   );
 
   useEffect(() => {
@@ -538,7 +548,7 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
         onDownloadAll={downloadAllFeedbackExcel}
         excelDownloadBusy={excelDownloadBusy}
         onDownloadRange={downloadFilteredFeedbackExcel}
-        onDeleteItem={!readOnly && isDeleteMode ? (item) => void handleDeleteFeedback(item) : undefined}
+        onDeleteItem={!readOnly && isDeleteMode ? (item, groupItems) => void handleDeleteFeedback(item, groupItems) : undefined}
       />
     </div>
   );

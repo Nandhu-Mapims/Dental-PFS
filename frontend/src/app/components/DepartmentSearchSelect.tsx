@@ -24,7 +24,7 @@ export function DepartmentSearchSelect({
   departments,
   value,
   onChange,
-  placeholder = "Department (optional)",
+  placeholder = "Select department",
 }: DepartmentSearchSelectProps) {
   const [open, setOpen] = useState(false);
 
@@ -49,22 +49,13 @@ export function DepartmentSearchSelect({
           <CommandList>
             <CommandEmpty>No department found.</CommandEmpty>
             <CommandGroup>
-              <CommandItem
-                value="__clear__"
-                onSelect={() => {
-                  onChange("");
-                  setOpen(false);
-                }}
-              >
-                <Check className={cn("mr-2 h-4 w-4", !value ? "opacity-100" : "opacity-0")} />
-                <span className="text-gray-500">Not sure / skip</span>
-              </CommandItem>
+              {/* Department is required, so there is no skip option and re-picking keeps the choice. */}
               {departments.map((d) => (
                 <CommandItem
                   key={d._id}
                   value={d.name}
                   onSelect={() => {
-                    onChange(d.name === value ? "" : d.name);
+                    onChange(d.name);
                     setOpen(false);
                   }}
                 >

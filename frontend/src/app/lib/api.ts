@@ -1,4 +1,5 @@
 import { apiFetch } from "./apiClient";
+import { clearFeedbackCache } from "./feedbackCache";
 export interface FeedbackIssue {
   department: string;
   recommendedService: string;
@@ -603,9 +604,11 @@ export async function deleteFeedback(id: string): Promise<void> {
     method: "DELETE",
   });
 
-  if (!response.ok) {
+  // 404 means it is already gone (e.g. a split issue removed with its submission).
+  if (!response.ok && response.status !== 404) {
     throw new Error("Could not delete feedback");
   }
+  clearFeedbackCache();
 }
 
 export async function getFeedbackAnalytics(): Promise<FeedbackAnalytics> {

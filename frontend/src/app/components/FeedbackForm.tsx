@@ -287,10 +287,12 @@ export function FeedbackForm() {
           >
             {inputKind === "voice" ? (
               identity.identificationMode === "name" ? (
-                identity.nameReady ? (
+                identity.identityReady ? (
                   <>Ready to listen, {identity.resolvedPatientName}. Tap below to share your experience.</>
+                ) : !identity.nameReady ? (
+                  "Please enter your name and select your department before speaking."
                 ) : (
-                  "Please enter your name before speaking."
+                  "Please select your department before speaking."
                 )
               ) : identity.identityReady ? (
                 "Visit confirmed from EMR. Tap below to share your experience."
@@ -333,7 +335,7 @@ export function FeedbackForm() {
               primaryColor={primaryColor}
             />
             <FeedbackVoiceSection
-              nameReady={identity.nameReady}
+              identityReady={identity.identityReady}
               primaryColor={primaryColor}
               resetRevision={voiceRevision}
               onVoiceSuccess={onVoiceSuccess}

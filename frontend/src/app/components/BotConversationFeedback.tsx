@@ -128,6 +128,7 @@ export function BotConversationFeedback() {
       if (!prev) return prev;
       if (
         prev.startsWith("Please enter") ||
+        prev.startsWith("Please select") ||
         prev.startsWith("Enter your UHID") ||
         prev.startsWith("Choose your visit")
       ) {
@@ -135,7 +136,7 @@ export function BotConversationFeedback() {
       }
       return prev;
     });
-  }, [phase, identity.identityReady, identity.nameReady]);
+  }, [phase, identity.identityReady]);
 
   const stopTracks = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
@@ -528,10 +529,12 @@ export function BotConversationFeedback() {
             <div className="mb-6">
             <StatusNote primaryColor={primaryColor} ready={identity.identityReady}>
               {identity.identificationMode === "name" ? (
-                identity.nameReady ? (
+                identity.identityReady ? (
                   <>Ready to start, {identity.resolvedPatientName}.</>
+                ) : !identity.nameReady ? (
+                  "Please enter your name and select your department before starting the conversation."
                 ) : (
-                  "Please enter your name before starting the conversation."
+                  "Please select your department before starting the conversation."
                 )
               ) : identity.identityReady ? (
                 "Visit confirmed from EMR. You can start the conversation."

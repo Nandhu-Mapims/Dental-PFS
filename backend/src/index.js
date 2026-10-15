@@ -3172,7 +3172,17 @@ app.delete("/api/feedback/:id", requireCapability(CAPABILITIES.FEEDBACK_DELETE),
     if (!deleted) {
       return res.status(404).json({ message: "Feedback not found" });
     }
-    return res.json({ success: true, id });
+    // A submission's extra AI issues are stored as split rows in the same group; without them
+    // the submission would reappear in the list built around a leftover issue.
+    let splitIssuesDeleted = 0;
+    if (!deleted.isSplitChild && deleted.submissionGroupId) {
+      const result = await Feedback.deleteMany({
+        submissionGroupId: deleted.submissionGroupId,
+        isSplitChild: true,
+      });
+      splitIssuesDeleted = result.deletedCount || 0;
+    }
+    return res.json({ success: true, id, splitIssuesDeleted });
   } catch (error) {
     return res.status(500).json({ message: "Failed to delete feedback" });
   }

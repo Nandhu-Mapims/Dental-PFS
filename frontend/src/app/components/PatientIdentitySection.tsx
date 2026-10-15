@@ -24,7 +24,12 @@ export function PatientIdentitySection({
   const inputClass =
     "w-full h-12 px-4 text-base text-gray-900 bg-white border border-gray-300 rounded-xl outline-none transition placeholder:text-gray-400 hover:border-gray-400";
   const fieldLabel = "mb-1.5 block text-sm font-medium text-gray-700";
-  const optional = <span className="font-normal text-gray-400"> (optional)</span>;
+  const required = (
+    <span className="font-normal text-red-600" aria-hidden="true">
+      {" "}
+      *
+    </span>
+  );
 
   const focusHandlers = {
     onFocus: (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -216,7 +221,10 @@ export function PatientIdentitySection({
         {identity.identificationMode === "name" ? (
           <>
             <div>
-              <label className={fieldLabel}>{compact ? "Your name" : "Patient name"}</label>
+              <label className={fieldLabel}>
+                {compact ? "Your name" : "Patient name"}
+                {required}
+              </label>
               <input
                 type="text"
                 value={identity.manualPatientName}
@@ -229,7 +237,10 @@ export function PatientIdentitySection({
             {!compact ? (
               <>
                 <div>
-                  <label className={fieldLabel}>Department{optional}</label>
+                  <label className={fieldLabel}>
+                    Department
+                    {required}
+                  </label>
                   {identity.hospitalDepartments.length > 0 ? (
                     <DepartmentSearchSelect
                       departments={identity.hospitalDepartments}

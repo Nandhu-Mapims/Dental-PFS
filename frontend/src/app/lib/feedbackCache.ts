@@ -105,6 +105,23 @@ function idbPut(key: string, entry: FeedbackCacheEntry): void {
   });
 }
 
+/**
+ * Drops every cached window, in memory and in IndexedDB. Incremental syncs only fetch rows
+ * that are new or changed, so after a delete the cached copy would keep showing the deleted
+ * rows; the next load after this is a full fetch.
+ */
+export function clearFeedbackCache(): void {
+  store.clear();
+  void openDb().then((db) => {
+    if (!db) return;
+    try {
+      db.transaction(STORE, "readwrite").objectStore(STORE).clear();
+    } catch {
+      /* best-effort, like every other IndexedDB write here */
+    }
+  });
+}
+
 /** Synchronous L1 read, for render paths. */
 export function getFeedbackCache(key: string): FeedbackCacheEntry | undefined {
   return store.get(key);

@@ -40,7 +40,8 @@ function mergeSegments(map: Map<number, string>): string {
 }
 
 export interface FeedbackVoiceSectionProps {
-  nameReady: boolean;
+  /** Name and department are filled in — recording is allowed. */
+  identityReady: boolean;
   primaryColor: string;
   resetRevision: number;
   onVoiceSuccess: (transcript: string, inferredRating: number) => void;
@@ -59,7 +60,7 @@ export interface FeedbackVoiceSectionProps {
 }
 
 export function FeedbackVoiceSection({
-  nameReady,
+  identityReady,
   primaryColor,
   resetRevision,
   onVoiceSuccess,
@@ -625,8 +626,8 @@ export function FeedbackVoiceSection({
   };
 
   const startRecording = async () => {
-    if (!nameReady) {
-      onVoiceError("Please enter your name to speak.");
+    if (!identityReady) {
+      onVoiceError("Please enter your name and select your department to speak.");
       return;
     }
 
@@ -694,11 +695,11 @@ export function FeedbackVoiceSection({
     }
   };
 
-  const nameMissing = !nameReady;
+  const identityMissing = !identityReady;
   const micDisabled =
-    recordingState === "processing" || (recordingState === "recording" ? false : nameMissing);
+    recordingState === "processing" || (recordingState === "recording" ? false : identityMissing);
 
-  const micIsPrimary = recordingState === "idle" && !nameMissing;
+  const micIsPrimary = recordingState === "idle" && !identityMissing;
 
   const recordAgain = () => {
     clearCountdownTimer();
@@ -761,7 +762,7 @@ export function FeedbackVoiceSection({
             {recordingState === "processing" && "One moment…"}
             {recordingState === "completed" && "Done"}
           </p>
-          {recordingState === "idle" && !nameMissing && (
+          {recordingState === "idle" && !identityMissing && (
             <p className="text-sm text-gray-500 mt-1">
               Up to {formatCountdown(maxRecordingSeconds)} to speak
             </p>
@@ -851,7 +852,7 @@ export function FeedbackVoiceSection({
               type="button"
               onClick={toggleRecording}
               disabled={micDisabled || recordingState === "completed"}
-              title={nameMissing ? "Please enter your name to speak" : undefined}
+              title={identityMissing ? "Please enter your name and select your department to speak" : undefined}
               className={`flex h-12 w-full items-center justify-center gap-2 rounded-xl px-6 text-base font-semibold transition-all ${
                 micDisabled || recordingState === "completed"
                   ? "border border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -867,7 +868,7 @@ export function FeedbackVoiceSection({
               type="button"
               onClick={toggleRecording}
               disabled={micDisabled || recordingState === "completed"}
-              title={nameMissing ? "Please enter your name to speak" : undefined}
+              title={identityMissing ? "Please enter your name and select your department to speak" : undefined}
               className={`group mx-auto flex flex-col items-center gap-3 outline-none ${
                 micDisabled || recordingState === "completed" ? "cursor-not-allowed" : ""
               }`}

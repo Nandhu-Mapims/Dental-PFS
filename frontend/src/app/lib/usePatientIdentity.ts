@@ -45,7 +45,14 @@ export function usePatientIdentity() {
       ? Boolean(manualPatientName.trim())
       : Boolean(selectedMatch?.patientName.trim());
 
-  const identityReady = Boolean(resolvedPatientName);
+  // Every submission must name the department the patient visited, so department analytics
+  // never fall back to "Unassigned". UHID mode takes it from the EMR visit instead.
+  const departmentReady =
+    identificationMode === "name"
+      ? Boolean(manualDepartment.trim())
+      : Boolean(selectedMatch?.department.trim());
+
+  const identityReady = Boolean(resolvedPatientName) && departmentReady;
 
   useEffect(() => {
     if (identificationMode !== "uhid") return;
@@ -127,6 +134,9 @@ export function usePatientIdentity() {
       if (!manualPatientName.trim()) {
         return "Please enter your name.";
       }
+      if (!manualDepartment.trim()) {
+        return "Please select your department.";
+      }
       return null;
     }
     const regTrim = uhidInput.trim();
@@ -136,8 +146,11 @@ export function usePatientIdentity() {
     if (!selectedMatch?.patientName.trim()) {
       return "Choose your visit from the EMR list after Look up — name and department come from hospital records only.";
     }
+    if (!selectedMatch.department.trim()) {
+      return "This visit has no department in hospital records. Please ask the front office for help.";
+    }
     return null;
-  }, [identificationMode, manualPatientName, selectedMatch, uhidInput]);
+  }, [identificationMode, manualDepartment, manualPatientName, selectedMatch, uhidInput]);
 
   const getSubmitFields = useCallback((): PatientIdentitySubmitFields => {
     if (identificationMode === "name") {
@@ -229,6 +242,7 @@ export function usePatientIdentity() {
     selectedMatch,
     resolvedPatientName,
     nameReady,
+    departmentReady,
     identityReady,
     runPatientLookup,
     onPickMatch,

@@ -47,7 +47,8 @@ type RecentFeedbackBySentimentProps = {
   onDownloadAll: () => void;
   excelDownloadBusy?: boolean;
   onDownloadRange: (rows: FeedbackItem[]) => void;
-  onDeleteItem?: (item: FeedbackItem) => void;
+  /** groupItems: every submission in the clicked row, so the whole row can be deleted. */
+  onDeleteItem?: (item: FeedbackItem, groupItems?: FeedbackItem[]) => void;
 };
 
 function matchesSentiment(item: FeedbackItem, filter: AiSentimentFilter): boolean {
