@@ -18,6 +18,7 @@ import {
   setFeedbackCache,
 } from "../lib/feedbackCache";
 import { getAnalyticsCache, setAnalyticsCache } from "../lib/analyticsCache";
+import { SENTIMENT_COLORS } from "../lib/chartPalette";
 import {
   defaultFeedbackListScope,
   feedbackMatchesListScope,
@@ -281,15 +282,25 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
     analytics?.totals?.negative ?? items.filter((i) => i.aiSentiment === "negative").length;
   const aiChannelCount = analytics?.totals?.aiTickets ?? items.filter((i) => i.source === "ai").length;
 
+  // Ticket status only means something while the ticketing workflow is on; otherwise the
+  // overview shows how feedback splits by AI sentiment.
   const statusChartData = analytics?.byStatus ?? [];
-  const pieData = useMemo(
-    () =>
-      statusChartData.map((d) => ({
-        ...d,
+  const pieData = useMemo(() => {
+    if (ticketingEnabled) {
+      return statusChartData.map((d) => ({
+        label: d.status as string,
+        count: d.count,
         fill: STATUS_COLORS[d.status] ?? "#A39A91",
-      })),
-    [statusChartData]
-  );
+      }));
+    }
+    const totals = analytics?.totals;
+    if (!totals) return [];
+    return [
+      { label: "Positive", count: totals.positive, fill: SENTIMENT_COLORS.positive },
+      { label: "Neutral", count: totals.neutral, fill: SENTIMENT_COLORS.neutral },
+      { label: "Negative", count: totals.negative, fill: SENTIMENT_COLORS.negative },
+    ].filter((d) => d.count > 0);
+  }, [ticketingEnabled, statusChartData, analytics]);
   const negativeDepartmentData = analytics?.negativeByDepartment ?? [];
   const trendData = analytics?.submissionsByDay ?? [];
   const chartRenderKey = chartsReady ? `ready-${pieData.length}-${trendData.length}` : "pending";
@@ -399,7 +410,9 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <div className="bg-white rounded-xl shadow-md p-5">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Submission Status Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            {ticketingEnabled ? "Submission Status Distribution" : "Feedback Sentiment"}
+          </h3>
           <div className="h-72">
             {chartsReady && pieData.length > 0 ? (
               <ResponsiveContainer key={chartRenderKey} width="100%" height="100%">
@@ -407,14 +420,14 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
                   <Pie
                     data={pieData}
                     dataKey="count"
-                    nameKey="status"
+                    nameKey="label"
                     cx="50%"
                     cy="50%"
                     outerRadius={90}
                     label
                   >
                     {pieData.map((entry) => (
-                      <Cell key={entry.status} fill={entry.fill} />
+                      <Cell key={entry.label} fill={entry.fill} />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -423,7 +436,11 @@ export function AdminPage({ readOnly = false }: { readOnly?: boolean } = {}) {
               </ResponsiveContainer>
             ) : (
               <div className="flex h-full items-center justify-center text-sm text-gray-400">
-                {analytics ? "No status data yet" : "Loading charts…"}
+                {analytics
+                  ? ticketingEnabled
+                    ? "No status data yet"
+                    : "No analysed feedback yet"
+                  : "Loading charts…"}
               </div>
             )}
           </div>

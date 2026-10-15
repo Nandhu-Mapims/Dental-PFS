@@ -18,6 +18,7 @@ import { VoiceAudioPlayer } from "./VoiceAudioPlayer";
 import { ticketDepartment, ticketService } from "../lib/ticketFilters";
 import { displayOptionalLabel } from "../lib/fieldSanitize";
 import { filterAiTopicsForTranscript } from "../lib/aiTopicsFilter";
+import { useTicketingEnabled } from "../lib/branding";
 
 const ratingLabel: Record<number, string> = {
   1: "Very Poor",
@@ -41,6 +42,7 @@ export function FeedbackDetailDialog({ item, open, onOpenChange }: FeedbackDetai
   const [fullItem, setFullItem] = useState<FeedbackItem | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [voiceAudioVisible, setVoiceAudioVisible] = useState(true);
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
   useEffect(() => {
     if (!open || !item?._id) {
@@ -116,7 +118,9 @@ export function FeedbackDetailDialog({ item, open, onOpenChange }: FeedbackDetai
             <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-700">
               Rating: {display.rating} · {ratingLabel[display.rating] ?? "—"}
             </span>
-            <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-700">{display.status}</span>
+            {ticketingEnabled ? (
+              <span className="px-2 py-1 rounded-md bg-gray-100 text-gray-700">{display.status}</span>
+            ) : null}
             {displaySentimentForItem(display) ? (
               <span
                 className={`px-2 py-1 rounded-md capitalize ${

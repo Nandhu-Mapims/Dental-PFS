@@ -5,3 +5,6 @@
 import { HOSPITAL } from "../../src/hospital.js";
 
 export const HOSPITAL_DEPARTMENTS = HOSPITAL.departments;
+
+/** Routing services seeded by `npm run seed`; also configured in src/hospital.js. */
+export const HOSPITAL_SERVICES = HOSPITAL.services;

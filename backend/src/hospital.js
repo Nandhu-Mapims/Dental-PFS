@@ -26,4 +26,20 @@ export const HOSPITAL = {
     { name: "Oral & Maxillofacial Pathology", description: "Biopsies and oral disease diagnosis" },
     { name: "Department of Implantology", description: "Dental implant treatment" },
   ],
+  /**
+   * Non-clinical services the AI routes each complaint or compliment to (service analytics).
+   * Seeded by `npm run seed` when missing; admins manage them on the Services screen.
+   */
+  services: [
+    { name: "Front Office", description: "Registration, appointments and reception" },
+    { name: "Billing", description: "Charges, invoices and payments" },
+    { name: "Pharmacy", description: "Medicines and dispensing" },
+    { name: "House Keeping", description: "Cleaning, washrooms and clinic hygiene" },
+    { name: "Nursing", description: "Dental assistants and chairside support" },
+    { name: "Transport", description: "College bus and van service for patients" },
+    { name: "Engineering", description: "Dental chairs, equipment and building maintenance" },
+    { name: "Security", description: "Parking, gate and visitor access" },
+    { name: "Canteen", description: "Food and drinking water for patients and visitors" },
+    { name: "IT Support", description: "Reports, systems and the patient portal" },
+  ],
 };

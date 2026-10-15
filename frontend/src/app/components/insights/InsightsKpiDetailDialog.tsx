@@ -8,6 +8,7 @@ import {
   type PatientFeedbackGroup,
 } from "../../lib/patientFeedbackGroups";
 import { getAiSentimentBucket } from "../../lib/sentiment";
+import { useTicketingEnabled } from "../../lib/branding";
 import { FeedbackDetailDialog } from "../FeedbackDetailDialog";
 import {
   rowsForSubmissionSelection,
@@ -36,6 +37,17 @@ function downloadExcel(fileName: string, headers: string[], rows: Array<Array<st
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, "Data");
   XLSX.writeFile(workbook, fileName.endsWith(".xlsx") ? fileName : `${fileName}.xlsx`);
+}
+
+/** Ticket-workflow columns, left out of exports while the ticketing module is off. */
+const TICKET_COLUMNS = new Set(["Status", "Tickets", "Ticket ID"]);
+
+function withoutTicketColumns(
+  headers: string[],
+  rows: Array<Array<string | number>>
+): [string[], Array<Array<string | number>>] {
+  const keep = headers.map((h) => !TICKET_COLUMNS.has(h));
+  return [headers.filter((_, i) => keep[i]), rows.map((row) => row.filter((_, i) => keep[i]))];
 }
 
 function matchesSearch(item: FeedbackItem, query: string): boolean {
@@ -75,6 +87,16 @@ export function InsightsKpiDetailDialog({
   const [search, setSearch] = useState("");
   const [detailItem, setDetailItem] = useState<FeedbackItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
+
+  const exportExcel = (fileName: string, headers: string[], rows: Array<Array<string | number>>) => {
+    if (ticketingEnabled) {
+      downloadExcel(fileName, headers, rows);
+      return;
+    }
+    const [keptHeaders, keptRows] = withoutTicketColumns(headers, rows);
+    downloadExcel(fileName, keptHeaders, keptRows);
+  };
 
   const openDetail = (item: FeedbackItem) => {
     setDetailItem(item);
@@ -120,7 +142,7 @@ export function InsightsKpiDetailDialog({
     const safeTitle = label.replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").slice(0, 40);
 
     if (kind === "patients") {
-      downloadExcel(
+      exportExcel(
         `patients-${safeTitle}-${safePeriod}-${stamp}.xlsx`,
         [
           "Patient name",
@@ -154,7 +176,7 @@ export function InsightsKpiDetailDialog({
       return;
     }
 
-    downloadExcel(
+    exportExcel(
       `submissions-${safeTitle}-${safePeriod}-${stamp}.xlsx`,
       [
         "Patient name",
@@ -358,6 +380,7 @@ function SubmissionTable({
   rows: FeedbackItem[];
   onView: (item: FeedbackItem) => void;
 }) {
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
   return (
     <KpiTableShell>
         <thead className="sticky top-0 z-30 border-b border-gray-200">
@@ -368,7 +391,7 @@ function SubmissionTable({
             <th className={TABLE_HEAD}>Department</th>
             <th className={`${TABLE_HEAD} text-center`}>Rating</th>
             <th className={TABLE_HEAD}>Sentiment</th>
-            <th className={TABLE_HEAD}>Status</th>
+            {ticketingEnabled ? <th className={TABLE_HEAD}>Status</th> : null}
             <th className={`${TABLE_HEAD} max-w-[200px]`}>Comments</th>
             <th className={TABLE_HEAD}>Submitted</th>
             <th className={ACTION_HEAD}>Action</th>
@@ -398,7 +421,9 @@ function SubmissionTable({
               <td className={`${TABLE_CELL} capitalize text-gray-600`}>
                 {getAiSentimentBucket(item) ?? "—"}
               </td>
-              <td className={`${TABLE_CELL} text-xs text-gray-600`}>{item.status}</td>
+              {ticketingEnabled ? (
+                <td className={`${TABLE_CELL} text-xs text-gray-600`}>{item.status}</td>
+              ) : null}
               <td
                 className="px-3 py-2.5 align-top text-xs text-gray-600 max-w-[200px] whitespace-normal line-clamp-2"
                 title={item.comments?.trim() || undefined}

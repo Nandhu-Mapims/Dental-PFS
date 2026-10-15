@@ -1,8 +1,8 @@
 /**
- * Seeds hospital departments (from src/hospital.js) and initial admin/staff users.
+ * Seeds hospital departments and routing services (from src/hospital.js) and initial admin/staff users.
  * Run from backend folder: npm run seed
  *
- * Departments: skips names already in the database (idempotent).
+ * Departments and services: skips names already in the database (idempotent).
  * Users: creates admin/staff only if those usernames do not exist.
  *
  * Configure SEED_* vars in .env (see .env.example).
@@ -12,7 +12,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import { fileURLToPath } from "url";
 import path from "path";
-import { HOSPITAL_DEPARTMENTS } from "./data/hospitalDepartments.js";
+import { HOSPITAL_DEPARTMENTS, HOSPITAL_SERVICES } from "./data/hospitalDepartments.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
@@ -51,6 +51,18 @@ const userSchema = new mongoose.Schema(
 const Department =
   mongoose.models.Department || mongoose.model("Department", departmentSchema);
 const User = mongoose.models.User || mongoose.model("User", userSchema);
+const RoutingService =
+  mongoose.models.RoutingService ||
+  mongoose.model(
+    "RoutingService",
+    new mongoose.Schema(
+      {
+        name: { type: String, required: true, trim: true, unique: true },
+        description: { type: String, default: "", trim: true },
+      },
+      { timestamps: true }
+    )
+  );
 
 async function main() {
   const adminUsername = (process.env.SEED_ADMIN_USERNAME || "admin").trim().toLowerCase();
@@ -73,6 +85,19 @@ async function main() {
   }
   console.log(
     `Departments: added ${toInsert.length} new (total in seed list: ${HOSPITAL_DEPARTMENTS.length}, already in DB: ${existing.length}).`
+  );
+
+  // Without services the AI cannot tag feedback with one, and service analytics stay empty.
+  const existingServices = await RoutingService.find().select("name").lean();
+  const serviceNames = new Set(existingServices.map((s) => String(s.name).trim().toLowerCase()));
+  const servicesToInsert = HOSPITAL_SERVICES.filter(
+    (s) => !serviceNames.has(String(s.name).trim().toLowerCase())
+  );
+  if (servicesToInsert.length > 0) {
+    await RoutingService.insertMany(servicesToInsert, { ordered: false });
+  }
+  console.log(
+    `Services: added ${servicesToInsert.length} new (total in seed list: ${HOSPITAL_SERVICES.length}, already in DB: ${existingServices.length}).`
   );
 
   let usersCreated = 0;

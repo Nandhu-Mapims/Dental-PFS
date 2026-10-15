@@ -488,6 +488,15 @@ async function ensureDefaults() {
     );
   }
 
+  // The AI can only tag feedback with a service from this catalog, so an empty one leaves
+  // every row without a service and the service analytics blank. Start from the hospital's list.
+  const serviceCount = await RoutingService.countDocuments();
+  if (serviceCount === 0 && HOSPITAL.services?.length) {
+    await RoutingService.insertMany(HOSPITAL.services, { ordered: false });
+    // eslint-disable-next-line no-console
+    console.log(`[feedback] Services catalog was empty; added ${HOSPITAL.services.length} default services.`);
+  }
+
   const brandingCount = await Branding.countDocuments();
   if (brandingCount === 0) {
     await Branding.create({

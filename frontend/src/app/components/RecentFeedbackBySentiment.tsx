@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "./ui/select";
+import { useTicketingEnabled } from "../lib/branding";
 
 const ratingLabel: Record<number, string> = {
   1: "Very Poor",
@@ -73,6 +74,7 @@ export function RecentFeedbackBySentiment({
   const navigate = useNavigate();
   const [sentimentFilter, setSentimentFilter] = useState<AiSentimentFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
   const [departmentFilter, setDepartmentFilter] = useState("all");
   const [serviceFilter, setServiceFilter] = useState("all");
   const [draftFrom, setDraftFrom] = useState(listScope.from);
@@ -296,22 +298,24 @@ export function RecentFeedbackBySentiment({
             </Select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
-              Status
-            </label>
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
-              <SelectTrigger className={selectClass}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="In Progress">In progress</SelectItem>
-                <SelectItem value="Resolved">Resolved</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {ticketingEnabled ? (
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">
+                Status
+              </label>
+              <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as StatusFilter)}>
+                <SelectTrigger className={selectClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="New">New</SelectItem>
+                  <SelectItem value="In Progress">In progress</SelectItem>
+                  <SelectItem value="Resolved">Resolved</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          ) : null}
 
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-medium text-gray-500 uppercase tracking-wide">

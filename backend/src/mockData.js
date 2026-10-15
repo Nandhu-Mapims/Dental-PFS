@@ -3,19 +3,8 @@ import { HOSPITAL } from "./hospital.js";
 /** Seed hospital departments (visit / EMR labels). */
 export const SEED_DEPARTMENTS = HOSPITAL.departments;
 
-/** AI routing services (under departments on tickets). */
-export const SEED_ROUTING_SERVICES = [
-  { name: "House Keeping", description: "Cleaning and clinic hygiene" },
-  { name: "Engineering", description: "Maintenance, HVAC, and facilities" },
-  { name: "Billing", description: "Charges, invoices, and payments" },
-  { name: "Pharmacy", description: "Medicines and dispensing" },
-  { name: "Nursing", description: "Nursing and chairside support" },
-  { name: "Food Services", description: "Patient meals and diet kitchen" },
-  { name: "Security", description: "Hospital security and access" },
-  { name: "Front Office", description: "Registration and reception" },
-  { name: "Ambulance", description: "Transport and emergency pickup" },
-  { name: "IT Support", description: "Systems and equipment support" },
-];
+/** AI routing services — the same list `npm run seed` uses (src/hospital.js). */
+export const SEED_ROUTING_SERVICES = HOSPITAL.services;
 
 /** Builds mock feedback rows (department + service per row). */
 export function buildSeedFeedback(departmentIds) {
@@ -72,7 +61,7 @@ export function buildSeedFeedback(departmentIds) {
       lookupDepartment: dept("Conservative Dentistry & Endodontics"),
       service: "Nursing",
       rating: 2,
-      comments: "Long wait for nurse call bell response after procedure.",
+      comments: "Waited a long time for the dental assistant after my root canal procedure.",
       status: "In Progress",
       source: "patient",
       aiSentiment: "negative",
@@ -82,7 +71,7 @@ export function buildSeedFeedback(departmentIds) {
         {
           department: "Conservative Dentistry & Endodontics",
           recommendedService: "Nursing",
-          issueSummary: "Slow nursing response",
+          issueSummary: "Slow dental assistant response",
           suggestedAction: "Review chair-side staffing in the endodontics clinic",
           ticketId: "TKT-FBK-2026-0041",
         },
@@ -117,9 +106,9 @@ export function buildSeedFeedback(departmentIds) {
       patientRegNo: "UHID-5510",
       department: dept("Pedodontics & Preventive Dentistry"),
       lookupDepartment: dept("Pedodontics & Preventive Dentistry"),
-      service: "Food Services",
+      service: "Canteen",
       rating: 5,
-      comments: "Excellent care and timely meals for my child.",
+      comments: "Canteen food was fresh and the drinking water was clean.",
       status: "Resolved",
       source: "patient",
       aiSentiment: "positive",
@@ -146,7 +135,7 @@ export function buildSeedFeedback(departmentIds) {
       lookupDepartment: dept("Prosthodontics and Crown & Bridge"),
       service: "Nursing",
       rating: 5,
-      comments: "Very caring nurses during delivery. Thank you.",
+      comments: "The dental assistant was very caring during my denture fitting. Thank you.",
       status: "Resolved",
       source: "patient",
       aiSentiment: "positive",
@@ -158,7 +147,7 @@ export function buildSeedFeedback(departmentIds) {
       lookupDepartment: dept("Periodontics & Implantology"),
       service: "Engineering",
       rating: 2,
-      comments: "Monitor alarm kept beeping; engineer came late.",
+      comments: "Dental chair light stopped working mid-treatment; the engineer came late.",
       status: "In Progress",
       source: "patient",
       aiSentiment: "negative",
@@ -207,9 +196,9 @@ export function buildSeedFeedback(departmentIds) {
       patientName: "Meena V",
       department: dept("Public Health Dentistry"),
       lookupDepartment: dept("Public Health Dentistry"),
-      service: "Ambulance",
+      service: "Transport",
       rating: 1,
-      comments: "Ambulance arrived very late for transfer.",
+      comments: "The college bus to the hospital came very late; we waited over an hour.",
       status: "New",
       source: "patient",
       aiSentiment: "negative",
@@ -218,9 +207,9 @@ export function buildSeedFeedback(departmentIds) {
       feedbackIssues: [
         {
           department: "Public Health Dentistry",
-          recommendedService: "Ambulance",
-          issueSummary: "Delayed ambulance for inter-hospital transfer",
-          suggestedAction: "Review ambulance dispatch SLA",
+          recommendedService: "Transport",
+          issueSummary: "Patient bus arrived very late",
+          suggestedAction: "Review the patient bus timetable",
           ticketId: "TKT-FBK-2026-0035",
         },
       ],

@@ -18,6 +18,7 @@ import {
 } from "../lib/feedbackDisplay";
 import { getAiSentimentBucket } from "../lib/sentiment";
 import { ticketDepartment, ticketService } from "../lib/ticketFilters";
+import { useTicketingEnabled } from "../lib/branding";
 
 const ratingLabel: Record<number, string> = {
   1: "Very Poor",
@@ -114,6 +115,8 @@ export function PatientGroupedFeedbackTable({
   emptyMessage = "No rows to show.",
 }: PatientGroupedFeedbackTableProps) {
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // Ticket status is part of the ticketing workflow; the plain feedback list hides it when that is off.
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
   const toggle = (key: string) => {
     setExpanded((prev) => {
@@ -191,7 +194,9 @@ export function PatientGroupedFeedbackTable({
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 hidden sm:table-cell">
                   Rating
                 </th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Status</th>
+                {ticketingEnabled ? (
+                  <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Status</th>
+                ) : null}
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">AI summary</th>
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 min-w-[120px] max-w-[200px]">
                   Remark
@@ -252,6 +257,7 @@ function GroupRows({
   onViewItem: (item: FeedbackItem) => void;
   onDeleteItem?: (item: FeedbackItem) => void;
 }) {
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
   const rep = group.representative;
   const botParentRow = botSessionParent(group.items);
   const botAnswerCount = botParentRow?.botConversationAnswers?.length ?? 0;
@@ -385,7 +391,9 @@ function GroupRows({
           <td className="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell whitespace-nowrap">
             {group.lowestRating} · {ratingLabel[group.lowestRating] ?? "—"}
           </td>
-          <td className="px-4 py-3 text-sm text-gray-600">{group.statusLabel}</td>
+          {ticketingEnabled ? (
+            <td className="px-4 py-3 text-sm text-gray-600">{group.statusLabel}</td>
+          ) : null}
           <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px]">
             <span className="line-clamp-2">{parentSummaryLine}</span>
           </td>
@@ -495,6 +503,7 @@ function MobileGroupCard({
   onViewItem: (item: FeedbackItem) => void;
   onDeleteItem?: (item: FeedbackItem) => void;
 }) {
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
   const rep = group.representative;
   const botParent = botSessionParent(group.items);
   const botAnswers = [...(botParent?.botConversationAnswers ?? [])].sort(
@@ -537,7 +546,9 @@ function MobileGroupCard({
 
       <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
         <p className="text-gray-600">Rating: <span className="font-medium text-gray-800">{group.lowestRating} · {ratingLabel[group.lowestRating] ?? "—"}</span></p>
-        <p className="text-gray-600">Status: <span className="font-medium text-gray-800">{group.statusLabel}</span></p>
+        {variant === "tickets" || ticketingEnabled ? (
+          <p className="text-gray-600">Status: <span className="font-medium text-gray-800">{group.statusLabel}</span></p>
+        ) : null}
       </div>
 
       <p className="mt-2 text-xs text-gray-600 line-clamp-2">{summary}</p>
@@ -648,6 +659,7 @@ function BotAnswerRow({
   const transcript = answer.transcript?.trim() || "—";
 
   const questionLabel = answer.questionText?.trim() || "Bot question";
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
   return (
     <tr className="bg-sky-50/50 hover:bg-sky-50/80">
@@ -679,7 +691,7 @@ function BotAnswerRow({
             </span>
           </td>
           <td className="px-4 py-2 text-xs hidden sm:table-cell">—</td>
-          <td className="px-4 py-2 text-xs">—</td>
+          {ticketingEnabled ? <td className="px-4 py-2 text-xs">—</td> : null}
           <td className="px-4 py-2 text-xs text-gray-600 max-w-[200px] line-clamp-2">{transcript}</td>
           <td className="px-4 py-2 text-xs text-gray-500">—</td>
           <td className="px-4 py-2 text-xs text-gray-500 hidden lg:table-cell">—</td>
@@ -711,6 +723,7 @@ function ChildRow({
   issueIndex?: number;
   issueTotal?: number;
 }) {
+  const { enabled: ticketingEnabled } = useTicketingEnabled();
   const sentiment = displaySentimentForItem(item) ?? getAiSentimentBucket(item);
   const svc = ticketService(item);
   const dept = ticketDepartment(item);
@@ -763,7 +776,7 @@ function ChildRow({
             </span>
           </td>
           <td className="px-4 py-2 text-xs hidden sm:table-cell">{item.rating}</td>
-          <td className="px-4 py-2 text-xs">{item.status}</td>
+          {ticketingEnabled ? <td className="px-4 py-2 text-xs">{item.status}</td> : null}
           <td className="px-4 py-2 text-xs text-gray-600 max-w-[200px] line-clamp-2">
             {ticketAiSummaryForItem(item) || "—"}
           </td>
