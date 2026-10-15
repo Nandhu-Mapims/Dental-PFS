@@ -42,7 +42,8 @@ import { Badge } from "../ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { InsightsKpiCard } from "./InsightsKpiCard";
 import { InsightsKpiDetailDialog } from "./InsightsKpiDetailDialog";
-import { matchesFollowUp, THEME_RULES, type InsightsKpiKind, type SubmissionChartFilter, type SubmissionSelection } from "./insightsKpiDetail";
+import { matchesFollowUp, type InsightsKpiKind, type SubmissionChartFilter, type SubmissionSelection } from "./insightsKpiDetail";
+import { buildTopComplaints, collectComplaintSlices } from "../../lib/complaintTopics";
 import type { InsightsDataState } from "./useInsightsData";
 import { useCategoryAxis } from "../../lib/useCategoryAxis";
 
@@ -182,16 +183,16 @@ export function SubmissionTrendsDashboard({
     return top.map(([name, value]) => ({ name, value, color: colors[name] }));
   }, [submissionRows]);
 
-  const categoryData = useMemo(() => {
-    const counts: Record<string, number> = Object.fromEntries(THEME_RULES.map((r) => [r.category, 0]));
-    for (const row of submissionRows) {
-      const text = (row.comments || "").toLowerCase();
-      for (const rule of THEME_RULES) {
-        if (rule.terms.some((term) => text.includes(term))) counts[rule.category] += 1;
-      }
-    }
-    return THEME_RULES.map((r) => ({ category: r.category, count: counts[r.category] || 0 }));
-  }, [submissionRows]);
+  // Themes come from the AI's negative issues, which are in English even when the patient
+  // spoke Tamil — the old English keyword match on raw comments found almost nothing.
+  const categoryData = useMemo(
+    () =>
+      buildTopComplaints(collectComplaintSlices(submissionRows), 8).map((row) => ({
+        category: row.topic,
+        count: row.count,
+      })),
+    [submissionRows]
+  );
 
   const topIssues = [...categoryData].sort((a, b) => b.count - a.count).slice(0, 3);
 
@@ -680,10 +681,17 @@ export function SubmissionTrendsDashboard({
         <Card className={CHART_CARD}>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Categories in comments</CardTitle>
-            <CardDescription>Keyword themes · click a bar to view</CardDescription>
+            <CardDescription>
+              Negative feedback grouped by AI-detected theme · click a bar to view
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
+            {categoryData.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                No complaints in this period.
+              </p>
+            ) : (
+            <ResponsiveContainer width="100%" height={Math.max(160, categoryData.length * 44)}>
               <BarChart data={categoryData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" stroke="#E8E1D9" />
                 <XAxis type="number" allowDecimals={false} />
@@ -701,6 +709,7 @@ export function SubmissionTrendsDashboard({
                 />
               </BarChart>
             </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
       </section>

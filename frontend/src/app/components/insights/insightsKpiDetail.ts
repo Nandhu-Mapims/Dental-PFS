@@ -7,6 +7,7 @@ import {
   type PeriodGranularity,
 } from "../../lib/insightsFilters";
 import { getAiSentimentBucket } from "../../lib/sentiment";
+import { collectComplaintSlices } from "../../lib/complaintTopics";
 
 export type InsightsKpiKind =
   | "submissions"
@@ -74,19 +75,9 @@ export type SubmissionSelection =
   | { source: "kpi"; kind: InsightsKpiKind }
   | { source: "chart"; filter: SubmissionChartFilter };
 
-const THEME_RULES = [
-  { category: "Wait Time", terms: ["wait", "delay", "long time", "queue"] },
-  { category: "Staff Behavior", terms: ["staff", "rude", "nurse", "attitude"] },
-  { category: "Cleanliness", terms: ["clean", "dirty", "hygiene"] },
-  { category: "Treatment Quality", terms: ["doctor", "treatment", "care", "diagnosis"] },
-  { category: "Billing", terms: ["bill", "charge", "payment", "cost"] },
-];
-
+/** Rows behind one complaint theme: the row has a negative AI issue under that theme. */
 function matchesTheme(item: FeedbackItem, category: string): boolean {
-  const rule = THEME_RULES.find((r) => r.category === category);
-  if (!rule) return false;
-  const text = (item.comments || "").toLowerCase();
-  return rule.terms.some((term) => text.includes(term));
+  return collectComplaintSlices([item]).some((slice) => slice.topic === category);
 }
 
 function itemHasRoutingDepartment(item: FeedbackItem, name: string): boolean {
@@ -212,4 +203,3 @@ export function rowsForSubmissionSelection(
   return rowsForSubmissionChartFilter(rows, selection.filter, periodFilter);
 }
 
-export { THEME_RULES };
