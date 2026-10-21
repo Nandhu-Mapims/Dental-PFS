@@ -186,6 +186,16 @@
 
   html {
     font-size: var(--font-size);
+    /* Always keep the scrollbar track, so switching between a short page (or a page still
+       loading) and a long one never makes the whole layout jump sideways. Phones and Macs
+       use overlay scrollbars, so nothing extra shows there. */
+    overflow-y: scroll;
+  }
+
+  /* Dialogs and sheets lock scrolling; the gutter above already holds the scrollbar's space,
+     so the lock must not add its own compensating margin (that would shift the page). */
+  html body[data-scroll-locked] {
+    margin-right: 0 !important;
   }
 
   h1 {

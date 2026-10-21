@@ -1,49 +1,24 @@
 import { RefreshCw } from "lucide-react";
-import { Navigate, Outlet, useLocation } from "react-router";
+import { Navigate, Outlet } from "react-router";
 import { getSession } from "../../lib/auth";
-import { useTicketingEnabled } from "../../lib/branding";
-import { CAPABILITY, hasCapability, insightsLandingPath } from "../RouteGuards";
 import { InsightsPeriodFilterBar } from "./InsightsPeriodFilterBar";
-import { InsightsViewTabs } from "./InsightsViewTabs";
 import { useInsightsData } from "./useInsightsData";
 
-function insightsBasePath(pathname: string): string {
-  if (pathname.startsWith("/admin/")) return "/admin/management-overview";
-  return "/management";
-}
-
+/**
+ * Container for Ticket trends (only reachable while Ticketing is on). The other Insights tabs
+ * were folded into the single Dashboard; their old URLs redirect there (see routes.tsx).
+ */
 export function InsightsHub() {
-  const location = useLocation();
-  const session = getSession();
-  if (session?.role === "hod") {
-    return <Navigate to="/dashboard" replace />;
-  }
-  const basePath = insightsBasePath(location.pathname);
   const data = useInsightsData();
-  const { enabled: ticketingEnabled } = useTicketingEnabled();
 
-  if (
-    location.pathname === basePath ||
-    location.pathname === `${basePath}/` ||
-    location.pathname === "/admin/insights" ||
-    location.pathname === "/admin/analytics" ||
-    location.pathname === "/analytics" ||
-    location.pathname === "/insights"
-  ) {
-    return <Navigate to={insightsLandingPath(basePath)} replace />;
-  }
-
-  if (
-    location.pathname.startsWith(`${basePath}/overview`) &&
-    !hasCapability(CAPABILITY.INSIGHTS_OVERVIEW)
-  ) {
-    return <Navigate to={`${basePath}/submissions`} replace />;
+  if (getSession()?.role === "hod") {
+    return <Navigate to="/dashboard" replace />;
   }
 
   if (data.isLoading && !data.hasData) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-muted-foreground">
-        Loading insights…
+        Loading ticket trends…
       </div>
     );
   }
@@ -66,16 +41,11 @@ export function InsightsHub() {
 
   return (
     <div className="w-full space-y-6 pb-10">
-      <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Insights</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {ticketingEnabled
-              ? "Management overview, submissions, tickets, and department/service sentiment rankings (includes split issues)."
-              : "Management overview, submissions, and department/service sentiment rankings (includes split issues)."}
-          </p>
-        </div>
-        <InsightsViewTabs basePath={basePath} />
+      <div>
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Ticket trends</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Tickets opened from negative feedback, by status and over time.
+        </p>
       </div>
 
       <InsightsPeriodFilterBar

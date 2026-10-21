@@ -2,15 +2,17 @@ import path from "path";
 import fs from "fs/promises";
 import { BotConversationConfig } from "./models.js";
 import { CAPABILITIES, requireCapability } from "./auth.js";
+import { uploadUrlForRel } from "./uploadAccess.js";
 import {
   AI_VOICE_FILES,
   DEFAULT_BOT_CONVERSATION,
   defaultQuestionAudioRelPath,
 } from "./botConversationDefaults.js";
 
+/** Public link for prompts; signed, expiring link for patient answer recordings. */
 export function mediaUrlFromRel(rel) {
   if (!rel) return null;
-  return `/uploads/${String(rel).replace(/^\/+/, "")}`;
+  return uploadUrlForRel(rel);
 }
 
 /** Extract stored path from a public /uploads/… URL (admin save). */

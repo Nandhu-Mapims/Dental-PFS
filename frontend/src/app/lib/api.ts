@@ -499,6 +499,26 @@ export async function getFeedback(query?: FeedbackInsightsQuery): Promise<Feedba
   return response.json();
 }
 
+/** Departments and services a signed-in user's data is limited to; null means the whole hospital. */
+export type AccountScope = { departments: string[]; services: string[] } | null;
+
+export type CurrentAccount = {
+  id: string;
+  username: string;
+  role: string;
+  capabilities: string[];
+  scope: AccountScope;
+};
+
+export async function getCurrentAccount(): Promise<CurrentAccount> {
+  const response = await apiFetch(`${API_BASE_URL}/api/auth/me`, { cache: "no-store" });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(readApiErrorMessage(body) || "Could not load your account");
+  }
+  return body as CurrentAccount;
+}
+
 export async function getFeedbackById(id: string): Promise<FeedbackItem> {
   const response = await apiFetch(`${API_BASE_URL}/api/feedback/${encodeURIComponent(id)}`, {
     cache: "no-store",

@@ -2,6 +2,7 @@ import { resolveDepartmentHeuristic } from "./departmentNormalize.js";
 import { sanitizeOptionalLabel } from "./fieldSanitize.js";
 import { filterAiTopicsForTranscript } from "./aiTopicsFilter.js";
 import { HOSPITAL } from "./hospital.js";
+import { redactPersonalDetails } from "./piiRedact.js";
 import {
   SYSTEM_JSON_ONLY,
   buildFeedbackAnalysisUserPrompt,
@@ -123,7 +124,7 @@ export function resolveDepartmentFromAi(raw, choices) {
 export const resolveServiceFromAi = resolveDepartmentFromAi;
 
 /**
- * @param {{ patientName: string; department: string; rating: number; comments: string }} input (rating is not sent to the model; sentiment uses comments only)
+ * @param {{ patientName: string; department: string; rating: number; comments: string }} input (rating is not sent to the model; sentiment uses comments only; patientName is only used to mask the name in the comments and is never sent)
  * @param {{ feedbackId?: string; serviceChoices?: { name: string; description?: string }[]; departmentChoices?: { name: string }[] }} [options]
  * @returns {Promise<{ sentiment: string; urgency: string; topics: string[]; summary: string; inferredDepartment?: string | null } | null>}
  */
@@ -155,8 +156,9 @@ export async function inferRatingFromVoiceTranscript(transcript) {
   }
 
   const model = getModel();
+  const masked = redactPersonalDetails(textRaw);
   const truncated =
-    textRaw.length > 4000 ? `${textRaw.slice(0, 4000)}…` : textRaw;
+    masked.length > 4000 ? `${masked.slice(0, 4000)}…` : masked;
 
   const userContent = buildVoiceRatingUserPrompt(truncated);
 
@@ -252,8 +254,10 @@ export async function analyzePatientFeedback(input, options = {}) {
   const model = getModel();
 
   const comments = String(input.comments || "").trim();
+  // The model needs what was said about the visit, not who said it.
+  const commentsForAi = redactPersonalDetails(comments, { names: [input.patientName] });
   const truncatedComments =
-    comments.length > 4000 ? `${comments.slice(0, 4000)}…` : comments;
+    commentsForAi.length > 4000 ? `${commentsForAi.slice(0, 4000)}…` : commentsForAi;
 
   const emrDepartment = sanitizeOptionalLabel(
     input.patientDepartment || input.department
@@ -267,7 +271,6 @@ export async function analyzePatientFeedback(input, options = {}) {
     : [];
 
   const userContent = buildFeedbackAnalysisUserPrompt({
-    patientName: String(input.patientName || "").slice(0, 120),
     emrDepartment: emrDepartment.slice(0, 120),
     serviceHint: serviceHint.slice(0, 120),
     comments: truncatedComments,
@@ -462,7 +465,7 @@ export async function synthesizeSummaryReport({ groupLabel, periodLabel, stats, 
     sentimentCounts: stats.sentimentCounts,
     urgencyCounts: stats.urgencyCounts,
     topTopics: stats.topTopics,
-    summaries,
+    summaries: summaries.map((summary) => redactPersonalDetails(summary)),
   });
 
   // eslint-disable-next-line no-console

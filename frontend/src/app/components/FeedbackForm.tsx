@@ -320,7 +320,6 @@ export function FeedbackForm() {
                 >
                   pick again on the previous screen
                 </button>
-                .
               </>
             )}
           </StatusNote>

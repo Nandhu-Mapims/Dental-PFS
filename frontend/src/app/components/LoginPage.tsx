@@ -25,18 +25,9 @@ export function LoginPage() {
       navigate("/admin", { replace: true });
       return;
     }
-    if (role === "hod" && capabilities.includes("insights.overview")) {
-      navigate(nextPath || "/hod/overview", { replace: true });
-      return;
-    }
+    // Staff, management and HODs share the Dashboard; a HOD's data is limited on the server.
     if (capabilities.includes("insights.view")) {
-      navigate(
-        nextPath ||
-          (capabilities.includes("insights.overview")
-            ? "/management/overview"
-            : "/management/submissions"),
-        { replace: true }
-      );
+      navigate(nextPath || "/insights", { replace: true });
       return;
     }
     if (capabilities.includes("feedback.read.assigned")) {

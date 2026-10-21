@@ -135,7 +135,7 @@ export function PatientGroupedFeedbackTable({
 
   return (
     <>
-      <div className="md:hidden space-y-3 p-2">
+      <div className="grid items-start gap-3 p-2 md:grid-cols-2 lg:hidden">
         {groups.map((group) => {
           const splitOverview = isOverviewSplitGroup(group, variant);
           const isOpen = isGroupOpen(group);
@@ -157,7 +157,7 @@ export function PatientGroupedFeedbackTable({
         })}
       </div>
 
-      <div className="hidden md:block overflow-x-auto">
+      <div className="hidden lg:block overflow-x-auto">
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
@@ -198,7 +198,7 @@ export function PatientGroupedFeedbackTable({
                   <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">Status</th>
                 ) : null}
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600">AI summary</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 min-w-[120px] max-w-[200px]">
+                <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 min-w-[120px] max-w-[200px] hidden xl:table-cell">
                   Remark
                 </th>
                 <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 hidden lg:table-cell">
@@ -397,7 +397,7 @@ function GroupRows({
           <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px]">
             <span className="line-clamp-2">{parentSummaryLine}</span>
           </td>
-          <td className="px-4 py-3 text-sm text-gray-600 min-w-[120px] max-w-[200px]">
+          <td className="px-4 py-3 text-sm text-gray-600 min-w-[120px] max-w-[200px] hidden xl:table-cell">
             <span className="line-clamp-3 whitespace-pre-wrap">{remarkLine || "—"}</span>
           </td>
           <td className="px-4 py-3 text-xs text-gray-500 hidden lg:table-cell whitespace-nowrap">
@@ -515,7 +515,7 @@ function MobileGroupCard({
   const summaryLines = ticketSummariesForDisplay(group.items);
   const summary =
     splitIssueCount > 1
-      ? `${splitIssueCount} AI issues — see split rows below`
+      ? `${splitIssueCount} AI issues — tap Show details to see each`
       : summaryLines[0] ||
         rep.aiSummary?.trim() ||
         rep.comments?.trim() ||
@@ -532,10 +532,15 @@ function MobileGroupCard({
           ) : null}
           {splitIssueCount > 1 ? (
             <p className="text-xs text-violet-700 font-semibold mt-1">Split · {splitIssueCount} issues</p>
-          ) : (
+          ) : variant === "tickets" || ticketingEnabled ? (
             <p className="text-xs text-gray-500 mt-1">
               {group.ticketCount} ticket{group.ticketCount !== 1 ? "s" : ""} · {group.items.length} entr
               {group.items.length !== 1 ? "ies" : "y"}
+            </p>
+          ) : (
+            <p className="text-xs text-gray-500 mt-1">
+              {feedbackModeLabel[effectiveFeedbackMode(rep, group.items)]} ·{" "}
+              {new Date(group.latestCreatedAt).toLocaleDateString()}
             </p>
           )}
         </div>
@@ -543,6 +548,12 @@ function MobileGroupCard({
           {splitIssueCount > 1 && sentiment === "mixed" ? "mixed" : sentiment ?? "pending"}
         </span>
       </div>
+
+      {group.departments.length > 0 || group.services.length > 0 ? (
+        <p className="mt-2 text-xs text-gray-600 line-clamp-2">
+          {[...group.departments.slice(0, 2), ...group.services.slice(0, 2)].join(" · ")}
+        </p>
+      ) : null}
 
       <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
         <p className="text-gray-600">Rating: <span className="font-medium text-gray-800">{group.lowestRating} · {ratingLabel[group.lowestRating] ?? "—"}</span></p>
@@ -552,10 +563,10 @@ function MobileGroupCard({
       </div>
 
       <p className="mt-2 text-xs text-gray-600 line-clamp-2">{summary}</p>
-      {variant === "overview" ? (
+      {variant === "overview" && remarkLine ? (
         <p className="mt-2 text-xs text-gray-600">
           <span className="font-semibold text-gray-700">Remark:</span>{" "}
-          <span className="line-clamp-3 whitespace-pre-wrap">{remarkLine || "—"}</span>
+          <span className="line-clamp-3 whitespace-pre-wrap">{remarkLine}</span>
         </p>
       ) : null}
 
@@ -563,7 +574,7 @@ function MobileGroupCard({
         <button
           type="button"
           onClick={() => onViewItem(rep)}
-          className="text-sm font-semibold text-primary hover:underline"
+          className="rounded-lg px-1 py-1.5 text-sm font-semibold text-primary hover:underline"
         >
           {variant === "tickets" ? "View" : (rep.botConversationAnswers?.length ?? 0) > 0 ? "View & listen" : "View"}
         </button>
@@ -571,7 +582,7 @@ function MobileGroupCard({
           <button
             type="button"
             onClick={() => onDeleteItem(rep, group.items)}
-            className="text-sm font-semibold text-[#E5533D] hover:underline"
+            className="rounded-lg px-1 py-1.5 text-sm font-semibold text-[#E5533D] hover:underline"
           >
             Delete
           </button>
@@ -580,7 +591,7 @@ function MobileGroupCard({
           <button
             type="button"
             onClick={onToggle}
-            className="ml-auto text-xs font-semibold text-gray-600 rounded-lg border border-gray-200 px-2 py-1"
+            className="ml-auto text-xs font-semibold text-gray-600 rounded-lg border border-gray-200 px-3 py-2"
           >
             {isOpen ? "Hide details" : "Show details"}
           </button>
@@ -693,7 +704,7 @@ function BotAnswerRow({
           <td className="px-4 py-2 text-xs hidden sm:table-cell">—</td>
           {ticketingEnabled ? <td className="px-4 py-2 text-xs">—</td> : null}
           <td className="px-4 py-2 text-xs text-gray-600 max-w-[200px] line-clamp-2">{transcript}</td>
-          <td className="px-4 py-2 text-xs text-gray-500">—</td>
+          <td className="px-4 py-2 text-xs text-gray-500 hidden xl:table-cell">—</td>
           <td className="px-4 py-2 text-xs text-gray-500 hidden lg:table-cell">—</td>
         </>
       )}
@@ -780,7 +791,7 @@ function ChildRow({
           <td className="px-4 py-2 text-xs text-gray-600 max-w-[200px] line-clamp-2">
             {ticketAiSummaryForItem(item) || "—"}
           </td>
-          <td className="px-4 py-2 text-xs text-gray-600 max-w-[160px]">
+          <td className="px-4 py-2 text-xs text-gray-600 max-w-[160px] hidden xl:table-cell">
             <span className="line-clamp-3 whitespace-pre-wrap">
               {item.resolutionNote?.trim() || item.staffRemarks?.trim() || "—"}
             </span>

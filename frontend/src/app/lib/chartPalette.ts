@@ -20,13 +20,18 @@ export const CATEGORICAL_PALETTE = [
 ] as const;
 
 /**
- * Sentiment is a state, not an identity, so it draws from the reserved status
- * palette (good / critical) plus a deliberately unsaturated neutral — never
- * from the categorical hues above.
+ * Sentiment is a polarity (good ↔ bad), so it uses the diverging pair: blue and red poles
+ * with a neutral grey midpoint — never the categorical hues above.
+ *
+ * Positive used to be green (#0ca30c). Against the red it measured ΔE 4.1 under deuteranopia,
+ * so red-green colour-blind readers (about 1 in 12 men) could not tell positive from negative.
+ * Blue ↔ red passes every check in the dataviz validator: CVD ΔE 23.8, normal-vision ΔE 31.6,
+ * contrast ≥ 3:1 on the card. The grey only "fails" the chroma floor, which is the point of a
+ * neutral midpoint. Labels and icons still name each sentiment; colour never carries it alone.
  */
 export const SENTIMENT_COLORS = {
-  positive: "#0ca30c",
-  neutral: "#78838d",
+  positive: "#2a78d6",
+  neutral: "#9a9890",
   negative: "#d03b3b",
 } as const;
 
@@ -92,7 +97,7 @@ export const ORDINAL_BLUE = ["#86b6ef", "#3987e5", "#1c5cab", "#0d366b"] as cons
  * the reserved status warning/good steps; "New" has no reserved status
  * meaning of its own (it isn't good or bad, just untouched) so it takes the
  * categorical blue used as an informational colour elsewhere in this app's
- * UI, not the workflow-status track. Keep in sync with SENTIMENT_COLORS.positive.
+ * UI, not the workflow-status track.
  */
 export const STATUS_COLORS = {
   new: "#2a78d6",

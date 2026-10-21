@@ -82,7 +82,7 @@ function GroupReportCard({ row }: { row: SummaryReportGroupRow }) {
           <div>
             <CardTitle className="text-base">{row.groupName}</CardTitle>
             <CardDescription>
-              {row.feedbackCount} slice{row.feedbackCount === 1 ? "" : "s"} · avg rating{" "}
+              {row.feedbackCount} issue{row.feedbackCount === 1 ? "" : "s"} · avg rating{" "}
               {row.averageRating || "–"}
               {row.averageRating ? (
                 <Star size={12} className="ml-0.5 mb-0.5 inline text-amber-500" fill="currentColor" />
@@ -122,8 +122,8 @@ function GroupReportCard({ row }: { row: SummaryReportGroupRow }) {
         </p>
 
         <p className="text-[11px] text-muted-foreground">
-          Synthesized from {row.sourceSummaryCount} negative-sentiment summar
-          {row.sourceSummaryCount === 1 ? "y" : "ies"}
+          Based on {row.sourceSummaryCount} negative feedback
+          {row.sourceSummaryCount === 1 ? " item" : " items"}
           {row.generatedAt
             ? ` · updated ${new Date(row.generatedAt).toLocaleString("en-US", {
                 month: "short",
@@ -216,6 +216,12 @@ export function SummaryReportDashboard({
 
   return (
     <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Reports</h1>
+        <p className="mt-1 text-sm text-gray-600">
+          A written summary of each week's or month's complaints, per department and service.
+        </p>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-sm">
@@ -266,8 +272,8 @@ export function SummaryReportDashboard({
       </div>
 
       <p className="text-sm text-muted-foreground">
-        AI-synthesized rollup of negative-sentiment submission summaries, grouped by department
-        and service{report ? ` · ${periodLabel(report.periodKey, periodType)}` : ""}.
+        Written by AI from the negative feedback, grouped by department and service
+        {report ? ` · ${periodLabel(report.periodKey, periodType)}` : ""}.
       </p>
 
       {error && (

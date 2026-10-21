@@ -1,3 +1,4 @@
+import { ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router";
 import { feedbackModeChoices } from "../lib/feedbackModeChoices";
 
@@ -5,11 +6,15 @@ type FeedbackModeCardsProps = {
   primaryColor: string;
 };
 
+/**
+ * The three ways to give feedback. Phones get compact tappable rows (icon, text, chevron) so
+ * all three fit on one screen; from small tablets up they are tall cards side by side.
+ */
 export function FeedbackModeCards({ primaryColor }: FeedbackModeCardsProps) {
   const navigate = useNavigate();
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8 items-stretch">
+    <div className="mb-8 grid grid-cols-1 items-stretch gap-3 sm:grid-cols-3 sm:gap-4">
       {feedbackModeChoices.map((choice) => {
         const Icon = choice.icon;
         return (
@@ -17,22 +22,21 @@ export function FeedbackModeCards({ primaryColor }: FeedbackModeCardsProps) {
             key={choice.id}
             type="button"
             onClick={() => navigate(choice.path)}
-            className="flex h-full min-h-[11.5rem] flex-col items-center justify-center rounded-2xl border-2 border-gray-200 bg-[#FAF7F2] px-4 py-6 md:py-8 transition-all hover:scale-[1.02] hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
+            className="flex items-center gap-4 rounded-2xl border-2 border-gray-200 bg-[#FAF7F2] px-4 py-3.5 text-left transition-all hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-[0.99] sm:h-full sm:min-h-[11.5rem] sm:flex-col sm:justify-center sm:gap-0 sm:py-6 sm:text-center sm:hover:scale-[1.02] md:py-8"
           >
             <div
-              className="mb-4 flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-white shadow-inner"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white shadow-inner sm:mb-4 sm:h-16 sm:w-16"
               style={{ backgroundColor: primaryColor }}
             >
-              <Icon size={32} strokeWidth={2} />
+              <Icon strokeWidth={2} className="h-6 w-6 sm:h-8 sm:w-8" />
             </div>
-            <div className="flex min-h-[3.5rem] flex-col items-center justify-center gap-1 text-center">
-              <span className="text-base md:text-lg font-bold text-gray-800 leading-snug">
-                {choice.title}
-              </span>
-              <span className="text-xs md:text-sm font-medium text-gray-500 leading-snug">
+            <div className="flex min-w-0 flex-1 flex-col gap-0.5 sm:min-h-[3.5rem] sm:flex-none sm:items-center sm:justify-center sm:gap-1">
+              <span className="text-base font-bold leading-snug text-gray-800 md:text-lg">{choice.title}</span>
+              <span className="text-sm font-medium leading-snug text-gray-500 sm:text-xs md:text-sm">
                 {choice.subtitle}
               </span>
             </div>
+            <ChevronRight size={20} className="shrink-0 text-gray-400 sm:hidden" aria-hidden />
           </button>
         );
       })}

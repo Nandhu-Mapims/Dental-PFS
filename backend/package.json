@@ -9,6 +9,8 @@
     "start": "node src/index.js",
     "seed": "node scripts/seedUsers.js",
     "seed-mock": "node scripts/seedMockData.js",
+    "seed-demo": "node scripts/seedDemoFeedback.js",
+    "remove-demo": "node scripts/seedDemoFeedback.js --remove",
     "clean-mock": "node scripts/removeMockFeedback.js",
     "clean-positive-tickets": "node scripts/cleanPositiveTickets.js",
     "repair-complaint-sentiment": "node scripts/repairComplaintSentiment.js",
@@ -16,7 +18,7 @@
     "uploads:check": "node scripts/checkUploadsHealth.js",
     "reset-db": "node scripts/resetDatabase.js --yes",
     "test-emr-lookup": "node scripts/testEmrLookup.js",
-    "test": "node --test src/fieldSanitize.test.js",
+    "test": "node --test src/fieldSanitize.test.js src/piiRedact.test.js src/feedbackScope.test.js",
     "seed-superadmin": "node scripts/seedSuperadmin.js"
   },
   "dependencies": {

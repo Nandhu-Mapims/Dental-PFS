@@ -1,0 +1,895 @@
+import { useId, useMemo, useState, type ReactNode } from "react";
+import { useNavigate } from "react-router";
+import { motion, MotionConfig, useReducedMotion } from "motion/react";
+import {
+  AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  Building2,
+  ChevronRight,
+  Layers,
+  MessageSquareText,
+  Minus,
+  RefreshCw,
+  Star,
+  ThumbsDown,
+  ThumbsUp,
+} from "lucide-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  type TooltipProps,
+} from "recharts";
+import type { FeedbackItem } from "../../lib/api";
+import { SENTIMENT_COLORS } from "../../lib/chartPalette";
+import {
+  PERIOD_LABELS,
+  buildDashboardTables,
+  buildSentimentTrend,
+  defaultDashboardRange,
+  feedbackLinkQuery,
+  latestNegative,
+  summarizePeriod,
+  useDashboardData,
+  type DashboardPeriod,
+  type DashboardRange,
+  type TrendPoint,
+} from "../../lib/dashboardData";
+import type { SentimentLeaderboardRow } from "../../lib/insightsSentimentSlices";
+import { FeedbackDetailDialog } from "../FeedbackDetailDialog";
+import { AnimatedNumber, EASE_OUT, GrowBar, Reveal, SegmentBar } from "./dashboardMotion";
+
+type DashboardPageProps = {
+  /** Where the Feedback list lives for this user (admin shell or staff/HOD area). */
+  feedbackPath: string;
+};
+
+const CARD = "rounded-2xl border border-[#ece6de] bg-white shadow-[0_1px_2px_rgba(33,29,26,0.04)]";
+/** Hairline grid and axis ink, one step off the card surface. */
+const GRID = "#efe9e2";
+const AXIS_INK = "#8a8178";
+/** De-emphasis hue for sparklines; the accent marks only the latest point. */
+const SPARK_INK = "#c4bcb2";
+
+export function DashboardPage({ feedbackPath }: DashboardPageProps) {
+  const navigate = useNavigate();
+  const [range, setRange] = useState<DashboardRange>(defaultDashboardRange);
+  const { window: period, current, previous, scope, isLoading, error, reload } = useDashboardData(range);
+  const [detailItem, setDetailItem] = useState<FeedbackItem | null>(null);
+
+  const now = useMemo(() => summarizePeriod(current), [current]);
+  const before = useMemo(() => summarizePeriod(previous), [previous]);
+  const tables = useMemo(() => buildDashboardTables(current, scope), [current, scope]);
+  const trend = useMemo(() => buildSentimentTrend(current, period), [current, period]);
+  const attention = useMemo(() => latestNegative(current), [current]);
+
+  const openFeedback = (filters: Parameters<typeof feedbackLinkQuery>[1] = {}) =>
+    navigate(`${feedbackPath}${feedbackLinkQuery(period, filters)}`);
+
+  const scopeNames = scope ? [...scope.departments, ...scope.services] : [];
+  const pending = now.feedback - now.analysed;
+  /** Remounting charts on a period change replays their entrance animation. */
+  const periodKey = `${range.period}:${period.start.getTime()}:${period.end.getTime()}`;
+  const firstLoad = isLoading && current.length === 0;
+
+  return (
+    <MotionConfig reducedMotion="user">
+      <div className="w-full space-y-6">
+        <FeedbackDetailDialog
+          item={detailItem}
+          open={detailItem !== null}
+          onOpenChange={(open) => {
+            if (!open) setDetailItem(null);
+          }}
+        />
+
+        <Reveal as="section" className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#8A6A10]">Patient feedback</p>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl">Dashboard</h1>
+            <p className="mt-1 text-sm text-gray-600">
+              {scope
+                ? scopeNames.length
+                  ? `Your ${scopeNames.length === 1 ? "area" : "areas"}: ${scopeNames.join(", ")}`
+                  : "No department is linked to your account yet. Ask an admin to set you as HOD of your department."
+                : "How patients rated their visit, across the whole hospital."}
+            </p>
+          </div>
+          <PeriodPicker range={range} onChange={setRange} onRefresh={() => void reload()} busy={isLoading} />
+        </Reveal>
+
+        {error ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</p>
+        ) : null}
+
+        <section className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4" aria-label="Summary">
+          <SummaryTile
+            order={1}
+            label="Feedback received"
+            icon={<MessageSquareText size={15} className="text-gray-500" />}
+            value={<AnimatedNumber value={now.feedback} />}
+            change={changeOf(now.feedback, before.feedback, "count")}
+            goodWhen="up"
+            spark={trend.map((p) => p.total)}
+            sparkAccent="#8B1538"
+            sparkKey={`count-${periodKey}`}
+            loading={firstLoad}
+            onClick={() => openFeedback()}
+          />
+          <SummaryTile
+            order={2}
+            label="Positive"
+            icon={<ThumbsUp size={15} style={{ color: SENTIMENT_COLORS.positive }} />}
+            value={<AnimatedNumber value={now.positivePct} suffix="%" />}
+            change={changeOf(now.positivePct, before.positivePct, "points")}
+            goodWhen="up"
+            spark={trend.map((p) => p.positivePct)}
+            sparkAccent={SENTIMENT_COLORS.positive}
+            sparkKey={`pos-${periodKey}`}
+            loading={firstLoad}
+            onClick={() => openFeedback({ sentiment: "positive" })}
+          />
+          <SummaryTile
+            order={3}
+            label="Negative"
+            icon={<ThumbsDown size={15} style={{ color: SENTIMENT_COLORS.negative }} />}
+            value={<AnimatedNumber value={now.negativePct} suffix="%" />}
+            change={changeOf(now.negativePct, before.negativePct, "points")}
+            goodWhen="down"
+            spark={trend.map((p) => p.negativePct)}
+            sparkAccent={SENTIMENT_COLORS.negative}
+            sparkKey={`neg-${periodKey}`}
+            loading={firstLoad}
+            onClick={() => openFeedback({ sentiment: "negative" })}
+          />
+          <SummaryTile
+            order={4}
+            label="Average rating"
+            icon={<Star size={15} className="text-amber-500" fill="currentColor" />}
+            value={
+              <>
+                <AnimatedNumber value={now.averageRating} decimals={1} />
+                <span className="ml-1 text-base font-medium text-gray-400">/ 5</span>
+              </>
+            }
+            change={changeOf(now.averageRating, before.averageRating, "rating")}
+            goodWhen="up"
+            spark={trend.map((p) => p.averageRating)}
+            sparkAccent="#c98500"
+            sparkKey={`rating-${periodKey}`}
+            loading={firstLoad}
+          />
+        </section>
+        <p className="-mt-3 text-xs text-gray-500">
+          {period.label} compared with the same number of days before it.
+          {pending > 0
+            ? ` ${pending} feedback ${pending === 1 ? "is" : "are"} still being analysed and not yet in the percentages.`
+            : ""}
+        </p>
+
+        <section className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-3">
+          <Reveal order={5} className={`${CARD} p-5 sm:p-6 xl:col-span-2`}>
+            <CardHeading
+              title="Positive and negative over time"
+              subtitle={`Feedback per ${period.granularity === "daily" ? "day" : "week"} · hover for details`}
+              aside={
+                <Legend
+                  items={[
+                    { label: "Positive", color: SENTIMENT_COLORS.positive },
+                    { label: "Negative", color: SENTIMENT_COLORS.negative },
+                  ]}
+                />
+              }
+            />
+            <div className="mt-4 h-64 sm:h-72">
+              {firstLoad ? (
+                <Skeleton className="h-full w-full" />
+              ) : trend.some((p) => p.total > 0) ? (
+                <TrendChart key={periodKey} data={trend} />
+              ) : (
+                <Empty>No feedback in this period.</Empty>
+              )}
+            </div>
+          </Reveal>
+
+          <Reveal order={6} className={`${CARD} flex flex-col p-5 sm:p-6`}>
+            <CardHeading title="Sentiment mix" subtitle={`${now.analysed} analysed feedback`} />
+            {firstLoad ? (
+              <Skeleton className="mt-5 h-40 w-full" />
+            ) : now.analysed ? (
+              <SentimentMix
+                key={periodKey}
+                positive={now.positive}
+                neutral={now.neutral}
+                negative={now.negative}
+              />
+            ) : (
+              <Empty>Nothing analysed in this period yet.</Empty>
+            )}
+          </Reveal>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-2">
+          <Reveal order={7}>
+            <SentimentList
+              icon={<Building2 size={16} />}
+              title="Departments"
+              rows={tables.departments}
+              loading={firstLoad}
+              empty="No feedback with a department in this period."
+              footnote={
+                tables.unassignedIssues > 0
+                  ? `${tables.unassignedIssues} issue${tables.unassignedIssues === 1 ? "" : "s"} had no department and ${tables.unassignedIssues === 1 ? "is" : "are"} not shown.`
+                  : undefined
+              }
+              animationKey={periodKey}
+              onRowClick={(name) => openFeedback({ department: name })}
+            />
+          </Reveal>
+          <Reveal order={8}>
+            <SentimentList
+              icon={<Layers size={16} />}
+              title="Services"
+              rows={tables.services}
+              loading={firstLoad}
+              empty="No feedback mentioned a service in this period."
+              animationKey={periodKey}
+              onRowClick={(name) => openFeedback({ service: name })}
+            />
+          </Reveal>
+        </section>
+
+        <section className="grid grid-cols-1 gap-4 sm:gap-6 xl:grid-cols-5">
+          <Reveal order={9} className={`${CARD} p-5 sm:p-6 xl:col-span-2`}>
+            <CardHeading
+              icon={<AlertTriangle size={16} />}
+              title="Top complaints"
+              subtitle="What negative feedback was about"
+            />
+            {firstLoad ? (
+              <Skeleton className="mt-5 h-48 w-full" />
+            ) : tables.complaints.length ? (
+              <ol className="mt-5 space-y-4" key={periodKey}>
+                {tables.complaints.map((row, i) => (
+                  <li key={row.topic} title={row.examples.slice(0, 3).join("\n")}>
+                    <div className="flex items-baseline gap-3 text-sm">
+                      <span className="w-4 shrink-0 text-xs font-semibold tabular-nums text-gray-400">{i + 1}</span>
+                      <span className="min-w-0 flex-1 truncate font-medium text-gray-800">{row.topic}</span>
+                      <span className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">{row.count}</span>
+                    </div>
+                    <div className="mt-1.5 pl-7">
+                      <GrowBar
+                        pct={(row.count / tables.complaints[0].count) * 100}
+                        color={SENTIMENT_COLORS.negative}
+                        delay={0.05 * i}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <Empty>No complaints in this period.</Empty>
+            )}
+          </Reveal>
+
+          <Reveal order={10} className={`${CARD} p-5 sm:p-6 xl:col-span-3`}>
+            <CardHeading
+              icon={<ThumbsDown size={16} />}
+              title="Needs attention"
+              subtitle="Latest negative feedback in this period"
+              aside={
+                now.negative > attention.length ? (
+                  <button
+                    type="button"
+                    onClick={() => openFeedback({ sentiment: "negative" })}
+                    className="inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 py-1 text-sm font-semibold text-primary hover:bg-primary/5"
+                  >
+                    See all {now.negative}
+                    <ChevronRight size={16} />
+                  </button>
+                ) : null
+              }
+            />
+            {firstLoad ? (
+              <Skeleton className="mt-5 h-48 w-full" />
+            ) : attention.length ? (
+              <ul className="mt-4 space-y-2" key={periodKey}>
+                {attention.map((item, i) => (
+                  <AttentionRow key={item._id} item={item} order={i} onOpen={() => setDetailItem(item)} />
+                ))}
+              </ul>
+            ) : (
+              <Empty>No negative feedback in this period.</Empty>
+            )}
+          </Reveal>
+        </section>
+      </div>
+    </MotionConfig>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+function CardHeading({
+  title,
+  subtitle,
+  icon,
+  aside,
+}: {
+  title: string;
+  subtitle?: string;
+  icon?: ReactNode;
+  aside?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="min-w-0">
+        <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900">
+          {icon ? <span className="text-gray-400">{icon}</span> : null}
+          {title}
+        </h2>
+        {subtitle ? <p className="mt-0.5 text-xs text-gray-500">{subtitle}</p> : null}
+      </div>
+      {aside}
+    </div>
+  );
+}
+
+function Legend({ items }: { items: Array<{ label: string; color: string }> }) {
+  return (
+    <ul className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-600" aria-label="Legend">
+      {items.map((item) => (
+        <li key={item.label} className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full" style={{ backgroundColor: item.color }} aria-hidden />
+          {item.label}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Skeleton({ className = "" }: { className?: string }) {
+  return <div className={`animate-pulse rounded-xl bg-gray-100 ${className}`} aria-hidden />;
+}
+
+function Empty({ children }: { children: ReactNode }) {
+  return <p className="flex min-h-[10rem] items-center justify-center text-sm text-gray-500">{children}</p>;
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+function PeriodPicker({
+  range,
+  onChange,
+  onRefresh,
+  busy,
+}: {
+  range: DashboardRange;
+  onChange: (next: DashboardRange) => void;
+  onRefresh: () => void;
+  busy: boolean;
+}) {
+  const periods: DashboardPeriod[] = ["week", "month", "quarter", "custom"];
+  const pillId = useId();
+  const dateInput =
+    "h-9 rounded-lg border border-gray-300 bg-white px-2 text-sm text-gray-800 outline-none focus:border-primary";
+  return (
+    <div className="flex min-w-0 flex-col gap-2 sm:items-end">
+      <div className="flex min-w-0 items-start gap-2 sm:items-center">
+        {/* Phones: a 2×2 grid so every period is visible; one row from small tablets up. */}
+        <div
+          className="relative grid min-w-0 flex-1 grid-cols-2 gap-0.5 rounded-xl border sm:inline-flex sm:flex-none sm:gap-0 border-[#ece6de] bg-white p-1 shadow-[0_1px_2px_rgba(33,29,26,0.04)]"
+          role="tablist"
+          aria-label="Period"
+        >
+          {periods.map((p) => {
+            const active = range.period === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => onChange({ ...range, period: p })}
+                className={`relative shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-semibold transition-colors sm:py-1.5 ${
+                  active ? "text-white" : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {active ? (
+                  <motion.span
+                    layoutId={`period-pill-${pillId}`}
+                    className="absolute inset-0 rounded-lg bg-primary shadow-sm"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                  />
+                ) : null}
+                <span className="relative">{PERIOD_LABELS[p]}</span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={busy}
+          aria-label="Refresh"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#ece6de] bg-white text-gray-600 shadow-[0_1px_2px_rgba(33,29,26,0.04)] hover:bg-gray-50 disabled:opacity-50"
+        >
+          <RefreshCw size={16} className={busy ? "animate-spin" : ""} />
+        </button>
+      </div>
+      {range.period === "custom" ? (
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <input
+            type="date"
+            aria-label="From"
+            value={range.from}
+            onChange={(e) => onChange({ ...range, from: e.target.value })}
+            className={dateInput}
+          />
+          <span>to</span>
+          <input
+            type="date"
+            aria-label="To"
+            value={range.to}
+            onChange={(e) => onChange({ ...range, to: e.target.value })}
+            className={dateInput}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+type Change = { text: string; direction: "up" | "down" | "flat" } | null;
+
+/** Difference from the previous period, worded for the kind of number. */
+function changeOf(nowValue: number | null, beforeValue: number | null, kind: "count" | "points" | "rating"): Change {
+  if (nowValue == null || beforeValue == null) return null;
+  const diff = kind === "rating" ? Math.round((nowValue - beforeValue) * 10) / 10 : nowValue - beforeValue;
+  if (diff === 0) return { text: "No change", direction: "flat" };
+  const abs = Math.abs(diff);
+  const unit = kind === "points" ? (abs === 1 ? " pt" : " pts") : "";
+  const formatted = kind === "rating" ? abs.toFixed(1) : String(abs);
+  return { text: `${diff > 0 ? "+" : "−"}${formatted}${unit}`, direction: diff > 0 ? "up" : "down" };
+}
+
+function SummaryTile({
+  order,
+  label,
+  icon,
+  value,
+  change,
+  goodWhen,
+  spark,
+  sparkAccent,
+  sparkKey,
+  loading,
+  onClick,
+}: {
+  order: number;
+  label: string;
+  icon: ReactNode;
+  value: ReactNode;
+  change: Change;
+  goodWhen: "up" | "down";
+  spark: Array<number | null>;
+  sparkAccent: string;
+  sparkKey: string;
+  loading: boolean;
+  onClick?: () => void;
+}) {
+  const reduce = useReducedMotion();
+  const tone =
+    !change || change.direction === "flat"
+      ? "bg-gray-100 text-gray-600"
+      : change.direction === goodWhen
+        ? "bg-emerald-50 text-emerald-700"
+        : "bg-red-50 text-red-700";
+  const Arrow = !change || change.direction === "flat" ? Minus : change.direction === "up" ? ArrowUpRight : ArrowDownRight;
+
+  const body = (
+    <>
+      <p className="flex items-center gap-1.5 text-sm font-medium text-gray-600">
+        {icon}
+        {label}
+      </p>
+      {loading ? (
+        <Skeleton className="mt-3 h-9 w-24" />
+      ) : (
+        <p className="mt-2 text-[28px] font-semibold leading-none tracking-tight text-gray-900 sm:text-[32px]">
+          {value}
+        </p>
+      )}
+      <p className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-gray-500">
+        <span className={`inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-semibold ${tone}`}>
+          <Arrow size={13} />
+          {change ? change.text : "—"}
+        </span>
+        {change ? "vs previous" : "no earlier data"}
+      </p>
+      <div className="mt-3 h-9" aria-hidden>
+        {!loading ? <Sparkline key={sparkKey} values={spark} accent={sparkAccent} animate={!reduce} /> : null}
+      </div>
+    </>
+  );
+
+  return (
+    <Reveal order={order} className="min-w-0">
+      {onClick ? (
+        <motion.button
+          type="button"
+          onClick={onClick}
+          whileHover={{ y: -2 }}
+          transition={{ duration: 0.2 }}
+          className={`${CARD} block h-full w-full p-4 text-left transition-shadow hover:shadow-md sm:p-5`}
+        >
+          {body}
+        </motion.button>
+      ) : (
+        <div className={`${CARD} h-full p-4 sm:p-5`}>{body}</div>
+      )}
+    </Reveal>
+  );
+}
+
+/** Trend in the de-emphasis hue, with the latest point marked in the tile's accent. */
+function Sparkline({ values, accent, animate }: { values: Array<number | null>; accent: string; animate: boolean }) {
+  const gradientId = useId().replace(/:/g, "");
+  const data = values.map((v, i) => ({ i, v }));
+  if (data.filter((d) => d.v != null).length < 2) return null;
+  const lastIndex = [...data].reverse().find((d) => d.v != null)?.i;
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 4, right: 6, bottom: 2, left: 6 }}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={accent} stopOpacity={0.14} />
+            <stop offset="100%" stopColor={accent} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <YAxis hide domain={["dataMin", "dataMax"]} />
+        <Area
+          type="monotone"
+          dataKey="v"
+          connectNulls
+          stroke={SPARK_INK}
+          strokeWidth={2}
+          fill={`url(#${gradientId})`}
+          isAnimationActive={animate}
+          animationDuration={900}
+          animationEasing="ease-out"
+          dot={(props: { cx?: number; cy?: number; index?: number }) =>
+            props.index === lastIndex && props.cx != null && props.cy != null ? (
+              <circle key="last" cx={props.cx} cy={props.cy} r={4} fill={accent} stroke="#fff" strokeWidth={2} />
+            ) : (
+              <g key={`d-${props.index}`} />
+            )
+          }
+          activeDot={false}
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+function TrendChart({ data }: { data: TrendPoint[] }) {
+  const reduce = useReducedMotion();
+  const posId = useId().replace(/:/g, "");
+  const negId = useId().replace(/:/g, "");
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ left: -18, right: 8, top: 8, bottom: 0 }}>
+        <defs>
+          <linearGradient id={posId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={SENTIMENT_COLORS.positive} stopOpacity={0.16} />
+            <stop offset="100%" stopColor={SENTIMENT_COLORS.positive} stopOpacity={0.01} />
+          </linearGradient>
+          <linearGradient id={negId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={SENTIMENT_COLORS.negative} stopOpacity={0.14} />
+            <stop offset="100%" stopColor={SENTIMENT_COLORS.negative} stopOpacity={0.01} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid stroke={GRID} vertical={false} />
+        <XAxis
+          dataKey="label"
+          tick={{ fontSize: 11, fill: AXIS_INK }}
+          tickLine={false}
+          axisLine={{ stroke: GRID }}
+          interval="preserveStartEnd"
+          minTickGap={20}
+        />
+        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: AXIS_INK }} tickLine={false} axisLine={false} width={44} />
+        <Tooltip cursor={{ stroke: "#cfc6bb", strokeWidth: 1 }} content={<TrendTooltip />} />
+        <Area
+          type="monotone"
+          dataKey="positive"
+          name="Positive"
+          stroke={SENTIMENT_COLORS.positive}
+          strokeWidth={2}
+          fill={`url(#${posId})`}
+          dot={false}
+          activeDot={{ r: 5, stroke: "#fff", strokeWidth: 2, fill: SENTIMENT_COLORS.positive }}
+          isAnimationActive={!reduce}
+          animationDuration={1000}
+          animationEasing="ease-out"
+        />
+        <Area
+          type="monotone"
+          dataKey="negative"
+          name="Negative"
+          stroke={SENTIMENT_COLORS.negative}
+          strokeWidth={2}
+          fill={`url(#${negId})`}
+          dot={false}
+          activeDot={{ r: 5, stroke: "#fff", strokeWidth: 2, fill: SENTIMENT_COLORS.negative }}
+          isAnimationActive={!reduce}
+          animationDuration={1000}
+          animationBegin={150}
+          animationEasing="ease-out"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function TrendTooltip({ active, payload, label }: TooltipProps<number, string>) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0]?.payload as TrendPoint | undefined;
+  if (!point) return null;
+  const rows = [
+    { name: "Positive", value: point.positive, color: SENTIMENT_COLORS.positive },
+    { name: "Neutral", value: point.neutral, color: SENTIMENT_COLORS.neutral },
+    { name: "Negative", value: point.negative, color: SENTIMENT_COLORS.negative },
+  ];
+  return (
+    <div className="min-w-[10rem] rounded-xl border border-[#ece6de] bg-white/95 px-3 py-2.5 text-xs shadow-lg backdrop-blur">
+      <p className="mb-1.5 font-semibold text-gray-900">{label}</p>
+      {rows.map((r) => (
+        <p key={r.name} className="flex items-center justify-between gap-4 py-0.5 text-gray-600">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: r.color }} />
+            {r.name}
+          </span>
+          <span className="font-semibold tabular-nums text-gray-900">{r.value}</span>
+        </p>
+      ))}
+      <p className="mt-1 border-t border-gray-100 pt-1.5 text-gray-500">
+        {point.total} feedback
+        {point.averageRating != null ? ` · ${point.averageRating.toFixed(1)}★ avg` : ""}
+      </p>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+function SentimentMix({ positive, neutral, negative }: { positive: number; neutral: number; negative: number }) {
+  const total = positive + neutral + negative;
+  const rows = [
+    { key: "positive", label: "Positive", value: positive, color: SENTIMENT_COLORS.positive, Icon: ThumbsUp },
+    { key: "neutral", label: "Neutral", value: neutral, color: SENTIMENT_COLORS.neutral, Icon: Minus },
+    { key: "negative", label: "Negative", value: negative, color: SENTIMENT_COLORS.negative, Icon: ThumbsDown },
+  ];
+  const positiveShare = total ? Math.round((positive / total) * 100) : 0;
+  const leaning =
+    positive > negative ? "More praise than complaints" : negative > positive ? "More complaints than praise" : "Evenly split";
+  return (
+    <div className="mt-5 flex flex-1 flex-col gap-5">
+      <div>
+        <p className="text-5xl font-semibold leading-none tracking-tight text-gray-900">
+          <AnimatedNumber value={positiveShare} suffix="%" />
+        </p>
+        <p className="mt-2 text-sm text-gray-500">
+          of analysed feedback was positive · {leaning.toLowerCase()}
+        </p>
+      </div>
+      <SegmentBar height={20} segments={rows.map(({ key, label, value, color }) => ({ key, label, value, color }))} />
+      <ul className="mt-auto space-y-3">
+        {rows.map(({ key, label, value, color, Icon }) => {
+          const share = total ? Math.round((value / total) * 100) : 0;
+          return (
+            <li key={key} className="flex items-center gap-3">
+              <span
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                style={{ backgroundColor: `${color}14`, color }}
+                aria-hidden
+              >
+                <Icon size={15} />
+              </span>
+              <span className="flex-1 text-sm font-medium text-gray-700">{label}</span>
+              <span className="text-sm tabular-nums text-gray-500">{value}</span>
+              <span className="w-12 text-right text-sm font-semibold tabular-nums text-gray-900">
+                <AnimatedNumber value={share} suffix="%" />
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+function SentimentList({
+  icon,
+  title,
+  rows,
+  loading,
+  empty,
+  footnote,
+  animationKey,
+  onRowClick,
+}: {
+  icon: ReactNode;
+  title: string;
+  rows: SentimentLeaderboardRow[];
+  loading: boolean;
+  empty: string;
+  footnote?: string;
+  animationKey: string;
+  onRowClick: (name: string) => void;
+}) {
+  const [sort, setSort] = useState<"volume" | "negative">("volume");
+  const [showAll, setShowAll] = useState(false);
+  const sorted = useMemo(
+    () =>
+      [...rows].sort((a, b) =>
+        sort === "negative"
+          ? b.negativePct - a.negativePct || b.negative - a.negative
+          : b.total - a.total
+      ),
+    [rows, sort]
+  );
+  const visible = showAll ? sorted : sorted.slice(0, 7);
+
+  return (
+    <div className={`${CARD} h-full p-5 sm:p-6`}>
+      <CardHeading
+        icon={icon}
+        title={title}
+        subtitle="Each issue a patient raised counts once · click a row to read it"
+        aside={
+          rows.length > 1 ? (
+            <div className="inline-flex rounded-lg border border-gray-200 bg-gray-50 p-0.5 text-xs" role="tablist" aria-label="Sort">
+              {(["volume", "negative"] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={sort === key}
+                  onClick={() => setSort(key)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    sort === key ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-800"
+                  }`}
+                >
+                  {key === "volume" ? "Most feedback" : "Most negative"}
+                </button>
+              ))}
+            </div>
+          ) : null
+        }
+      />
+      {rows.length ? (
+        <div className="mt-3">
+          <Legend
+            items={[
+              { label: "Positive", color: SENTIMENT_COLORS.positive },
+              { label: "Neutral", color: SENTIMENT_COLORS.neutral },
+              { label: "Negative", color: SENTIMENT_COLORS.negative },
+            ]}
+          />
+        </div>
+      ) : null}
+
+      {loading ? (
+        <Skeleton className="mt-5 h-56 w-full" />
+      ) : rows.length ? (
+        <motion.ul layout className="mt-3 divide-y divide-gray-100" key={animationKey}>
+          {visible.map((row, i) => (
+            <motion.li key={row.name} layout transition={{ duration: 0.35, ease: EASE_OUT }}>
+              <button
+                type="button"
+                onClick={() => onRowClick(row.name)}
+                title={`${row.positive} positive · ${row.neutral} neutral · ${row.negative} negative`}
+                className="group grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 rounded-lg px-2 py-3 text-left transition-colors hover:bg-[#faf7f2] sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)_auto]"
+              >
+                <span className="truncate text-sm font-medium text-gray-800">{row.name}</span>
+                <span className="col-span-2 row-start-2 sm:col-span-1 sm:row-start-auto">
+                  <SegmentBar
+                    delay={0.04 * i}
+                    segments={[
+                      { key: "p", label: "Positive", value: row.positive, color: SENTIMENT_COLORS.positive },
+                      { key: "n", label: "Neutral", value: row.neutral, color: SENTIMENT_COLORS.neutral },
+                      { key: "x", label: "Negative", value: row.negative, color: SENTIMENT_COLORS.negative },
+                    ]}
+                  />
+                  <span className="mt-1 flex justify-between text-[11px] tabular-nums text-gray-500">
+                    <span>{row.positivePct}% positive</span>
+                    <span>{row.negativePct}% negative</span>
+                  </span>
+                </span>
+                <span className="flex items-center gap-1 row-start-1 col-start-2 sm:row-start-auto sm:col-start-auto">
+                  <span className="min-w-[2rem] rounded-md bg-gray-100 px-1.5 py-0.5 text-center text-xs font-semibold tabular-nums text-gray-700">
+                    {row.total}
+                  </span>
+                  <ChevronRight size={16} className="text-gray-300 transition-transform group-hover:translate-x-0.5 group-hover:text-gray-500" />
+                </span>
+              </button>
+            </motion.li>
+          ))}
+        </motion.ul>
+      ) : (
+        <Empty>{empty}</Empty>
+      )}
+
+      {footnote || rows.length > 7 ? (
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-500">
+          <span>{footnote}</span>
+          {rows.length > 7 ? (
+            <button type="button" onClick={() => setShowAll(!showAll)} className="text-xs font-semibold text-primary hover:underline">
+              {showAll ? "Show fewer" : `Show all ${rows.length}`}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------ */
+
+function AttentionRow({ item, order, onOpen }: { item: FeedbackItem; order: number; onOpen: () => void }) {
+  const initials = (item.patientName || "?")
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+  return (
+    <Reveal as="li" order={order}>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="group flex w-full items-start gap-3 rounded-xl border border-transparent p-3 text-left transition-colors hover:border-[#ece6de] hover:bg-[#faf7f2]"
+      >
+        <span
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+          style={{ backgroundColor: `${SENTIMENT_COLORS.negative}14`, color: SENTIMENT_COLORS.negative }}
+          aria-hidden
+        >
+          {initials}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+            <span className="font-semibold text-gray-900">{item.patientName}</span>
+            <span className="truncate text-xs text-gray-500">
+              {item.lookupDepartment || item.department || "No department"}
+            </span>
+          </span>
+          <span className="mt-0.5 line-clamp-2 block text-sm text-gray-600">
+            {item.aiSummary?.trim() || item.comments?.trim() || "—"}
+          </span>
+        </span>
+        <span className="flex shrink-0 flex-col items-end gap-1">
+          <span className="inline-flex items-center gap-0.5 rounded-md bg-red-50 px-1.5 py-0.5 text-xs font-semibold text-red-700">
+            {item.rating}
+            <Star size={11} fill="currentColor" />
+          </span>
+          <span className="text-[11px] text-gray-400">
+            {new Date(item.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+          </span>
+        </span>
+      </button>
+    </Reveal>
+  );
+}

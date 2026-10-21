@@ -103,76 +103,67 @@ export const router = createBrowserRouter([
               },
             ],
           },
+          // HODs used to land here; the Dashboard now limits their data to their departments.
+          { path: "hod/overview", element: <Navigate to="/insights" replace /> },
           {
-            // HODs get the Admin Panel overview (charts and stats), read-only.
-            element: <RequireCapability anyOf={["insights.overview"]} />,
-            children: [
-              {
-                path: "hod/overview",
-                lazy: async () => {
-                  const { AdminPage } = await import("./components/AdminPage");
-                  return { Component: () => <AdminPage readOnly /> };
-                },
-              },
-            ],
-          },
-          {
-            // Pathless layout route: gates every /management screen on
-            // insights.view without adding a URL segment.
+            // Pathless layout route: gates the Dashboard, Feedback and Reports on insights.view.
             element: <RequireCapability anyOf={["insights.view"]} />,
             children: [
+              {
+                path: "insights",
+                lazy: async () => {
+                  const { DashboardPage } = await import("./components/dashboard/DashboardPage");
+                  return { Component: () => <DashboardPage feedbackPath="/insights/feedback" /> };
+                },
+              },
+              {
+                path: "insights/feedback",
+                lazy: async () => {
+                  const { FeedbackListPage } = await import("./components/FeedbackListPage");
+                  return { Component: () => <FeedbackListPage basePath="/insights/feedback" /> };
+                },
+              },
+              {
+                path: "insights/feedback/delete",
+                lazy: async () => {
+                  const { FeedbackListPage } = await import("./components/FeedbackListPage");
+                  return { Component: () => <FeedbackListPage basePath="/insights/feedback" /> };
+                },
+              },
+              {
+                path: "insights/reports",
+                lazy: async () => ({
+                  Component: (await import("./components/insights/SummaryReportRoute")).SummaryReportRoute,
+                }),
+              },
               {
                 path: "management",
                 lazy: async () => ({
                   Component: (await import("./components/insights/InsightsHub")).InsightsHub,
                 }),
                 children: [
-              {
-                path: "overview",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/ManagementOverviewRoute"))
-                    .ManagementOverviewRoute,
-                }),
-              },
-              {
-                path: "submissions",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/SubmissionTrendsRoute"))
-                    .SubmissionTrendsRoute,
-                }),
-              },
-              {
-                Component: RequireTicketing,
-                children: [
+                  { index: true, element: <Navigate to="/insights" replace /> },
+                  { path: "overview", element: <Navigate to="/insights" replace /> },
+                  { path: "submissions", element: <Navigate to="/insights" replace /> },
+                  { path: "sentiment", element: <Navigate to="/insights" replace /> },
+                  { path: "summary-report", element: <Navigate to="/insights/reports" replace /> },
                   {
-                    path: "tickets",
-                    lazy: async () => ({
-                      Component: (await import("./components/insights/TicketsTrendsRoute"))
-                        .TicketsTrendsRoute,
-                    }),
+                    Component: RequireTicketing,
+                    children: [
+                      {
+                        path: "tickets",
+                        lazy: async () => ({
+                          Component: (await import("./components/insights/TicketsTrendsRoute"))
+                            .TicketsTrendsRoute,
+                        }),
+                      },
+                    ],
                   },
-                ],
-              },
-              {
-                path: "sentiment",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/SentimentLeaderboardRoute"))
-                    .SentimentLeaderboardRoute,
-                }),
-              },
-              {
-                path: "summary-report",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/SummaryReportRoute"))
-                    .SummaryReportRoute,
-                }),
-              },
                 ],
               },
             ],
           },
-          { path: "analytics", element: <Navigate to="/management/submissions" replace /> },
-          { path: "insights", element: <Navigate to="/management/submissions" replace /> },
+          { path: "analytics", element: <Navigate to="/insights" replace /> },
           {
             path: "workflow",
             lazy: async () => ({
@@ -190,20 +181,11 @@ export const router = createBrowserRouter([
               Component: (await import("./components/insights/InsightsHub")).InsightsHub,
             }),
             children: [
-              {
-                path: "overview",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/ManagementOverviewRoute"))
-                    .ManagementOverviewRoute,
-                }),
-              },
-              {
-                path: "submissions",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/SubmissionTrendsRoute"))
-                    .SubmissionTrendsRoute,
-                }),
-              },
+              { index: true, element: <Navigate to="/admin" replace /> },
+              { path: "overview", element: <Navigate to="/admin" replace /> },
+              { path: "submissions", element: <Navigate to="/admin" replace /> },
+              { path: "sentiment", element: <Navigate to="/admin" replace /> },
+              { path: "summary-report", element: <Navigate to="/admin/reports" replace /> },
               {
                 Component: RequireTicketing,
                 children: [
@@ -216,29 +198,29 @@ export const router = createBrowserRouter([
                   },
                 ],
               },
-              {
-                path: "sentiment",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/SentimentLeaderboardRoute"))
-                    .SentimentLeaderboardRoute,
-                }),
-              },
-              {
-                path: "summary-report",
-                lazy: async () => ({
-                  Component: (await import("./components/insights/SummaryReportRoute"))
-                    .SummaryReportRoute,
-                }),
-              },
             ],
           },
+          { path: "admin/insights", element: <Navigate to="/admin" replace /> },
+          { path: "admin/analytics", element: <Navigate to="/admin" replace /> },
           {
-            path: "admin/insights",
-            element: <Navigate to="/admin/management-overview/submissions" replace />,
+            path: "admin/feedback",
+            lazy: async () => {
+              const { FeedbackListPage } = await import("./components/FeedbackListPage");
+              return { Component: () => <FeedbackListPage basePath="/admin/feedback" /> };
+            },
           },
           {
-            path: "admin/analytics",
-            element: <Navigate to="/admin/management-overview/submissions" replace />,
+            path: "admin/feedback/delete",
+            lazy: async () => {
+              const { FeedbackListPage } = await import("./components/FeedbackListPage");
+              return { Component: () => <FeedbackListPage basePath="/admin/feedback" /> };
+            },
+          },
+          {
+            path: "admin/reports",
+            lazy: async () => ({
+              Component: (await import("./components/insights/SummaryReportRoute")).SummaryReportRoute,
+            }),
           },
           {
             Component: RequireDepartments,
@@ -310,12 +292,12 @@ export const router = createBrowserRouter([
           },
           {
             path: "admin",
-            lazy: async () => ({ Component: (await import("./components/AdminPage")).AdminPage }),
+            lazy: async () => {
+                  const { DashboardPage } = await import("./components/dashboard/DashboardPage");
+                  return { Component: () => <DashboardPage feedbackPath="/admin/feedback" /> };
+                },
           },
-          {
-            path: "admin/delete",
-            lazy: async () => ({ Component: (await import("./components/AdminPage")).AdminPage }),
-          },
+          { path: "admin/delete", element: <Navigate to="/admin/feedback/delete" replace /> },
         ],
       },
     ],

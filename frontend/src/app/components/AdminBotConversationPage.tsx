@@ -196,12 +196,12 @@ export function AdminBotConversationPage() {
   const introPlayback = introSrc ? `${introSrc}?v=${cacheVer}` : null;
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+    <div className="mx-auto w-full max-w-3xl space-y-6 sm:px-4 sm:py-4">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Bot conversation feedback</h1>
         <p className="text-sm text-gray-600 mt-1">
           Upload saved <strong>audio</strong> (MP3) for intro and each question. Files are stored in{" "}
-          <code className="text-xs bg-gray-100 px-1 rounded">uploads/feedback-voice/ai_voice/</code>
+          <code className="break-all text-xs bg-gray-100 px-1 rounded">uploads/feedback-voice/ai_voice/</code>
         </p>
         <p className="text-sm text-primary mt-2 font-medium">
           Patient link: <span className="font-mono">{patientRoutes.bot}</span>
@@ -222,7 +222,7 @@ export function AdminBotConversationPage() {
         </p>
       ) : null}
 
-      <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-4 sm:p-5">
         <h2 className="font-semibold text-gray-800">Intro audio</h2>
         <label className="block text-sm font-medium text-gray-700">Welcome text (Tamil)</label>
         <textarea
@@ -245,7 +245,7 @@ export function AdminBotConversationPage() {
             accept="audio/mpeg,audio/mp3,audio/wav,audio/mp4,audio/webm,audio/*"
             disabled={uploading === "intro"}
             onChange={(e) => void onIntroAudio(e.target.files?.[0])}
-            className="text-sm w-full"
+            className="w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-brand-100"
           />
           {uploading === "intro" ? (
             <p className="text-xs text-gray-500 mt-1">Uploading…</p>
@@ -258,7 +258,7 @@ export function AdminBotConversationPage() {
         </div>
       </section>
 
-      <section className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+      <section className="bg-white rounded-xl border border-gray-200 p-4 space-y-4 sm:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-semibold text-gray-800">Questions ({draftQuestions.length})</h2>
           <button
@@ -278,7 +278,7 @@ export function AdminBotConversationPage() {
           return (
             <div
               key={q.draftId}
-              className="border border-gray-100 rounded-lg p-4 space-y-2 bg-gray-50/50"
+              className="border border-gray-100 rounded-lg p-3 space-y-2 bg-gray-50/50 sm:p-4"
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-xs font-semibold text-gray-500 uppercase">
@@ -316,7 +316,7 @@ export function AdminBotConversationPage() {
                   accept="audio/mpeg,audio/mp3,audio/wav,audio/mp4,audio/webm,audio/*"
                   disabled={uploading === `q-${idx}`}
                   onChange={(e) => void onQuestionAudio(idx, e.target.files?.[0])}
-                  className="text-sm w-full"
+                  className="w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-primary hover:file:bg-brand-100"
                 />
                 {uploading === `q-${idx}` ? (
                   <p className="text-xs text-gray-500 mt-1">Uploading…</p>

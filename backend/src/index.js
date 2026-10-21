@@ -82,6 +82,15 @@ import { createSummaryReportWorker } from "./summaryReportScheduler.js";
 import { generateSummaryReports } from "./summaryReportBuilder.js";
 import { currentPeriodKey, periodRangeForKey } from "./reportPeriods.js";
 import { HOSPITAL } from "./hospital.js";
+import { isPublicUploadPath, requireUploadAccess, uploadUrlForRel } from "./uploadAccess.js";
+import { applyFeedbackScope, feedbackInScope, feedbackScopeForRequest } from "./feedbackScope.js";
+import {
+  limitAiInference,
+  limitFeedbackSubmit,
+  limitPatientLookup,
+  limitSpeechToText,
+  limitVoiceAttach,
+} from "./rateLimit.js";
 
 let pendingAiWorker = null;
 let summaryReportWorker = null;
@@ -90,6 +99,14 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+// Rate limits key on the client IP. In production two proxies sit in front of the API (host
+// nginx, then the frontend container's nginx); trusting exactly that many hops makes req.ip the
+// patient's address and ignores any X-Forwarded-For a client sends itself.
+app.set("trust proxy", Number(process.env.TRUST_PROXY_HOPS ?? 2));
+
+/** Patient voice uploads: 10 minutes of browser-recorded Opus is a few MB, so this leaves headroom. */
+const VOICE_ATTACH_WINDOW_MS = 24 * 60 * 60 * 1000;
+const PATIENT_UPLOAD_MAX_BYTES = 25 * 1024 * 1024;
 const MONGODB_URI =
   process.env.MONGODB_URI || "mongodb://localhost:27017/feedbacksystem";
 
@@ -100,17 +117,17 @@ app.use(compression());
 app.use(cors(buildCorsOptions()));
 app.use(express.json());
 // Decodes the bearer token when present. Routes opt in to enforcement with
-// requireAuth / requireCapability — the patient kiosk endpoints stay anonymous.
+// requireAuth / requireCapability â€” the patient kiosk endpoints stay anonymous.
 app.use(attachUser);
 
 const speechUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 60 * 1024 * 1024 },
+  limits: { fileSize: PATIENT_UPLOAD_MAX_BYTES },
 });
 
 const feedbackSubmitUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 60 * 1024 * 1024 },
+  limits: { fileSize: PATIENT_UPLOAD_MAX_BYTES },
 }).fields([
   { name: "voiceRecording", maxCount: 1 },
   { name: "answerAudio", maxCount: 12 },
@@ -123,12 +140,12 @@ const botAudioUpload = multer({
 
 const voiceRecordingUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 60 * 1024 * 1024 },
+  limits: { fileSize: PATIENT_UPLOAD_MAX_BYTES },
 }).single("voiceRecording");
 
 const UPLOADS_ROOT = path.join(process.cwd(), "uploads");
 
-/** TMS loads `<audio src="https://feedback.../uploads/...">` — browsers may send Range; OPTIONS needs explicit CORS. */
+/** TMS loads `<audio src="https://feedback.../uploads/...">` â€” browsers may send Range; OPTIONS needs explicit CORS. */
 function uploadsCorsAndOptions(req, res, next) {
   const list = String(process.env.FEEDBACK_CORS_ORIGINS || "")
     .split(",")
@@ -150,13 +167,14 @@ function uploadsCorsAndOptions(req, res, next) {
   next();
 }
 
-app.use("/uploads", uploadsCorsAndOptions, express.static(UPLOADS_ROOT));
+// Patient recordings need a signed link (see uploadAccess.js); AI Voice Guide prompts stay public.
+app.use("/uploads", uploadsCorsAndOptions, requireUploadAccess, express.static(UPLOADS_ROOT));
 
 function attachVoicePlaybackUrl(doc) {
   if (!doc) return doc;
   let plain = typeof doc.toObject === "function" ? doc.toObject() : { ...doc };
   if (plain.voiceRecordingRelPath) {
-    plain.voiceRecordingUrl = `/uploads/${String(plain.voiceRecordingRelPath).replace(/^\/+/, "")}`;
+    plain.voiceRecordingUrl = uploadUrlForRel(plain.voiceRecordingRelPath);
   }
   plain = attachBotAnswerPlaybackUrls(plain);
   return plain;
@@ -173,7 +191,7 @@ function toFeedbackListRow(doc) {
     delete plain.comments;
   } else if (plain.comments) {
     const text = String(plain.comments).trim();
-    plain.comments = text.length > 200 ? `${text.slice(0, 197)}…` : text;
+    plain.comments = text.length > 200 ? `${text.slice(0, 197)}â€¦` : text;
   }
   return plain;
 }
@@ -286,7 +304,7 @@ async function enrichFeedbackWithGroupDonor(row) {
 /**
  * Bot Q&A transcripts dominate a feedback document's size but are stripped from
  * every list row by toFeedbackListRow. Excluding them in the query keeps them out
- * of the Mongo→Node transfer entirely instead of paying for them and discarding
+ * of the Mongoâ†’Node transfer entirely instead of paying for them and discarding
  * them. Everything else is kept, so list output is byte-identical.
  */
 const LITE_LIST_PROJECTION = "-botConversationAnswers";
@@ -307,7 +325,7 @@ async function enrichFeedbackListWithGroupDonor(rows, { lite = false } = {}) {
     submissionGroupId: { $in: [...groupIds] },
     isSplitChild: { $ne: true },
   }).sort({ _id: 1 });
-  // The donor only contributes comments/submissionMode to a lite row — its bot
+  // The donor only contributes comments/submissionMode to a lite row â€” its bot
   // answers would be stripped by toFeedbackListRow anyway.
   if (lite) donorQuery.select(LITE_LIST_PROJECTION);
   const donors = await donorQuery.lean();
@@ -428,7 +446,7 @@ async function materializeMissingSplitChildrenForParent(parentRow) {
       aiSentiment: issueSentiment,
       department: issue.department || visitDepartment,
       /** `issue.recommendedService` was already catalog-validated at analysis time (normalizeIssueFromAi);
-       * never fall back to parentRow.service — that's a *different* issue's (issue 0's) resolved value. */
+       * never fall back to parentRow.service â€” that's a *different* issue's (issue 0's) resolved value. */
       service: sanitizeOptionalLabel(issue.recommendedService),
       comments: String(parentRow.comments || "").trim(),
       aiSummary: issue.issueSummary,
@@ -516,7 +534,7 @@ async function ensureDefaults() {
 }
 
 /** Backfill voice path on split rows when parent already has audio (e.g. upload before AI split). */
-/** Mongoose used to default clientSubmissionId to null — only one row could exist per unique sparse index. */
+/** Mongoose used to default clientSubmissionId to null â€” only one row could exist per unique sparse index. */
 async function repairClientSubmissionIds() {
   // `{ clientSubmissionId: null }` also matches documents where the field is
   // ABSENT, so the previous filter re-matched every already-repaired row and
@@ -591,7 +609,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.post("/api/speech-to-text", speechUpload.single("audio"), async (req, res) => {
+app.post("/api/speech-to-text", limitSpeechToText, speechUpload.single("audio"), async (req, res) => {
   try {
     const sarvamKey = process.env.SARVAM_API_KEY;
     if (!sarvamKey) {
@@ -686,7 +704,7 @@ app.post("/api/auth/login", async (req, res) => {
       serviceId: svc?._id ? String(svc._id) : user.serviceId ? String(user.serviceId) : null,
       serviceName: svc?.name || null,
       // The client sends this back as `Authorization: Bearer <token>`. Roles in
-      // localStorage are advisory only — the server re-derives them from here.
+      // localStorage are advisory only â€” the server re-derives them from here.
       token: signAuthToken(user),
       capabilities: capabilitiesForRole(user.role),
     });
@@ -695,10 +713,26 @@ app.post("/api/auth/login", async (req, res) => {
   }
 });
 
+/** Who is signed in, what they may do, and which departments/services their data is limited to. */
+app.get("/api/auth/me", requireAuth, async (req, res) => {
+  try {
+    const scope = await feedbackScopeForRequest(req);
+    return res.json({
+      id: req.user.id,
+      username: req.user.username,
+      role: req.user.role,
+      capabilities: req.user.capabilities,
+      scope: scope ? { departments: scope.departments, services: scope.services } : null,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to load account" });
+  }
+});
+
 app.post("/api/auth/change-password", requireAuth, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    // Always the authenticated user — a client-supplied userId could target
+    // Always the authenticated user â€” a client-supplied userId could target
     // someone else's account.
     const userId = req.user.id;
     if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) {
@@ -1274,7 +1308,7 @@ app.patch("/api/hospital-departments/:id", requireCapability(CAPABILITIES.DEPART
 
 
 /**
- * Only a superadmin may mint or alter another superadmin — otherwise any user
+ * Only a superadmin may mint or alter another superadmin â€” otherwise any user
  * with users.manage could promote themselves to full control.
  */
 function canActOnRole(req, role) {
@@ -1368,7 +1402,7 @@ app.patch("/api/users/:id", requireCapability(CAPABILITIES.USERS_MANAGE), async 
     if (role !== SUPERADMIN_ROLE && (await wouldOrphanSuperadmin(id))) {
       return res
         .status(409)
-        .json({ message: "This is the last Super Admin — promote another one first" });
+        .json({ message: "This is the last Super Admin â€” promote another one first" });
     }
     const assignment = validateUserAssignment(role, req.body);
     if (assignment.error) {
@@ -1429,7 +1463,7 @@ app.delete("/api/users/:id", requireCapability(CAPABILITIES.USERS_MANAGE), async
     if (await wouldOrphanSuperadmin(id)) {
       return res
         .status(409)
-        .json({ message: "This is the last Super Admin — promote another one first" });
+        .json({ message: "This is the last Super Admin â€” promote another one first" });
     }
     const deleted = await User.findByIdAndDelete(id).lean();
     if (!deleted) {
@@ -1437,7 +1471,7 @@ app.delete("/api/users/:id", requireCapability(CAPABILITIES.USERS_MANAGE), async
     }
     await syncHodCatalogMappings(id, { departmentIds: [], serviceIds: [] });
     // Release their queue. Without this the tickets keep pointing at a deleted
-    // user: invisible in every HOD queue, yet still shown as assigned — which is
+    // user: invisible in every HOD queue, yet still shown as assigned â€” which is
     // exactly how the orphans repaired in Phase 1 were created.
     const released = await Feedback.updateMany(
       { assignedToUserId: id },
@@ -1486,7 +1520,7 @@ app.patch(
       if (isProtectedRole(key)) {
         return res.status(409).json({
           message:
-            "Super Admin always holds every capability and cannot be restricted — that would lock everyone out of role management.",
+            "Super Admin always holds every capability and cannot be restricted â€” that would lock everyone out of role management.",
         });
       }
 
@@ -1568,7 +1602,7 @@ app.post("/api/feedback/repair-split-children", requireCapability(CAPABILITIES.M
   }
 });
 
-app.post("/api/patient/lookup", async (req, res) => {
+app.post("/api/patient/lookup", limitPatientLookup, async (req, res) => {
   if (!isEmrPatientLookupEnabled()) {
     return res.status(503).json({
       message: "Patient lookup is disabled on this server.",
@@ -1603,7 +1637,7 @@ app.post("/api/patient/lookup", async (req, res) => {
   }
 });
 
-app.post("/api/feedback/infer-voice-rating", async (req, res) => {
+app.post("/api/feedback/infer-voice-rating", limitAiInference, async (req, res) => {
   try {
     const transcript = req.body?.transcript;
     if (typeof transcript !== "string" || !transcript.trim()) {
@@ -1757,7 +1791,7 @@ async function applyPendingAiToFeedback({
     return resolveServiceFromAi(n, serviceCatalog) ? n : "";
   };
   /**
-   * Each issue resolves its own service independently — a sibling issue's resolved value must
+   * Each issue resolves its own service independently â€” a sibling issue's resolved value must
    * never be used as another issue's fallback (e.g. a "transport wait" issue's service leaking
    * onto an unrelated "doctor delay" issue just because the latter's own recommendation didn't
    * match the catalog).
@@ -2109,13 +2143,13 @@ async function runDeferredFeedbackAiPipeline(ctx) {
 
 registerBotConversationRoutes(app, { uploadsRoot: UPLOADS_ROOT, botAudioUpload });
 
-app.post("/api/feedback", (req, res, next) => {
+app.post("/api/feedback", limitFeedbackSubmit, (req, res, next) => {
   feedbackSubmitUpload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
         return res.status(413).json({
           message:
-            "Voice file is too large to upload. Please submit again — your spoken text will still be saved.",
+            "Voice file is too large to upload. Please submit again â€” your spoken text will still be saved.",
         });
       }
       return res.status(400).json({ message: err.message });
@@ -2190,7 +2224,7 @@ app.post("/api/feedback", (req, res, next) => {
     const deferAiProcessing =
       submissionMode === "voice" || submissionMode === "standard" || submissionMode === "bot";
     const rawEncounter = String(req.body.patientEncounterType || "").toLowerCase().trim();
-    // Outpatients only — the dental hospital has no inpatient visits.
+    // Outpatients only â€” the dental hospital has no inpatient visits.
     const patientEncounterType = rawEncounter === "op" ? "op" : "";
     const patientRegNo = String(req.body.patientRegNo || "").trim().slice(0, 80);
     const ward = String(req.body.ward || "").trim().slice(0, 120);
@@ -2571,7 +2605,7 @@ app.post("/api/feedback", (req, res, next) => {
     // retry can both fire for the same entry before either has recorded a
     // serverFeedbackId, so both pass the clientSubmissionId findOne-check
     // above and race to insert. The loser hits this unique-index violation
-    // even though the feedback was actually saved by the winner — replay
+    // even though the feedback was actually saved by the winner â€” replay
     // that saved record instead of reporting a failure the client (and the
     // patient watching "Failed to create feedback") would otherwise retry
     // forever without ever seeing it succeed.
@@ -2608,7 +2642,7 @@ app.post("/api/feedback", (req, res, next) => {
     });
 
     // Mongoose validation messages describe which field/constraint failed
-    // (e.g. "rating: Path `rating` is required") and never include secrets —
+    // (e.g. "rating: Path `rating` is required") and never include secrets â€”
     // safe to forward so the offline queue and the UI show something actionable
     // instead of a dead-end "Failed to create feedback".
     if (error?.name === "ValidationError") {
@@ -2616,16 +2650,16 @@ app.post("/api/feedback", (req, res, next) => {
     }
 
     return res.status(500).json({
-      message: "Failed to create feedback. Please try again — your answers have not been lost.",
+      message: "Failed to create feedback. Please try again â€” your answers have not been lost.",
     });
   }
 });
 
-app.post("/api/feedback/:id/voice-recording", (req, res, next) => {
+app.post("/api/feedback/:id/voice-recording", limitVoiceAttach, (req, res, next) => {
   voiceRecordingUpload(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
-        return res.status(413).json({ message: "Voice file is too large (max 60 MB)." });
+        return res.status(413).json({ message: "Voice file is too large (max 25 MB)." });
       }
       return res.status(400).json({ message: err.message });
     }
@@ -2645,11 +2679,18 @@ app.post("/api/feedback/:id/voice-recording", (req, res, next) => {
       return res.status(404).json({ message: "Feedback not found" });
     }
 
+    // This route is anonymous, so only the device that just submitted should use it. A day
+    // covers an offline phone retrying later; older feedback can't have audio attached by anyone.
+    const createdAtMs = new mongoose.Types.ObjectId(String(feedback._id)).getTimestamp().getTime();
+    if (!feedback.voiceRecordingRelPath && Date.now() - createdAtMs > VOICE_ATTACH_WINDOW_MS) {
+      return res.status(409).json({ message: "Too late to attach a recording to this feedback." });
+    }
+
     if (feedback.voiceRecordingRelPath) {
       const existingRel = String(feedback.voiceRecordingRelPath);
       return res.json({
         voiceRecordingRelPath: existingRel,
-        voiceRecordingUrl: `/uploads/${existingRel.replace(/^\/+/, "")}`,
+        voiceRecordingUrl: uploadUrlForRel(existingRel),
         idempotentReplay: true,
       });
     }
@@ -2660,7 +2701,7 @@ app.post("/api/feedback/:id/voice-recording", (req, res, next) => {
 
     return res.json({
       voiceRecordingRelPath: rel,
-      voiceRecordingUrl: `/uploads/${String(rel).replace(/^\/+/, "")}`,
+      voiceRecordingUrl: uploadUrlForRel(rel),
     });
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -2674,18 +2715,10 @@ app.post("/api/feedback/:id/voice-recording", (req, res, next) => {
 
 app.get("/api/feedback", requireAuth, async (req, res) => {
   try {
-    const mongoFilter = buildFeedbackInsightsFilter(req.query);
-    // A user who can only read their own queue gets it enforced here. This used
-    // to be a client-side filter, so a HOD could read every ticket by calling the
-    // API directly. Dashboard viewers (e.g. HODs on the Overview) may list the
-    // whole hospital, matching the hospital-wide /api/analytics they already see;
-    // opening or changing a ticket is still restricted to its assignee below.
-    if (
-      !userHasCapability(req, CAPABILITIES.FEEDBACK_READ_ALL) &&
-      !userHasCapability(req, CAPABILITIES.INSIGHTS_VIEW)
-    ) {
-      mongoFilter.assignedToUserId = new mongoose.Types.ObjectId(req.user.id);
-    }
+    // Without "View all feedback" (e.g. a HOD) the list is limited, on the server, to the
+    // departments and services the user heads plus anything assigned to them.
+    const scope = await feedbackScopeForRequest(req);
+    const mongoFilter = applyFeedbackScope(buildFeedbackInsightsFilter(req.query), scope);
     const lite = String(req.query.lite || "").trim() === "1";
     // Sort by insertion time from ObjectId to avoid skew from synthetic createdAt values.
     const query = Feedback.find(mongoFilter).sort({ _id: -1 });
@@ -2711,12 +2744,9 @@ app.get("/api/feedback/:id", requireAuth, async (req, res) => {
     if (!row) {
       return res.status(404).json({ message: "Feedback not found" });
     }
-    // Queue-scoped users may only open a ticket assigned to them.
-    if (
-      !userHasCapability(req, CAPABILITIES.FEEDBACK_READ_ALL) &&
-      String(row.assignedToUserId || "") !== req.user.id
-    ) {
-      return res.status(403).json({ message: "You do not have access to this ticket" });
+    // Same rule as the list: a HOD can open feedback about their departments and services.
+    if (!feedbackInScope(row, await feedbackScopeForRequest(req))) {
+      return res.status(403).json({ message: "You do not have access to this feedback" });
     }
     return res.json(await enrichFeedbackWithGroupDonor(row));
   } catch (error) {
@@ -2750,7 +2780,10 @@ app.get("/api/analytics", requireCapability(CAPABILITIES.INSIGHTS_VIEW), async (
     // dashboard can be scoped to the period the user selected. With no query
     // params the filter is empty and this returns whole-collection totals,
     // exactly as before.
-    const mongoFilter = buildFeedbackInsightsFilter(req.query);
+    const mongoFilter = applyFeedbackScope(
+      buildFeedbackInsightsFilter(req.query),
+      await feedbackScopeForRequest(req)
+    );
     const rows = await Feedback.find(mongoFilter).select(ANALYTICS_PROJECTION).lean();
     const sessions = rows.filter((item) => !item.isSplitChild);
 
@@ -2941,7 +2974,7 @@ app.post("/api/summary-reports/generate", requireCapability(CAPABILITIES.REPORTS
   }
 });
 
-// Bulk "Acknowledge" only — New -> In Progress, no CAPA. Deliberately does not
+// Bulk "Acknowledge" only â€” New -> In Progress, no CAPA. Deliberately does not
 // accept "Resolved": that transition needs a CAPA per ticket (the gate below
 // in /:id/status), which can't be satisfied for a batch. Path is a sibling of
 // /:id/status rather than nested under it so it can never collide with that
@@ -2960,7 +2993,7 @@ app.post("/api/feedback/bulk-acknowledge", requireCapability(CAPABILITIES.FEEDBA
 
     const filter = { _id: { $in: validIds }, status: "New" };
     if (!userHasCapability(req, CAPABILITIES.FEEDBACK_READ_ALL)) {
-      // Queue-scoped caller — same restriction as the single-ticket endpoint,
+      // Queue-scoped caller â€” same restriction as the single-ticket endpoint,
       // applied as a query filter instead of a per-id check.
       filter.assignedToUserId = new mongoose.Types.ObjectId(req.user.id);
     }
@@ -3007,12 +3040,12 @@ app.patch("/api/feedback/:id/status", requireCapability(CAPABILITIES.FEEDBACK_RE
       if (!preventiveAction) missing.push("preventive action");
       if (missing.length) {
         return res.status(400).json({
-          message: `CAPA is required to resolve a ticket — please fill in ${missing.join(", ")}.`,
+          message: `CAPA is required to resolve a ticket â€” please fill in ${missing.join(", ")}.`,
         });
       }
     }
 
-    // Queue-scoped users may only act on their own tickets — nothing previously
+    // Queue-scoped users may only act on their own tickets â€” nothing previously
     // stopped any caller from resolving any ticket.
     const target = await Feedback.findById(id).select("assignedToUserId").lean();
     if (!target) {
@@ -3062,7 +3095,7 @@ app.patch("/api/feedback/:id/status", requireCapability(CAPABILITIES.FEEDBACK_RE
   }
 });
 
-/** Loose label compare: case, punctuation and spacing collapse (Front Office ↔ front-office). */
+/** Loose label compare: case, punctuation and spacing collapse (Front Office â†” front-office). */
 function labelKey(value) {
   return String(value || "")
     .toLowerCase()
@@ -3124,7 +3157,7 @@ app.patch("/api/feedback/:id/assign", requireCapability(CAPABILITIES.FEEDBACK_AS
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      // A ticket owner must be able to actually work it — i.e. hold the
+      // A ticket owner must be able to actually work it â€” i.e. hold the
       // "assigned queue" capability. Checked by capability rather than by the
       // literal role name so a renamed or custom queue role still works.
       if (!capabilitiesForRole(user.role).includes(CAPABILITIES.FEEDBACK_READ_ASSIGNED)) {
@@ -3133,7 +3166,7 @@ app.patch("/api/feedback/:id/assign", requireCapability(CAPABILITIES.FEEDBACK_AS
         });
       }
 
-      // Warn — do not block — when the target does not own the ticket's
+      // Warn â€” do not block â€” when the target does not own the ticket's
       // department or service. Complaints legitimately route to service owners
       // (Housekeeping, Transport) rather than the clinical department of the
       // visit, so a hard block would break real workflows. The client confirms
@@ -3165,6 +3198,27 @@ app.patch("/api/feedback/:id/assign", requireCapability(CAPABILITIES.FEEDBACK_AS
   }
 });
 
+/** Deletes a submission's voice and AI Voice Guide answer files. Never touches the public prompts. */
+async function removeFeedbackRecordings(doc) {
+  const rels = [
+    doc.voiceRecordingRelPath,
+    ...(doc.botConversationAnswers || []).map((answer) => answer?.audioRelPath),
+  ].filter(Boolean);
+  for (const rel of new Set(rels)) {
+    if (isPublicUploadPath(rel)) continue;
+    const file = path.resolve(UPLOADS_ROOT, String(rel));
+    if (!file.startsWith(path.resolve(UPLOADS_ROOT) + path.sep)) continue;
+    try {
+      await fs.unlink(file);
+    } catch (err) {
+      if (err?.code !== "ENOENT") {
+        // eslint-disable-next-line no-console
+        console.error("[feedback] could not remove recording", { rel, message: err?.message });
+      }
+    }
+  }
+}
+
 app.delete("/api/feedback/:id", requireCapability(CAPABILITIES.FEEDBACK_DELETE), async (req, res) => {
   try {
     const { id } = req.params;
@@ -3181,6 +3235,12 @@ app.delete("/api/feedback/:id", requireCapability(CAPABILITIES.FEEDBACK_DELETE),
         isSplitChild: true,
       });
       splitIssuesDeleted = result.deletedCount || 0;
+    }
+    // Recordings belong to the whole submission (split issues share the parent's file), so they
+    // are removed only when the submission itself is deleted â€” a deleted patient's voice must not
+    // stay on disk.
+    if (!deleted.isSplitChild) {
+      await removeFeedbackRecordings(deleted);
     }
     return res.json({ success: true, id, splitIssuesDeleted });
   } catch (error) {
@@ -3309,7 +3369,7 @@ async function startServer() {
     await mongoose.connect(MONGODB_URI);
     // eslint-disable-next-line no-console
     console.log(`[feedback] MongoDB connected: ${mongoose.connection.db.databaseName}`);
-    // Roles must be loaded before the server accepts traffic — every capability
+    // Roles must be loaded before the server accepts traffic â€” every capability
     // check reads the cache this populates.
     await ensureRolesSeeded();
     await refreshRoleCache();
@@ -3337,7 +3397,7 @@ async function startServer() {
       console.log(`API running on http://localhost:${PORT}`);
       if (!isEmrPatientLookupEnabled()) {
         // eslint-disable-next-line no-console
-        console.log("[emr] patient lookup disabled (EMR_QUERY_BUILDER_URL not set) — name-only feedback");
+        console.log("[emr] patient lookup disabled (EMR_QUERY_BUILDER_URL not set) â€” name-only feedback");
       }
     });
     server.timeout = 0;

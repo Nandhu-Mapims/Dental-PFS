@@ -41,7 +41,6 @@ export function buildVoiceRatingUserPrompt(transcript) {
 
 /**
  * @param {{
- *   patientName: string;
  *   emrDepartment: string;
  *   serviceHint: string;
  *   comments: string;
@@ -50,15 +49,14 @@ export function buildVoiceRatingUserPrompt(transcript) {
  * }} params
  */
 export function buildFeedbackAnalysisUserPrompt(params) {
-  const { patientName, emrDepartment, serviceHint, comments, serviceChoices, departmentChoices } =
-    params;
+  const { emrDepartment, serviceHint, comments, serviceChoices, departmentChoices } = params;
   const svc = catalogNamesPipe(serviceChoices);
   const svcLine = svc ? `<svc>${esc(svc)}</svc>` : `<svc/>`;
   const dept = catalogNamesPipe(departmentChoices || []);
   const deptLine = dept ? `<dept>${esc(dept)}</dept>` : `<dept/>`;
 
   return `<j>Analyze patient feedback→JSON; ground all fields in patient text and any [Remark] lines</j>
-<ctx n="${esc(patientName)}" dept="${esc(emrDepartment || "-")}" hint="${esc(serviceHint || "-")}"/>
+<ctx dept="${esc(emrDepartment || "-")}" hint="${esc(serviceHint || "-")}"/>
 <txt>${esc(comments || "")}</txt>
 ${deptLine}
 ${svcLine}

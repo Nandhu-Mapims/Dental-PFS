@@ -57,16 +57,16 @@ function StatTile({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex items-center gap-3 rounded-xl bg-gradient-to-br p-4 text-left text-white shadow-sm transition ${gradient} ${
+      className={`flex items-center gap-3 rounded-xl bg-gradient-to-br p-3 text-left sm:p-4 text-white shadow-sm transition ${gradient} ${
         active ? "ring-4 ring-offset-2 ring-gray-900/20" : "opacity-90 hover:opacity-100"
       }`}
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/15">
+      <span className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/15 sm:grid">
         {icon}
       </span>
       <span className="min-w-0">
         <span className="block text-xl font-bold leading-none">{value}</span>
-        <span className="mt-1 block truncate text-xs opacity-90">{label}</span>
+        <span className="mt-1 block text-xs leading-tight opacity-90 sm:truncate">{label}</span>
       </span>
     </button>
   );
@@ -215,7 +215,7 @@ export function AdminHospitalDepartmentsPage() {
         </button>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+      <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
         <StatTile
           icon={<Building2 size={17} />}
           label="All departments"
@@ -326,7 +326,52 @@ export function AdminHospitalDepartmentsPage() {
             )}
           </div>
         ) : (
-          <div className="relative overflow-x-auto">
+          <>
+          {/* Phones: one card per department; the table takes over from tablet width. */}
+          <ul className="divide-y divide-gray-100 md:hidden">
+            {filteredList.map((dept) => (
+              <li key={dept._id} className="flex items-start gap-2 px-4 py-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900">{dept.name}</p>
+                  {dept.description ? (
+                    <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">{dept.description}</p>
+                  ) : null}
+                  <div className="mt-2">
+                    {dept.hodUserId?.username ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700">
+                        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                        HOD: {dept.hodUserId.username}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <AlertCircle size={12} />
+                        HOD not assigned
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(dept)}
+                    aria-label={`Edit ${dept.name}`}
+                    className="grid h-10 w-10 place-items-center rounded-lg text-gray-500 transition hover:bg-brand-50 hover:text-primary"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void onDelete(dept._id, dept.name)}
+                    aria-label={`Delete ${dept.name}`}
+                    className="grid h-10 w-10 place-items-center rounded-lg text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+          <div className="relative hidden overflow-x-auto md:block">
             <table className="w-full min-w-[560px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
@@ -393,54 +438,76 @@ export function AdminHospitalDepartmentsPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
-        <SheetContent className="w-full gap-0 p-0 sm:max-w-lg">
-          <SheetHeader className="border-b border-gray-100 px-5 py-4">
-            <SheetTitle className="text-base font-semibold text-gray-900">
-              {editingId ? "Edit department" : "Add department"}
-            </SheetTitle>
-            <SheetDescription className="text-sm text-gray-500">
-              Name should match hospital units where possible (e.g. Cardiology, Emergency).
-            </SheetDescription>
+        <SheetContent className="w-full gap-0 bg-gray-50 p-0 sm:max-w-md">
+          <SheetHeader className="gap-0 border-b border-gray-100 bg-white px-5 py-5 pr-14">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-primary">
+                <Building2 size={20} />
+              </span>
+              <div className="min-w-0">
+                <SheetTitle className="text-lg font-semibold text-gray-900">
+                  {editingId ? "Edit department" : "Add department"}
+                </SheetTitle>
+                <SheetDescription className="mt-0.5 text-sm text-gray-500">
+                  A clinical unit patients are treated in. Patients pick it on the feedback form.
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
 
           <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
-              <div>
-                <label className={LABEL_CLASS}>
-                  Department name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                  className={FIELD_CLASS}
-                  placeholder="e.g. Cardiology"
-                />
-              </div>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+              <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Details</h3>
+                <div>
+                  <label htmlFor="department-name" className={LABEL_CLASS}>
+                    Department name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="department-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    autoComplete="off"
+                    className={FIELD_CLASS}
+                    placeholder="e.g. Orthodontics"
+                  />
+                  <p className="mt-1.5 text-xs text-gray-500">Use the name patients and staff know it by.</p>
+                </div>
 
-              <div>
-                <label className={LABEL_CLASS}>Description (optional)</label>
-                <input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className={FIELD_CLASS}
-                  placeholder="Short description"
-                />
-              </div>
+                <div>
+                  <label htmlFor="department-description" className={`${LABEL_CLASS} flex items-center justify-between`}>
+                    Description
+                    <span className="text-xs font-normal text-gray-400">Optional</span>
+                  </label>
+                  <textarea
+                    id="department-description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className={`${FIELD_CLASS} resize-none`}
+                    placeholder="e.g. Braces, aligners and bite correction"
+                  />
+                </div>
+              </section>
 
-              <div>
-                <label className={LABEL_CLASS}>HOD (optional)</label>
+              <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                <div>
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Head of department</h3>
+                  <p className="mt-1 text-xs text-gray-500">The HOD sees this department’s feedback on their own dashboard.</p>
+                </div>
                 <HodAssignSelect
                   value={hodUserId}
                   onChange={setHodUserId}
                   hodUsers={hodUsers}
                   className={FIELD_CLASS}
                 />
-              </div>
+              </section>
 
               {error ? (
                 <div className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700">
@@ -450,18 +517,18 @@ export function AdminHospitalDepartmentsPage() {
               ) : null}
             </div>
 
-            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+            <div className="flex shrink-0 items-center gap-2 border-t border-gray-200 bg-white px-4 py-3.5 sm:justify-end sm:px-5">
               <button
                 type="button"
                 onClick={() => onSheetOpenChange(false)}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:flex-none"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary hover:bg-primary-hover px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
               >
                 {saving ? <Loader2 className="animate-spin" size={15} /> : <Check size={15} />}
                 {editingId ? "Save changes" : "Create department"}

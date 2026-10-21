@@ -69,7 +69,8 @@ export async function postFeedbackVoice(
       ok: false,
       status: response.status,
       message: readApiError(body) || "Voice upload failed",
-      permanent: response.status === 413,
+      // 413: file too large; 409: the server's attach window has passed. Retrying can't help.
+      permanent: response.status === 413 || response.status === 409,
     };
   }
   return { ok: true };

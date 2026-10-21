@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Bot, Heart, Keyboard, Mic, Palette, ToggleRight } from "lucide-react";
+import { Bot, ChevronRight, Heart, Palette, ToggleRight } from "lucide-react";
+import { feedbackModeChoices } from "../lib/feedbackModeChoices";
 import feedbackLogo from "./image/hospital_logo.png";
 import { HOSPITAL } from "../lib/hospital";
 import {
@@ -14,6 +15,7 @@ import {
 import type { ModuleFlag } from "../lib/api";
 import { CAPABILITY, hasCapability } from "./RouteGuards";
 import { Switch } from "./ui/switch";
+import { FeedbackQrCard } from "./FeedbackQrCard";
 
 function ColorField({
   label,
@@ -320,6 +322,8 @@ export function AdminSettingsPage() {
         </div>
       </div>
 
+      <FeedbackQrCard />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         <div className="bg-white rounded-xl shadow-md p-5 md:p-6 space-y-5 min-w-0">
           {bannerMessage ? (
@@ -469,54 +473,51 @@ export function AdminSettingsPage() {
 
         </div>
 
-        <div className="bg-white rounded-xl shadow-md p-5 md:p-6 lg:sticky lg:top-6 min-w-0">
-          <h3 className="text-lg font-semibold text-gray-800 mb-1">Live preview</h3>
-          <p className="text-sm text-gray-600 mb-4">Patient welcome screen (approximate)</p>
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-5 md:p-6 lg:sticky lg:top-6 min-w-0">
+          <h3 className="text-lg font-semibold text-gray-800">Live preview</h3>
+          <p className="mt-0.5 text-sm text-gray-600">How the patient welcome screen looks on a phone.</p>
 
-          <div
-            className="rounded-2xl p-6 md:p-8 flex items-center justify-center w-full"
-            style={{ backgroundColor: brandPageBg }}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-6 md:p-8 w-full max-w-lg mx-auto text-center">
+          {/* A phone showing the welcome screen in the current colours: frame, screen, content. */}
+          <div className="mt-5 flex justify-center">
+            <div className="w-full max-w-[290px] rounded-[2.25rem] bg-gray-900 p-1.5 shadow-lg">
               <div
-                className="w-20 h-20 mx-auto mb-4 rounded-full flex items-center justify-center shadow-lg"
-                style={{
-                  background: `linear-gradient(135deg, ${brandPrimary} 0%, ${brandAccent} 100%)`,
-                }}
+                className="overflow-hidden rounded-[1.9rem] px-4 pb-6 pt-2.5 text-center"
+                style={{ backgroundColor: brandPageBg }}
               >
-                <Heart className="w-10 h-10 text-white" fill="white" />
-              </div>
-              <p className="text-xs text-gray-500 mb-2">Service Completed</p>
-              <p className="text-lg font-bold text-gray-800 mb-1">Thank you for visiting</p>
-              <p className="text-xl font-bold mb-3" style={{ color: brandPrimary }}>
-                {HOSPITAL.name}
-              </p>
-              <p className="text-sm text-gray-600 mb-4">Your feedback helps us improve care</p>
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { icon: Bot, title: "AI Voice Guide", subtitle: "Tamil Q&A" },
-                  { icon: Mic, title: "Voice feedback", subtitle: "Speak freely" },
-                  { icon: Keyboard, title: "Rate & share", subtitle: "Stars + comments" },
-                ].map(({ icon: Icon, title, subtitle }) => (
-                  <div
-                    key={title}
-                    className="rounded-xl border border-gray-200 p-2 flex flex-col items-center justify-center gap-0.5 min-h-[4.5rem]"
-                    style={{ backgroundColor: brandPageBg }}
-                  >
+                <span className="mx-auto mb-5 block h-1.5 w-16 rounded-full bg-gray-900/80" aria-hidden />
+                <div
+                  className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full shadow-lg"
+                  style={{ background: `linear-gradient(135deg, ${brandPrimary} 0%, ${brandAccent} 100%)` }}
+                >
+                  <Heart className="h-7 w-7 text-white" fill="white" />
+                </div>
+                <p className="text-[11px] text-gray-500">Service Completed</p>
+                <p className="mt-1 text-base font-bold text-gray-800">Thank you for visiting</p>
+                <p className="mt-0.5 text-lg font-bold leading-tight text-balance" style={{ color: brandPrimary }}>
+                  {HOSPITAL.name}
+                </p>
+                <p className="mt-2 text-xs text-gray-600">Your feedback helps us improve care</p>
+                <p className="mt-4 text-[11px] font-semibold text-gray-700">How would you like to share feedback?</p>
+                <div className="mt-2.5 space-y-2">
+                  {feedbackModeChoices.map(({ id, icon: Icon, title, subtitle }) => (
                     <div
-                      className="h-8 w-8 rounded-full flex items-center justify-center text-white shrink-0"
-                      style={{ backgroundColor: brandPrimary }}
+                      key={id}
+                      className="flex items-center gap-2.5 rounded-xl bg-white px-2.5 py-2 text-left shadow-[0_1px_2px_rgba(33,29,26,0.08)]"
                     >
-                      <Icon size={16} />
+                      <span
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-white"
+                        style={{ backgroundColor: brandPrimary }}
+                      >
+                        <Icon size={15} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-xs font-bold text-gray-800">{title}</span>
+                        <span className="block text-[11px] text-gray-500">{subtitle}</span>
+                      </span>
+                      <ChevronRight size={14} className="shrink-0 text-gray-400" />
                     </div>
-                    <span className="text-[9px] font-bold text-gray-800 leading-tight text-center">
-                      {title}
-                    </span>
-                    <span className="text-[8px] font-medium text-gray-500 leading-tight text-center">
-                      {subtitle}
-                    </span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>

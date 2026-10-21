@@ -3,6 +3,7 @@ import {
   AlertCircle,
   Building2,
   Check,
+  ChevronDown,
   Eye,
   EyeOff,
   Loader2,
@@ -13,7 +14,9 @@ import {
   Stethoscope,
   Trash2,
   UserCog,
+  UserPlus,
   Users as UsersIcon,
+  Wand2,
   X,
 } from "lucide-react";
 import {
@@ -98,16 +101,16 @@ function StatTile({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`flex items-center gap-3 rounded-xl bg-gradient-to-br p-4 text-left text-white shadow-sm transition ${gradient} ${
+      className={`flex items-center gap-3 rounded-xl bg-gradient-to-br p-3 text-left sm:p-4 text-white shadow-sm transition ${gradient} ${
         active ? "ring-4 ring-offset-2 ring-gray-900/20" : "opacity-90 hover:opacity-100"
       }`}
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/15">
+      <span className="hidden h-9 w-9 shrink-0 place-items-center rounded-lg bg-white/15 sm:grid">
         {icon}
       </span>
       <span className="min-w-0">
         <span className="block text-xl font-bold leading-none">{value}</span>
-        <span className="mt-1 block truncate text-xs opacity-90">{label}</span>
+        <span className="mt-1 block text-xs leading-tight opacity-90 sm:truncate">{label}</span>
       </span>
     </button>
   );
@@ -115,6 +118,28 @@ function StatTile({
 
 function toggleId(ids: string[], id: string): string[] {
   return ids.includes(id) ? ids.filter((value) => value !== id) : [...ids, id];
+}
+
+/** Fallback role list when the roles API is unavailable. */
+const FALLBACK_ROLES = [
+  { key: "staff", label: "Staff", description: "Submits feedback for patients and views the dashboard." },
+  { key: "hod", label: "HOD (Head of Department)", description: "Sees feedback for the departments and services they own." },
+  { key: "admin", label: "Admin", description: "Manages users, settings and all feedback." },
+];
+
+const ROLE_ICONS: Record<string, typeof UsersIcon> = {
+  staff: UserCog,
+  hod: Stethoscope,
+  admin: ShieldCheck,
+  superadmin: ShieldCheck,
+};
+
+/** A readable random password (no look-alike characters such as 0/O or 1/l). */
+function generatePassword(length = 10): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+  const bytes = new Uint32Array(length);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (b) => chars[b % chars.length]).join("");
 }
 
 function MappingChecklist({
@@ -602,7 +627,54 @@ export function AdminUsersPage() {
             )}
           </div>
         ) : (
-          <div className="relative overflow-x-auto">
+          <>
+          {/* Phones: one card per account; the table takes over from tablet width. */}
+          <ul className="divide-y divide-gray-100 md:hidden">
+            {filteredUsers.map((u) => {
+              const allMappings = mappingChips(u);
+              return (
+                <li key={u._id} className="flex items-start gap-2 px-4 py-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="break-all font-mono text-sm font-medium text-gray-900">{u.username}</span>
+                      <RoleBadge role={u.role} label={roleLabels[u.role]} />
+                    </div>
+                    {allMappings.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {allMappings.map((name) => (
+                          <Chip key={name}>{name}</Chip>
+                        ))}
+                      </div>
+                    ) : u.role === "hod" ? (
+                      <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">
+                        <AlertCircle size={12} />
+                        No mappings
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => startEdit(u)}
+                    aria-label={`Edit ${u.username}`}
+                    className="grid h-10 w-10 place-items-center rounded-lg text-gray-500 transition hover:bg-brand-50 hover:text-primary"
+                  >
+                    <Pencil size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => void onDeleteUser(u._id)}
+                    aria-label={`Delete ${u.username}`}
+                    className="grid h-10 w-10 place-items-center rounded-lg text-gray-500 transition hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="relative hidden overflow-x-auto md:block">
             <table className="w-full min-w-[640px] border-collapse text-left">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
@@ -678,111 +750,197 @@ export function AdminUsersPage() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       <Sheet open={sheetOpen} onOpenChange={onSheetOpenChange}>
-        <SheetContent className="w-full gap-0 p-0 sm:max-w-lg">
-          <SheetHeader className="border-b border-gray-100 px-5 py-4">
-            <SheetTitle className="text-base font-semibold text-gray-900">
-              {editingUserId ? "Edit user" : "Add user"}
-            </SheetTitle>
-            <SheetDescription className="text-sm text-gray-500">
-              {editingUserId
-                ? "Leave the password blank to keep the current one."
-                : "The account can sign in as soon as it is created."}
-            </SheetDescription>
+        <SheetContent className="w-full gap-0 bg-gray-50 p-0 sm:max-w-md">
+          <SheetHeader className="gap-0 border-b border-gray-100 bg-white px-5 py-5 pr-14">
+            <div className="flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-50 text-primary">
+                {editingUserId ? <UserCog size={20} /> : <UserPlus size={20} />}
+              </span>
+              <div className="min-w-0">
+                <SheetTitle className="text-lg font-semibold text-gray-900">
+                  {editingUserId ? "Edit user" : "Add user"}
+                </SheetTitle>
+                <SheetDescription className="mt-0.5 text-sm text-gray-500">
+                  {editingUserId
+                    ? "Update the role or mappings. Leave the password blank to keep it."
+                    : "The account can sign in as soon as it is created."}
+                </SheetDescription>
+              </div>
+            </div>
           </SheetHeader>
 
-          <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-5 py-5">
-              <div>
-                <label className={LABEL_CLASS}>Username</label>
-                <input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  autoComplete="off"
-                  className={`${FIELD_CLASS} font-mono`}
-                  placeholder="login id (lowercase)"
-                />
-              </div>
-
-              <div>
-                <label className={LABEL_CLASS}>Password</label>
-                <div className="relative">
+          <form onSubmit={onSubmit} autoComplete="off" className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+              <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Sign-in</h3>
+                <div>
+                  <label htmlFor="user-username" className={LABEL_CLASS}>
+                    Username <span className="text-red-500">*</span>
+                  </label>
                   <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required={!editingUserId}
-                    minLength={editingUserId ? undefined : 6}
-                    className={`${FIELD_CLASS} pr-11`}
-                    placeholder={editingUserId ? "Leave blank to keep current" : "min 6 characters"}
+                    id="user-username"
+                    name="pfs-account-id"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    data-1p-ignore
+                    data-lpignore="true"
+                    className={`${FIELD_CLASS} font-mono`}
+                    placeholder="e.g. drpriya"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((prev) => !prev)}
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    className="absolute inset-y-0 right-0 grid w-11 place-items-center text-gray-400 transition hover:text-gray-700"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                  <p className="mt-1.5 text-xs text-gray-500">Lowercase, no spaces. Used to sign in.</p>
                 </div>
-              </div>
 
-              <div>
-                <label className={LABEL_CLASS}>Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => onRoleChange(e.target.value as UserRole)}
-                  className={FIELD_CLASS}
-                >
-                  {roleOptions.length ? (
-                    roleOptions.map((r) => (
-                      <option key={r.key} value={r.key}>
-                        {r.label}
-                      </option>
-                    ))
-                  ) : (
-                    <>
-                      <option value="staff">Staff</option>
-                      <option value="hod">HOD (Head of Department)</option>
-                      <option value="admin">Admin</option>
-                    </>
-                  )}
-                </select>
-              </div>
+                <div>
+                  <div className="mb-1.5 flex items-center justify-between gap-2">
+                    <label htmlFor="user-password" className="text-[13px] font-medium text-gray-700">
+                      Password {editingUserId ? null : <span className="text-red-500">*</span>}
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPassword(generatePassword());
+                        setShowPassword(true);
+                      }}
+                      className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold text-primary transition hover:bg-brand-50"
+                    >
+                      <Wand2 size={12} />
+                      Generate
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="user-password"
+                      name="pfs-account-secret"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required={!editingUserId}
+                      minLength={editingUserId ? undefined : 6}
+                      autoComplete="new-password"
+                      data-1p-ignore
+                      data-lpignore="true"
+                      className={`${FIELD_CLASS} pr-11 ${showPassword ? "font-mono" : ""}`}
+                      placeholder={editingUserId ? "Leave blank to keep current" : "At least 6 characters"}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute inset-y-0 right-0 grid w-11 place-items-center text-gray-400 transition hover:text-gray-700"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {showPassword && password ? (
+                    <p className="mt-1.5 text-xs text-gray-500">Share this password with the user securely.</p>
+                  ) : null}
+                </div>
+              </section>
+
+              <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Role</h3>
+                <div role="radiogroup" aria-label="Role" className="space-y-2">
+                  {(roleOptions.length ? roleOptions : FALLBACK_ROLES).map((r) => {
+                    const selected = role === r.key;
+                    const RoleIcon = ROLE_ICONS[r.key] ?? UsersIcon;
+                    return (
+                      <label
+                        key={r.key}
+                        className={`flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition ${
+                          selected
+                            ? "border-primary bg-brand-50/60 ring-1 ring-primary"
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="user-role"
+                          value={r.key}
+                          checked={selected}
+                          onChange={() => onRoleChange(r.key as UserRole)}
+                          className="sr-only"
+                        />
+                        <span
+                          className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg ${
+                            selected ? "bg-primary text-white" : "bg-gray-100 text-gray-500"
+                          }`}
+                        >
+                          <RoleIcon size={16} />
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-sm font-semibold text-gray-900">{r.label}</span>
+                          {r.description ? (
+                            <span className="mt-0.5 block text-xs leading-relaxed text-gray-500">
+                              {r.description}
+                            </span>
+                          ) : null}
+                        </span>
+                        <span
+                          aria-hidden
+                          className={`mt-1 grid h-4 w-4 shrink-0 place-items-center rounded-full border-2 ${
+                            selected ? "border-primary" : "border-gray-300"
+                          }`}
+                        >
+                          {selected ? <span className="h-1.5 w-1.5 rounded-full bg-primary" /> : null}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </section>
 
               {role === "staff" ? (
-                <div>
-                  <label className={LABEL_CLASS}>
-                    Department <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={departmentId}
-                    onChange={(e) => setDepartmentId(e.target.value)}
-                    required
-                    className={FIELD_CLASS}
-                  >
-                    <option value="">— Select department —</option>
-                    {departments.map((d) => (
-                      <option key={d._id} value={d._id}>
-                        {d.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4">
+                  <div>
+                    <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                      Department <span className="text-red-500">*</span>
+                    </h3>
+                    <p className="mt-1 text-xs text-gray-500">The department this staff member works in.</p>
+                  </div>
+                  <div className="relative">
+                    <select
+                      value={departmentId}
+                      onChange={(e) => setDepartmentId(e.target.value)}
+                      required
+                      aria-label="Department"
+                      className={`${FIELD_CLASS} cursor-pointer appearance-none pr-10`}
+                    >
+                      <option value="">Select a department</option>
+                      {departments.map((d) => (
+                        <option key={d._id} value={d._id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown
+                      size={16}
+                      aria-hidden
+                      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                    />
+                  </div>
+                </section>
               ) : null}
 
               {role === "hod" ? (
-                <div className="space-y-4 rounded-xl border border-gray-200 bg-gray-50/60 p-4">
+                <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4">
                   <div className="flex items-start gap-2.5">
                     <Building2 className="mt-0.5 shrink-0 text-gray-400" size={16} />
-                    <p className="text-[13px] leading-relaxed text-gray-600">
-                      Tickets for any selected department or service appear in this HOD&rsquo;s
-                      queue.
-                    </p>
+                    <div>
+                      <h3 className="text-xs font-semibold uppercase tracking-wide text-gray-500">Owns</h3>
+                      <p className="mt-1 text-xs leading-relaxed text-gray-500">
+                        Feedback for every department and service ticked here appears on this HOD&rsquo;s
+                        dashboard.
+                      </p>
+                    </div>
                   </div>
                   <MappingChecklist
                     title="Departments"
@@ -798,7 +956,7 @@ export function AdminUsersPage() {
                     onChange={setHodServiceIds}
                     emptyLabel="No routing services in the catalog yet."
                   />
-                </div>
+                </section>
               ) : null}
 
               {error ? (
@@ -809,24 +967,20 @@ export function AdminUsersPage() {
               ) : null}
             </div>
 
-            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+            <div className="flex shrink-0 items-center gap-2 border-t border-gray-200 bg-white px-4 py-3.5 sm:justify-end sm:px-5">
               <button
                 type="button"
                 onClick={() => onSheetOpenChange(false)}
-                className="rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50"
+                className="flex-1 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:flex-none"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
               >
-                {saving ? (
-                  <Loader2 className="animate-spin" size={15} />
-                ) : (
-                  <Check size={15} />
-                )}
+                {saving ? <Loader2 className="animate-spin" size={15} /> : <Check size={15} />}
                 {editingUserId ? "Save changes" : "Create user"}
               </button>
             </div>

@@ -3,3 +3,9 @@ npm-debug.log
 .env
 .env.*
 !.env.example
+
+# Patient recordings never go into the image; only the AI Voice Guide prompts do.
+uploads/*
+!uploads/feedback-voice
+uploads/feedback-voice/*
+!uploads/feedback-voice/ai_voice

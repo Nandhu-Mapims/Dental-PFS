@@ -1,6 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router";
-import { BarChart3, ClipboardList, KeyRound, UserRound } from "lucide-react";
+import { Outlet, ScrollRestoration, useLocation, useNavigate } from "react-router";
+import {
+  Bot,
+  Building2,
+  ClipboardList,
+  FileText,
+  Inbox,
+  KeyRound,
+  Layers,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  MessageSquareText,
+  Settings,
+  ShieldCheck,
+  Ticket,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "./ui/sheet";
 import { getSession, logout } from "../lib/auth";
 import { isUserFeedPath, patientRoutes } from "../lib/patientRoutes";
 import feedbackLogo from "./image/hospital_logo.png";
@@ -22,6 +40,7 @@ export function Layout() {
   const navigate = useNavigate();
   const [branding, setBranding] = useState(() => getBrandingSettings());
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [navOpen, setNavOpen] = useState(false);
   const { enabled: ticketingEnabled } = useTicketingEnabled();
   const { enabled: departmentsEnabled } = useModuleEnabled("departmentsEnabled");
   const { enabled: servicesEnabled } = useModuleEnabled("servicesEnabled");
@@ -38,7 +57,7 @@ export function Layout() {
     capabilities.includes("settings.manage") ||
     capabilities.includes("branding.manage");
   const isHod = session?.role === "hod";
-  const hodCanSeeOverview = isHod && capabilities.includes("insights.overview");
+  const canSeeDashboard = capabilities.includes("insights.view");
   const path = location.pathname;
   const isPatientKioskScreen = isUserFeedPath(path);
   const isStaffRoute =
@@ -49,35 +68,20 @@ export function Layout() {
     path.includes("analytics") ||
     path.includes("ticket") ||
     path.includes("admin") ||
+    path.startsWith("/insights") ||
     path.startsWith("/hod/"));
   const showHeaderActions = Boolean(session) && isStaffRoute;
-  const onInsightsArea =
-    path.startsWith("/management") ||
-    path === "/analytics" ||
-    path === "/insights" ||
-    path.startsWith("/admin/management-overview") ||
-    path === "/admin/insights" ||
-    path === "/admin/analytics";
-
-  const showBottomNav =
-    Boolean(session) &&
-    !isHod &&
-    !isAdmin &&
-    (onInsightsArea ||
-      [
-        "/dashboard",
-        "/staff",
-        "/admin",
-        "/admin/departments",
-        "/admin/services",
-        "/admin/users",
-        "/admin/roles",
-        "/admin/tickets",
-        "/admin/settings",
-        "/admin/bot-conversation",
-      ].includes(path));
+  // The three analytics pages, in the admin shell (/admin…) or for staff, management and HODs (/insights…).
+  const onDashboard = path === "/admin" || path === "/insights";
+  const onFeedbackList = path.startsWith("/admin/feedback") || path.startsWith("/insights/feedback");
+  const onReports = path === "/admin/reports" || path === "/insights/reports";
 
   const isAdminShell = isAdmin && path.startsWith("/admin");
+
+  // The phone/tablet sidebar closes whenever the page changes.
+  useEffect(() => {
+    setNavOpen(false);
+  }, [path]);
 
   useEffect(() => {
     applyBrandingTheme(branding);
@@ -90,7 +94,6 @@ export function Layout() {
     });
   }, []);
 
-  const activePrimaryStyle = { color: branding.primaryColor };
   const activePrimaryBackgroundStyle = {
     backgroundColor: branding.primaryColor,
     color: "#ffffff",
@@ -98,8 +101,9 @@ export function Layout() {
   const appLogo = branding.logoDataUrl || feedbackLogo;
 
   const adminTabs = [
-    { label: "Insights", to: "/admin/management-overview/submissions", active: onInsightsArea },
-    { label: "Overview", to: "/admin", active: path === "/admin" || path === "/admin/delete" },
+    { label: "Feedback", to: "/admin/feedback", active: onFeedbackList },
+    { label: "Dashboard", to: "/admin", active: onDashboard },
+    { label: "Reports", to: "/admin/reports", active: onReports },
     departmentsEnabled && {
       label: "Departments",
       to: "/admin/departments",
@@ -125,8 +129,53 @@ export function Layout() {
     "shrink-0 whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium text-white transition-all duration-200";
 
   const showSectionNav = !isPatientKioskScreen && showHeaderActions;
-  // Plain staff already get these links in the mobile bottom bar.
-  const sectionNavMobileHidden = !isAdmin && !isHod;
+
+  // The same sections, with icons, for the phone/tablet sidebar.
+  const navIcons: Record<string, LucideIcon> = {
+    Dashboard: LayoutDashboard,
+    Feedback: MessageSquareText,
+    Reports: FileText,
+    Departments: Building2,
+    Services: Layers,
+    Users,
+    Roles: ShieldCheck,
+    Tickets: Ticket,
+    "Bot Q&A": Bot,
+    Settings,
+    "Patient View": ClipboardList,
+    "Submit feedback": ClipboardList,
+    "My queue": Inbox,
+  };
+  let drawerLinks: { label: string; to: string; active: boolean }[] = [];
+  if (isAdminShell) {
+    drawerLinks = adminTabs;
+  } else if (isAdmin) {
+    drawerLinks = [
+      { label: "Dashboard", to: "/admin", active: false },
+      { label: "Patient View", to: patientRoutes.home, active: false },
+    ];
+  } else if (isHod) {
+    drawerLinks = canSeeDashboard
+      ? [
+          { label: "Feedback", to: "/insights/feedback", active: onFeedbackList },
+          { label: "Dashboard", to: "/insights", active: onDashboard },
+          ...(ticketingEnabled ? [{ label: "My queue", to: "/dashboard", active: path === "/dashboard" }] : []),
+        ]
+      : [];
+  } else {
+    drawerLinks = [
+      ...(canSeeDashboard
+        ? [
+            { label: "Feedback", to: "/insights/feedback", active: onFeedbackList },
+            { label: "Dashboard", to: "/insights", active: onDashboard },
+            { label: "Reports", to: "/insights/reports", active: onReports },
+          ]
+        : []),
+      { label: "Submit feedback", to: patientRoutes.home, active: false },
+    ];
+  }
+  const hasDrawer = showSectionNav && drawerLinks.length > 0;
+  const roleLabel: Record<string, string> = { superadmin: "Super admin", admin: "Admin", hod: "HOD", staff: "Staff" };
 
   let sectionNav: React.ReactNode = null;
   if (isAdminShell) {
@@ -156,20 +205,8 @@ export function Layout() {
   } else if (isAdmin) {
     sectionNav = (
       <div className="flex flex-nowrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => navigate("/admin/management-overview/submissions")}
-          className={solidButton}
-          style={activePrimaryBackgroundStyle}
-        >
-          Insights
-        </button>
-        <button
-          type="button"
-          onClick={() => navigate("/management/submissions")}
-          className={outlineButton(onInsightsArea)}
-        >
-          Operations
+        <button type="button" onClick={() => navigate("/admin")} className={solidButton} style={activePrimaryBackgroundStyle}>
+          Dashboard
         </button>
         <button type="button" onClick={() => navigate(patientRoutes.home)} className={outlineButton(false)}>
           Patient View
@@ -177,14 +214,17 @@ export function Layout() {
       </div>
     );
   } else if (isHod) {
-    sectionNav = hodCanSeeOverview ? (
+    sectionNav = canSeeDashboard ? (
       <div className="flex flex-nowrap items-center gap-2">
         <button
           type="button"
-          onClick={() => navigate("/hod/overview")}
-          className={outlineButton(path === "/hod/overview")}
+          onClick={() => navigate("/insights/feedback")}
+          className={outlineButton(onFeedbackList)}
         >
-          Overview
+          Feedback
+        </button>
+        <button type="button" onClick={() => navigate("/insights")} className={outlineButton(onDashboard)}>
+          Dashboard
         </button>
         {ticketingEnabled ? (
           <button
@@ -208,16 +248,23 @@ export function Layout() {
         >
           Submit feedback
         </button>
-        <button
-          type="button"
-          onClick={() => navigate("/management/submissions")}
-          className={outlineButton(onInsightsArea)}
-        >
-          Insights
-        </button>
-        <button type="button" onClick={() => navigate(patientRoutes.home)} className={outlineButton(false)}>
-          Patient View
-        </button>
+        {canSeeDashboard ? (
+          <>
+            <button
+              type="button"
+              onClick={() => navigate("/insights/feedback")}
+              className={outlineButton(onFeedbackList)}
+            >
+              Feedback
+            </button>
+            <button type="button" onClick={() => navigate("/insights")} className={outlineButton(onDashboard)}>
+              Dashboard
+            </button>
+            <button type="button" onClick={() => navigate("/insights/reports")} className={outlineButton(onReports)}>
+              Reports
+            </button>
+          </>
+        ) : null}
       </div>
     );
   }
@@ -227,6 +274,8 @@ export function Layout() {
       className={`min-h-screen flex flex-col ${MOBILE_NETWORK_BAR_OFFSET_CLASS}`}
       style={{ backgroundColor: branding.pageBackgroundColor }}
     >
+      {/* New pages open at the top; Back/Forward return to where you were. */}
+      <ScrollRestoration />
       <NetworkStatusIndicator variant="mobile-fixed" />
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
@@ -245,6 +294,17 @@ export function Layout() {
           */}
           <div className="flex flex-wrap items-center gap-x-3 gap-y-3">
             <div className="order-1 flex min-w-0 flex-1 items-center gap-2.5 sm:gap-3">
+              {hasDrawer ? (
+                <button
+                  type="button"
+                  onClick={() => setNavOpen(true)}
+                  aria-label="Open menu"
+                  aria-expanded={navOpen}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-gray-200 text-gray-700 transition hover:bg-gray-100 lg:hidden"
+                >
+                  <Menu size={20} />
+                </button>
+              ) : null}
               <img
                 src={appLogo}
                 alt={`${HOSPITAL.shortName} feedback system`}
@@ -266,7 +326,10 @@ export function Layout() {
                 </p>
               </div>
             </div>
-            <div className="order-2 flex shrink-0 items-center gap-2 2xl:order-3">
+            {/* With the sidebar, password and logout live in it on phones and tablets. */}
+            <div
+              className={`order-2 shrink-0 items-center gap-2 2xl:order-3 ${hasDrawer ? "hidden lg:flex" : "flex"}`}
+            >
               <NetworkStatusIndicator variant="inline" />
               {isHod && session ? (
                 <button
@@ -294,9 +357,7 @@ export function Layout() {
             </div>
             {showSectionNav && sectionNav ? (
               <div
-                className={`order-3 w-full min-w-0 2xl:order-2 2xl:w-auto ${
-                  sectionNavMobileHidden ? "hidden md:block" : ""
-                }`}
+                className={`order-3 w-full min-w-0 2xl:order-2 2xl:w-auto ${hasDrawer ? "hidden lg:block" : ""}`}
               >
                 <div className="overflow-x-auto [scrollbar-width:thin]">{sectionNav}</div>
               </div>
@@ -306,56 +367,91 @@ export function Layout() {
       </header>
 
       {/* Main Content — wider canvas so dashboards use horizontal space */}
-      <main
-        className={`flex-1 w-full max-w-[min(100%,1600px)] mx-auto overflow-x-clip px-3 sm:px-5 py-6 ${
-          showBottomNav ? "pb-24 md:pb-6" : ""
-        }`}
-      >
+      <main className="flex-1 w-full max-w-[min(100%,1600px)] mx-auto overflow-x-clip px-3 sm:px-5 py-6">
         {isPatientKioskScreen && <FeedbackOutboxStatus />}
         <Outlet />
       </main>
 
-      {/* Bottom navigation — plain staff on phones. Admins and HODs use the header section nav. */}
-      {showBottomNav && (
-        <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t border-gray-200 shadow-[0_-6px_16px_-8px_rgb(74_13_31/0.15)] md:hidden">
-          <div className="flex justify-around items-center h-16">
-            <button
-              type="button"
-              onClick={() => navigate("/management/submissions")}
-              className={`flex flex-col items-center gap-1 px-4 py-2 ${
-                onInsightsArea || path === "/staff" || path === "/dashboard" ? "" : "text-gray-500"
-              }`}
-              style={
-                onInsightsArea || path === "/staff" || path === "/dashboard"
-                  ? activePrimaryStyle
-                  : undefined
-              }
-            >
-              <BarChart3 size={24} />
-              <span className="text-xs">Insights</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(patientRoutes.home)}
-              className={`flex flex-col items-center gap-1 px-4 py-2 ${
-                isPatientKioskScreen ? "" : "text-gray-500"
-              }`}
-              style={isPatientKioskScreen ? activePrimaryStyle : undefined}
-            >
-              <ClipboardList size={24} />
-              <span className="text-xs">Feedback</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => navigate(patientRoutes.home)}
-              className="flex flex-col items-center gap-1 px-4 py-2 text-gray-500"
-            >
-              <UserRound size={24} />
-              <span className="text-xs">Patient</span>
-            </button>
-          </div>
-        </nav>
-      )}
+      {/* Phones and tablets: the section nav is a sidebar that slides in from the left. */}
+      {hasDrawer ? (
+        <Sheet open={navOpen} onOpenChange={setNavOpen}>
+          <SheetContent
+            side="left"
+            className="w-[280px] max-w-[85vw] gap-0 bg-white p-0 lg:hidden"
+          >
+            <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-4 pr-12">
+              <img src={appLogo} alt="" className="h-10 w-auto max-w-[72px] shrink-0 object-contain" />
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-base font-bold tracking-tight text-gray-900">
+                  {HOSPITAL.shortName}
+                </SheetTitle>
+                <SheetDescription className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#8A6A10]">
+                  Patient Feedback System
+                </SheetDescription>
+              </div>
+            </div>
+            <nav aria-label="Sections" className="flex-1 overflow-y-auto p-3">
+              <ul className="space-y-1">
+                {drawerLinks.map(({ label, to, active }) => {
+                  const Icon = navIcons[label] ?? LayoutDashboard;
+                  return (
+                    <li key={to}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNavOpen(false);
+                          navigate(to);
+                        }}
+                        aria-current={active ? "page" : undefined}
+                        className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold transition-colors ${
+                          active ? "shadow-sm" : "text-gray-700 hover:bg-gray-100"
+                        }`}
+                        style={active ? activePrimaryBackgroundStyle : undefined}
+                      >
+                        <Icon size={18} className={active ? "" : "text-gray-500"} />
+                        {label}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+            {session ? (
+              <div className="space-y-1 border-t border-gray-100 p-3">
+                <p className="px-3 pb-1 text-xs text-gray-500">
+                  Signed in as <span className="font-semibold text-gray-800">{session.username}</span>
+                  {roleLabel[session.role] ? ` · ${roleLabel[session.role]}` : ""}
+                </p>
+                {isHod ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNavOpen(false);
+                      setChangePasswordOpen(true);
+                    }}
+                    className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-100"
+                  >
+                    <KeyRound size={18} className="text-gray-500" />
+                    Change password
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNavOpen(false);
+                    logout();
+                    navigate("/login");
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition-colors hover:bg-red-50"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </div>
+            ) : null}
+          </SheetContent>
+        </Sheet>
+      ) : null}
       {isHod && session ? (
         <HodChangePasswordDialog
           open={changePasswordOpen}
