@@ -18,7 +18,7 @@
     "uploads:check": "node scripts/checkUploadsHealth.js",
     "reset-db": "node scripts/resetDatabase.js --yes",
     "test-emr-lookup": "node scripts/testEmrLookup.js",
-    "test": "node --test src/fieldSanitize.test.js src/piiRedact.test.js src/feedbackScope.test.js",
+    "test": "node --test src/fieldSanitize.test.js src/piiRedact.test.js src/feedbackScope.test.js src/ratingSentiment.test.js",
     "seed-superadmin": "node scripts/seedSuperadmin.js"
   },
   "dependencies": {

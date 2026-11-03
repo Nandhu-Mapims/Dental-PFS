@@ -28,6 +28,7 @@ import {
   counterToSortedList,
 } from "./feedbackSlices.js";
 import { combineFeedbackTextForAi } from "./feedbackText.js";
+import { hasNoPatientText, ratingOnlyAiFields } from "./ratingSentiment.js";
 import { filterAiTopicsForTranscript } from "./aiTopicsFilter.js";
 import {
   lookupPatientRecords,
@@ -1986,19 +1987,33 @@ async function applyPendingAiToFeedback({
   return { outDoc, splitChildDocs, ticketId };
 }
 
-async function reanalyzeFeedbackById(feedbackId) {
-  if (!process.env.OPENROUTER_API_KEY?.trim()) return false;
+/** Stores the rating-based sentiment on a row with no patient text. Returns true when saved. */
+async function applyRatingOnlySentiment(row) {
+  const fields = ratingOnlyAiFields(row.rating);
+  if (!fields) return false;
+  await Feedback.updateOne({ _id: row._id, aiSentiment: { $in: [null, ""] } }, { $set: fields });
+  return true;
+}
 
+async function reanalyzeFeedbackById(feedbackId, { ratingFallback = false } = {}) {
   const row = await Feedback.findById(feedbackId).lean();
   if (!row || row.isSplitChild) return false;
-
-  const commentsForAi = combineFeedbackTextForAi(row.comments, row.staffRemarks);
-  if (!commentsForAi) return false;
 
   const existing = row.aiSentiment;
   if (existing === "positive" || existing === "neutral" || existing === "negative") {
     return false;
   }
+
+  // Nothing the patient wrote or said: the rating is the answer, no AI needed. Also the last
+  // resort for a row the AI has failed on again and again, so it never stays "Pending".
+  if (hasNoPatientText(row.comments) || ratingFallback) {
+    return applyRatingOnlySentiment(row);
+  }
+
+  if (!process.env.OPENROUTER_API_KEY?.trim()) return false;
+
+  const commentsForAi = combineFeedbackTextForAi(row.comments, row.staffRemarks);
+  if (!commentsForAi) return false;
 
   const [serviceCatalog, departmentCatalog] = await Promise.all([
     loadServiceCatalogForAi(),
@@ -2092,7 +2107,7 @@ async function runDeferredFeedbackAiPipeline(ctx) {
         message: analyzeErr?.message || String(analyzeErr),
       });
       if (attempt === 2) {
-        pendingAiWorker?.scheduleRetry(feedbackId);
+        // The pending-AI worker retries rows still missing sentiment, with backoff.
         return;
       }
     }
@@ -2103,7 +2118,7 @@ async function runDeferredFeedbackAiPipeline(ctx) {
     console.log("[feedback] deferred AI skipped (no OpenRouter result)", {
       feedbackId: String(feedbackId),
     });
-    pendingAiWorker?.scheduleRetry(feedbackId);
+    // The pending-AI worker retries rows still missing sentiment, with backoff.
     return;
   }
 
@@ -2137,7 +2152,7 @@ async function runDeferredFeedbackAiPipeline(ctx) {
       feedbackId: String(feedbackId),
       message: aiErr?.message || String(aiErr),
     });
-    pendingAiWorker?.scheduleRetry(feedbackId);
+    // The pending-AI worker retries rows still missing sentiment, with backoff.
   }
 }
 
@@ -2544,9 +2559,30 @@ app.post("/api/feedback", limitFeedbackSubmit, (req, res, next) => {
       }
     }
 
+    // No patient words to analyse (e.g. a typed submission with only a rating): take the
+    // sentiment from the rating now, instead of leaving the row "Pending" forever. A staff
+    // remark alone is not the patient's view, so it does not go to the AI either.
+    const ratingOnly = deferAiProcessing && hasNoPatientText(comments) && !outDoc.aiSentiment;
+    if (ratingOnly) {
+      const fields = ratingOnlyAiFields(numericRating);
+      if (fields) {
+        try {
+          await Feedback.updateOne({ _id: feedback._id }, { $set: fields });
+          outDoc = { ...outDoc, ...fields };
+        } catch (ratingErr) {
+          // eslint-disable-next-line no-console
+          console.error("[feedback] could not save rating-based sentiment", {
+            feedbackId: String(feedback._id),
+            message: ratingErr?.message || String(ratingErr),
+          });
+        }
+      }
+    }
+
     const payload = attachVoicePlaybackUrl(outDoc);
     const shouldDeferAi =
       deferAiProcessing &&
+      !ratingOnly &&
       process.env.OPENROUTER_API_KEY &&
       commentsForAi;
 
